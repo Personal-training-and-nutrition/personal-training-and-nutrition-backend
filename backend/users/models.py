@@ -2,11 +2,32 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 
+SPECIALIST_ROLE_CHOICES = (
+    ('trainer', 'Тренер'),
+    ('nutritionist', 'Диетолог')
+)
+
+
+class Specialization(models.Model):
+    """Представляет список возможных специализаций для специалистов.
+    Далее в SpecialistUser.specialization позволяет пользователям выбрать свою
+    специализацию, оставляя его пустым при универсальной регистрации."""
+
+    name = models.CharField(max_length=70)
+
+    class Meta:
+        verbose_name = 'Специализация'
+        verbose_name_plural = 'Специализации'
+
+    def __str__(self):
+        return self.name
+
+
 class User(AbstractUser):
     _progress = models.IntegerField()
-    surname = models.CharField(max_length=100)
-    first_name = models.CharField(max_length=100)
-    patronymic = models.CharField(max_length=100)
+    surname = models.CharField(max_length=70)
+    first_name = models.CharField(max_length=70)
+    patronymic = models.CharField(max_length=70)
     email = models.EmailField(unique=True)
     age = models.PositiveIntegerField()
     gender = models.CharField(max_length=10)
@@ -14,82 +35,44 @@ class User(AbstractUser):
     height = models.DecimalField(max_digits=4, decimal_places=2)
     profile_photo = models.ImageField(
         upload_to='profile_photos', null=True, blank=True)
-    specialists = models.ManyToManyField(
-        'Specialist', through='UserSpecialist')
-    trainers = models.ManyToManyField(
-        'Specialist', related_name="trainees", through='UserSpecialist',
-        limit_choices_to={'specialization': 'trainer'})
 
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
     def __str__(self):
-        return f'{self.surname} {self.first_name}'
+        return f"{self.surname} {self.first_name}"
 
 
 class Specialist(models.Model):
-    specialization_choices = [
-        ('trainer', 'Тренер'),
-        ('nutritionist', 'Нутрициолог'),
-    ]
     id_special = models.AutoField(primary_key=True)
-    surname = models.CharField(max_length=100)
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    patronymic = models.CharField(max_length=100)
+    surname = models.CharField(max_length=70)
+    first_name = models.CharField(max_length=70)
+    patronymic = models.CharField(max_length=70)
     experience = models.PositiveIntegerField()
-    education = models.CharField(max_length=100)
-    specialization = models.CharField(
-        max_length=100, choices=specialization_choices)
-    contact_information = models.CharField(max_length=100)
+    education = models.CharField(max_length=70)
+    specialization = models.CharField(max_length=70)
+    contact_information = models.CharField(max_length=70)
     profile_photo = models.ImageField(
         upload_to='profile_photos', null=True, blank=True)
-    users = models.ManyToManyField(User, through='UserSpecialist')
-    specialization = models.CharField(
-        max_length=100, choices=specialization_choices)
+
+    users = models.ManyToManyField(User, through='SpecialistUser')
 
     class Meta:
         verbose_name = 'Специалист'
         verbose_name_plural = 'Специалисты'
 
     def __str__(self):
-        return f'{self.surname} {self.first_name}'
+        return f"{self.surname} {self.first_name}"
 
 
-class UserSpecialist(models.Model):
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='specialists')
-    specialist = models.ForeignKey(
-        Specialist, on_delete=models.CASCADE, related_name='users')
-    role = models.CharField(max_length=100, choices=(
-        ('role1', 'Роль 1'),
-        ('role2', 'Роль 2'),
-    ))
+class SpecialistUser(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    specialist = models.ForeignKey(Specialist, on_delete=models.CASCADE)
+    role = models.CharField(choices=(SPECIALIST_ROLE_CHOICES))
+    specialization = models.ForeignKey(
+        Specialization, on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
-        verbose_name = 'Пользователь-Специалист'
-        verbose_name_plural = 'Пользователи-Специалисты'
-
-    def __str__(self):
-        return f"Пользователь: {self.user}, Специалист: {self.specialist}, Роль: {self.role}"
-
-
-"""
-Связь "Многие ко многим" (Many-to-Many) между моделями User и Specialist:
-
-В модели User:
-specialists = models.ManyToManyField('Specialist', through='UserSpecialist'): Это поле устанавливает отношение многие ко многим между моделями User и Specialist. Оно позволяет пользователям иметь несколько связанных специалистов. through='UserSpecialist' указывает на использование модели UserSpecialist для промежуточной таблицы.
-В модели Specialist:
-users = models.ManyToManyField(User, through='UserSpecialist'): Это поле устанавливает обратное отношение многие ко многим между моделями Specialist и User. Оно позволяет специалистам иметь несколько связанных пользователей. through='UserSpecialist' указывает на использование модели UserSpecialist для промежуточной таблицы.
-Связь "Многие ко многим" (Many-to-Many) между моделями User и Specialist со специализацией "trainer":
-
-В модели User:
-trainers = models.ManyToManyField('Specialist', related_name="trainees", through='UserSpecialist', limit_choices_to={'specialization': 'trainer'}): Это поле устанавливает отношение многие ко многим между моделями User и Specialist с ограничением выбора специализации "trainer". Оно позволяет пользователям иметь несколько связанных тренеров, используя модель UserSpecialist для промежуточной таблицы. related_name="trainees" указывает, что пользователи будут иметь доступ к списку тренеров через атрибут trainees.
-Связь "Многие ко многим" (Many-to-Many) между моделями User и Specialist с использованием модели UserSpecialist:
-
-В модели UserSpecialist:
-user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='specialists'): Это поле устанавливает внешний ключ на модель User, указывая на связь со специлистом. Оно позволяет связывать пользователя с конкретным специалистом. related_name='specialists' указывает, что пользователи будут иметь доступ к объектам UserSpecialist через атрибут specialists.
-specialist = models.ForeignKey(Specialist, on_delete=models.CASCADE, related_name='users'): Это поле устанавливает внешний ключ на модель Specialist, указывая на связь с пользователем. Оно позволяет связывать специалиста с конкретным пользователем. related_name='users' указывает, что специалисты будут иметь доступ к объектам UserSpecialist через атрибут users.
-Вышеупомянутые отношения и использование моделей UserSpecialist и UserSpecialist позволяют связывать пользователей и специалистов с помощью промежуточных таблиц и сохранять дополнительную информацию о связи, такую как роль пользователя в отношении специалиста.
-"""
+        verbose_name = 'Специалист-Пользователь'
+        verbose_name_plural = 'Специалисты-Пользователи'
