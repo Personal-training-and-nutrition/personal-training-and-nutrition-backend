@@ -2,8 +2,14 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 
+SPECIALIST_ROLE_CHOICES = (
+    ('trainer', 'Тренер'),
+    ('nutritionist', 'Диетолог')
+)
+
+
 class Role(models.Model):
-    name = models.CharField(max_length=64)
+    role = models.CharField(choices=(SPECIALIST_ROLE_CHOICES))
 
     class Meta:
         verbose_name = 'Роль'
