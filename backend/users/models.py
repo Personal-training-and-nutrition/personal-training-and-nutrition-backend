@@ -55,8 +55,8 @@ class DemographicUser(models.Model):
     first_name = models.CharField(max_length=128)
     last_name = models.CharField(max_length=128)
     middle_name = models.CharField(max_length=128, null=True, blank=True)
-    weight = models.FloatField(null=True, blank=True)
-    height = models.IntegerField(null=True, blank=True)
+    weight = models.DecimalField(max_digits=5, decimal_places=2)
+    height = models.DecimalField(max_digits=4, decimal_places=2)
     capture = models.BinaryField(null=True, blank=True)
     about = models.TextField(null=True, blank=True)
 
