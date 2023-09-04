@@ -9,7 +9,7 @@ SPECIALIST_ROLE_CHOICES = (
 
 
 class Role(models.Model):
-    role = models.CharField(choices=(SPECIALIST_ROLE_CHOICES))
+    role = models.CharField(max_length=64, choices=(SPECIALIST_ROLE_CHOICES))
 
     class Meta:
         verbose_name = 'Роль'
@@ -69,7 +69,7 @@ class DemographicUser(models.Model):
 
 
 class Specialization(models.Model):
-    name = models.CharField(max_length=70)
+    name = models.CharField(max_length=64)
 
     class Meta:
         verbose_name = 'Специализация'
