@@ -20,8 +20,8 @@ pyproject-toml==0.0.10
 python-dotenv
 pytz==2023.3
 referencing
-rpds-py
-sqlparse
-toml
-typing_extensions
-tzdata
+rpds-py==0.10.2
+sqlparse==0.4.4
+toml==0.10.2
+typing_extensions==4.7.1
+tzdata==2023.3
