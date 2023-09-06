@@ -19,7 +19,7 @@ pyflakes
 pyproject-toml==0.0.10
 python-dotenv
 pytz==2023.3
-referencing==0.30.2
+referencing
 rpds-py==0.9.2
 sqlparse==0.4.4
 toml==0.10.2
