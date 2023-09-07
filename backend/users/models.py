@@ -1,91 +1,171 @@
-from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.db.models import (CASCADE, BinaryField, BooleanField, CharField,
+                              DateField, DateTimeField, EmailField, FloatField,
+                              ForeignKey, IntegerField, Model, TextField)
+
+SPECIALIST_ROLE_CHOICES = (
+    ('trainer', 'Тренер'),
+    ('nutritionist', 'Диетолог')
+)
+
+GENDER_CHOICES = (
+    ('M', 'Male'),
+    ('F', 'Female'),
+)
 
 
-class Gender(models.Model):
-    gender = models.CharField(max_length=64)
+class Gender(Model):
+    gender = CharField(
+        max_length=1,
+        choices=GENDER_CHOICES,
+        primary_key=True,
+    )
+
+    class Meta:
+        verbose_name = 'Пол'
+        verbose_name_plural = 'Полы'
 
     def __str__(self):
         return self.gender
 
 
-class Role(models.Model):
-    name = models.CharField(max_length=64)
+class Role(Model):
+    role = CharField(
+        max_length=64,
+        choices=(SPECIALIST_ROLE_CHOICES),
+    )
+
+    class Meta:
+        verbose_name = 'Роль'
+        verbose_name_plural = 'Роли'
 
     def __str__(self):
         return self.name
 
 
-class Education(models.Model):
-    institution = models.ForeignKey('Institution', on_delete=models.CASCADE, related_name='education_institution')
-    graduate = models.TextField()
-    completion_date = models.DateField()
-    number = models.CharField(max_length=64)
-    capture = models.BinaryField(null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+class Education(Model):
+    institution = ForeignKey(
+        'Institution',
+        on_delete=CASCADE,
+        related_name='education_institution',
+    )
+    graduate = TextField()
+    completion_date = DateField()
+    number = CharField(max_length=64)
+    capture = BinaryField(null=True)
+    created_at = DateTimeField(auto_now_add=True)
+    updated_at = DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.number
 
 
-class Institution(models.Model):
-    name = models.CharField(max_length=256)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+class Institution(Model):
+    name = CharField(max_length=256, primary_key=True)
+    created_at = DateTimeField(auto_now_add=True)
+    updated_at = DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
 
 
-class Params(models.Model):
-    weight = models.FloatField()
-    height = models.IntegerField()
-    waist_size = models.IntegerField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+class Params(Model):
+    weight = FloatField()
+    height = IntegerField()
+    waist_size = IntegerField()
+    created_at = DateTimeField(auto_now_add=True)
+    updated_at = DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Параметр'
+        verbose_name_plural = 'Параметры'
 
     def __str__(self):
-        return f"{self.weight} kg, {self.height} cm"
+        return f'{self.weight} kg, {self.height} cm'
 
 
-class Users(AbstractUser):
-    first_name = models.CharField(max_length=128)
-    last_name = models.CharField(max_length=128)
-    middle_name = models.CharField(max_length=128, null=True)
-    role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name='users_role')
-    email = models.CharField(max_length=128, unique=True)
-    phone_number = models.CharField(max_length=8, null=True)
-    date_of_birth = models.DateField(null=True)
-    gender = models.ForeignKey(Gender, on_delete=models.CASCADE, null=True, related_name='users_gender')
-    params = models.ForeignKey(Params, on_delete=models.CASCADE, related_name='users_params')
-    capture = models.BinaryField(null=True)
-    about = models.TextField(null=True)
-    is_specialist = models.BooleanField()
-    specialist = models.ForeignKey('Specialists', on_delete=models.CASCADE, null=True, related_name='users_specialists')
-    is_active = models.BooleanField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+class User(AbstractUser):
+    first_name = CharField(max_length=128)
+    last_name = CharField(max_length=128)
+    middle_name = CharField(max_length=128, null=True)
+    role = ForeignKey(
+        Role,
+        on_delete=CASCADE,
+        related_name='user_role',
+    )
+    email = EmailField(max_length=128, unique=True)
+    phone_number = CharField(max_length=8, null=True)
+    date_of_birth = DateField(null=True)
+    gender = ForeignKey(
+        Gender,
+        on_delete=CASCADE,
+        null=True,
+        related_name='user_gender',
+    )
+    params = ForeignKey(
+        Params,
+        on_delete=CASCADE,
+        related_name='user_params',
+    )
+    capture = BinaryField(null=True)
+    about = TextField(null=True)
+    is_specialist = BooleanField()
+    specialist = ForeignKey(
+        'Specialists',
+        on_delete=CASCADE,
+        null=True,
+        related_name='user_specialists',
+    )
+    is_active = BooleanField()
+    created_at = DateTimeField(auto_now_add=True)
+    updated_at = DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
     def __str__(self):
         return self.first_name
 
 
-class Specialists(models.Model):
-    experience = models.TextField()
-    education = models.ForeignKey(Education, on_delete=models.CASCADE, related_name='specialists_education')
-    contacts = models.TextField()
-    about = models.TextField(null=True)
-    is_active = models.BooleanField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+class Specialists(Model):
+    experience = TextField()
+    education = ForeignKey(
+        Education,
+        on_delete=CASCADE,
+        related_name='specialists_education',
+    )
+    contacts = TextField()
+    about = TextField(null=True)
+    is_active = BooleanField()
+    created_at = DateTimeField(auto_now_add=True)
+    updated_at = DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Специалист'
+        verbose_name_plural = 'Специалисты'
 
     def __str__(self):
         return self.contacts
 
 
-class SpecialistClient(models.Model):
-    specialist = models.ForeignKey(Specialists, on_delete=models.CASCADE, related_name='specialist_client_spec')
-    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='specialist_client_user')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+class SpecialistClient(Model):
+    specialist = ForeignKey(
+        Specialists,
+        on_delete=CASCADE,
+        related_name='specialist_client_spec',
+    )
+    user = ForeignKey(
+        User,
+        on_delete=CASCADE,
+        related_name='specialist_client_user',
+    )
+    created_at = DateTimeField(auto_now_add=True)
+    updated_at = DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Специалист-Клиент'
+        verbose_name_plural = 'Специалисты-Клиенты'
+
+    def __str__(self):
+        return f'{self.specialist.user.first_name} - {self.user.first_name}'
