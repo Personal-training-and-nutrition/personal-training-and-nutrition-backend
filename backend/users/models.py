@@ -1,7 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db.models import (CASCADE, BinaryField, BooleanField, CharField,
                               DateField, DateTimeField, EmailField, FloatField,
-                              ForeignKey, IntegerField, Model, TextField)
+                              ForeignKey, IntegerField, Model, TextField,
+                              ManyToManyField)
 
 SPECIALIST_ROLE_CHOICES = (
     ('trainer', 'Тренер'),
@@ -15,6 +16,8 @@ GENDER_CHOICES = (
 
 
 class Gender(Model):
+    """Выбор пола, связ с User через FK"""
+
     gender = CharField(
         max_length=1,
         choices=GENDER_CHOICES,
@@ -30,6 +33,8 @@ class Gender(Model):
 
 
 class Role(Model):
+    """Определяет роль юзера, связь с User через FK"""
+
     role = CharField(
         max_length=64,
         choices=(SPECIALIST_ROLE_CHOICES),
@@ -40,10 +45,13 @@ class Role(Model):
         verbose_name_plural = 'Роли'
 
     def __str__(self):
-        return self.name
+        return self.role
 
 
 class Education(Model):
+    """Информациия об образовании юзера, связ с Institution
+    через FK и с Specialists через related_name"""
+
     institution = ForeignKey(
         'Institution',
         on_delete=CASCADE,
@@ -61,6 +69,9 @@ class Education(Model):
 
 
 class Institution(Model):
+    """Определяет учебное заведение, в котором юзер получил
+    образование, связь с Education через FK"""
+
     name = CharField(max_length=256, primary_key=True)
     created_at = DateTimeField(auto_now_add=True)
     updated_at = DateTimeField(auto_now=True)
@@ -70,6 +81,9 @@ class Institution(Model):
 
 
 class Params(Model):
+    """Определяет параметры пользователя, такие как вес, рост
+    и размер талии. Он связан с классом User через FK"""
+
     weight = FloatField()
     height = IntegerField()
     waist_size = IntegerField()
@@ -85,6 +99,10 @@ class Params(Model):
 
 
 class User(AbstractUser):
+    """определяет дополнительные поля для пользователей, такие как имя,
+    фамилия, отчество, электронная почта, номер телефона, дата рождения,
+    пол, параметры, фотография и описание"""
+
     first_name = CharField(max_length=128)
     last_name = CharField(max_length=128)
     middle_name = CharField(max_length=128, null=True)
@@ -129,11 +147,14 @@ class User(AbstractUser):
 
 
 class Specialists(Model):
+    """Определяет информацию о специалисте, такую как опыт работы,
+    образование, контакты и описание. Он связан с классом Education
+    через FK и с классом SpecialistClient через related_name"""
+
     experience = TextField()
-    education = ForeignKey(
+    education = ManyToManyField(
         Education,
-        on_delete=CASCADE,
-        related_name='specialists_education',
+        related_name='specialists_educations',
     )
     contacts = TextField()
     about = TextField(null=True)
@@ -150,6 +171,11 @@ class Specialists(Model):
 
 
 class SpecialistClient(Model):
+    """Позволяет установить связь многие-ко-многим между специалистами
+    и клиентами. Каждый экземпляр этой модели связывает одного специалиста
+    с одним клиентом. Также, каждый специалист может иметь несколько клиентов
+    и каждый клиент может иметь несколько специалистов."""
+
     specialist = ForeignKey(
         Specialists,
         on_delete=CASCADE,
