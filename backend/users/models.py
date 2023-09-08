@@ -49,8 +49,7 @@ class Role(Model):
 
 
 class Education(Model):
-    """Информациия об образовании юзера, связ с Institution
-    через FK и с Specialists через related_name"""
+    """Информациия об образовании юзера"""
 
     institution = ForeignKey(
         'Institution',
