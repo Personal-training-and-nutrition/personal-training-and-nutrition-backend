@@ -49,7 +49,7 @@ class Exercise(models.Model):
         help_text='Введите дату создания упражнения'
     )
     edit_dt = models.DateTimeField(
-        auto_now_add=True,
+        auto_now=True,
         verbose_name='Дата редактирования упражнения',
         help_text='Введите дату редактирования упражнения'
     )
@@ -63,7 +63,7 @@ class Exercise(models.Model):
         return self.name
 
 
-class Training_type(models.Model):
+class TrainingType(models.Model):
     name = models.CharField(
         max_length=128,
         verbose_name='Название типа тренировки',
@@ -81,7 +81,7 @@ class Training_type(models.Model):
         help_text='Введите дату создания типа тренировки'
     )
     edit_dt = models.DateTimeField(
-        auto_now_add=True,
+        auto_now=True,
         verbose_name='Дата редактирования типа тренировки',
         help_text='Введите дату редактирования типа тренировки'
     )
@@ -95,11 +95,10 @@ class Training_type(models.Model):
         return self.name
 
 
-class Exercises_list(models.Model):
+class ExercisesList(models.Model):
     exercise = models.ManyToManyField(
         Exercise,
         blank=True,
-        null=True,
         through='exercises_list_exercise',
         verbose_name='Список упражнений',
         help_text='Введите список упражнений',
@@ -117,7 +116,7 @@ class Exercises_list(models.Model):
         help_text='Введите дату создания списка упражнений'
     )
     edit_dt = models.DateTimeField(
-        auto_now_add=True,
+        auto_now=True,
         verbose_name='Дата редактирования списка упражнений',
         help_text='Введите дату редактирования списка упражнений'
     )
@@ -133,7 +132,7 @@ class Exercises_list(models.Model):
 
 class Training(models.Model):
     exercises_list = models.ForeignKey(
-        Exercises_list,
+        ExercisesList,
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
@@ -142,7 +141,7 @@ class Training(models.Model):
         related_name='exercises_list_training',
     )
     training_type = models.ForeignKey(
-        Training_type,
+        TrainingType,
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
@@ -178,7 +177,7 @@ class Training(models.Model):
         help_text='Введите дату создания списка упражнений'
     )
     edit_dt = models.DateTimeField(
-        auto_now_add=True,
+        auto_now=True,
         verbose_name='Дата редактирования списка упражнений',
         help_text='Введите дату редактирования списка упражнений'
     )
@@ -192,18 +191,20 @@ class Training(models.Model):
         pass
 
 
-class Training_plan(models.Model):
-    spec_id = models.ForeignKey(
+class TrainingPlan(models.Model):
+    spec = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
+        null=True,
         verbose_name='Специалист',
         help_text='Специалист',
         related_name='spec_training_plan'
     )
-    user_id = models.ForeignKey(
+    user = models.ForeignKey(
         User,
         verbose_name='Клиент',
         on_delete=models.SET_NULL,
+        null=True,
         help_text='Клиент',
         related_name='user_training_plan'
     )
@@ -242,7 +243,7 @@ class Training_plan(models.Model):
         help_text='Введите дату создания плана тренировки'
     )
     edit_dt = models.DateTimeField(
-        auto_now_add=True,
+        auto_now=True,
         verbose_name='Дата редактирования плана тренировки',
         help_text='Введите дату редактирования плана тренировки'
     )
@@ -258,14 +259,16 @@ class Training_plan(models.Model):
 
 class Exercises_list_Exercise(models.Model):
     exercises_list = models.ForeignKey(
-        Exercises_list,
+        ExercisesList,
         on_delete=models.SET_NULL,
+        null=True,
         related_name='exercises_list_exercise',
         verbose_name='Список упражнений'
     )
     exercise = models.ForeignKey(
         Exercise,
         on_delete=models.SET_NULL,
+        null=True,
         related_name='exercises_list_exercise',
         verbose_name='Упражнение'
     )
