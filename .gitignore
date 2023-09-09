@@ -141,3 +141,4 @@ backend/media/
 
 */migrations/
 /backend/api/migrations/
+/backend/diets/migrations/
