@@ -188,7 +188,7 @@ class Training(models.Model):
         verbose_name_plural = 'Тренировки'
 
     def __str__(self):
-        pass
+        return self.training_type
 
 
 class TrainingPlan(models.Model):
