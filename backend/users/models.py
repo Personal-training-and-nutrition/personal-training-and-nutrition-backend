@@ -22,27 +22,11 @@ class Gender(Model):
         primary_key=True,
     )
 
-    class Meta:
-        verbose_name = 'Пол'
-        verbose_name_plural = 'Полы'
-
-    def __str__(self):
-        return self.gender
-
-
 class Role(Model):
     role = CharField(
         max_length=64,
         choices=(SPECIALIST_ROLE_CHOICES),
     )
-
-    class Meta:
-        verbose_name = 'Роль'
-        verbose_name_plural = 'Роли'
-
-    def __str__(self):
-        return self.role
-
 
 class Education(Model):
     institution = ForeignKey(
@@ -59,18 +43,10 @@ class Education(Model):
     created_at = DateTimeField(auto_now_add=True)
     updated_at = DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return self.number
-
-
 class Institution(Model):
     name = CharField(max_length=256, primary_key=True)
     created_at = DateTimeField(auto_now_add=True)
     updated_at = DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.name
-
 
 class Params(Model):
     weight = FloatField()
@@ -78,14 +54,6 @@ class Params(Model):
     waist_size = IntegerField()
     created_at = DateTimeField(auto_now_add=True)
     updated_at = DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name = 'Параметр'
-        verbose_name_plural = 'Параметры'
-
-    def __str__(self):
-        return f'{self.weight} kg, {self.height} cm'
-
 
 class User(AbstractUser):
     first_name = CharField(max_length=128)
@@ -132,13 +100,6 @@ class User(AbstractUser):
     created_at = DateTimeField(auto_now_add=True)
     updated_at = DateTimeField(auto_now=True)
 
-    class Meta:
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
-
-    def __str__(self):
-        return self.first_name
-
 
 class Specialists(Model):
     user = ManyToManyField(
@@ -158,14 +119,6 @@ class Specialists(Model):
     created_at = DateTimeField(auto_now_add=True)
     updated_at = DateTimeField(auto_now=True)
 
-    class Meta:
-        verbose_name = 'Специалист'
-        verbose_name_plural = 'Специалисты'
-
-    def __str__(self):
-        return self.contacts
-
-
 class SpecialistClient(Model):
     specialist = ForeignKey(
         Specialists,
@@ -181,10 +134,3 @@ class SpecialistClient(Model):
     )
     created_at = DateTimeField(auto_now_add=True)
     updated_at = DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name = 'Специалист-Клиент'
-        verbose_name_plural = 'Специалисты-Клиенты'
-
-    def __str__(self):
-        return f'{self.specialist.user.first_name} - {self.user.first_name}'
