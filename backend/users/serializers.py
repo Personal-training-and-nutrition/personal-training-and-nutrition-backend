@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from .models import (Education, Gender, Institution, Params, Role, Specialists,
-                     User)
+                     User,)
 
 
 class GenderSerializer(serializers.ModelSerializer):

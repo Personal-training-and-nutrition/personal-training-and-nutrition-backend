@@ -1,7 +1,7 @@
 import os
-from pathlib import Path
 
 from dotenv import find_dotenv, load_dotenv
+from pathlib import Path
 
 load_dotenv(find_dotenv())
 
