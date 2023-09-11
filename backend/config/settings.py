@@ -32,6 +32,7 @@ INSTALLED_APPS += [
 # apps
 INSTALLED_APPS += [
     'api.apps.ApiConfig',
+    'users.apps.UsersConfig',
     'workouts.apps.WorkoutsConfig',
 ]
 
@@ -73,6 +74,7 @@ DATABASES = {
     }
 }
 
+AUTH_USER_MODEL = 'users.Users'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
