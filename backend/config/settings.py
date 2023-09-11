@@ -32,6 +32,7 @@ INSTALLED_APPS += [
 # apps
 INSTALLED_APPS += [
     'api.apps.ApiConfig',
+    'workouts.apps.WorkoutsConfig',
 ]
 
 MIDDLEWARE = [
