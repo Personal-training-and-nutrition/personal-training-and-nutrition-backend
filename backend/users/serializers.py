@@ -122,12 +122,11 @@ class UserSerializer(serializers.ModelSerializer):
         gender, created = Gender.objects.get_or_create(**gender_data)
         params = Params.objects.create(**params_data)
 
-        user = User.objects.create(role=role,
+        return User.objects.create(role=role,
                                    gender=gender,
                                    params=params,
                                    **validated_data)
 
-        return user
 
     def update(self, instance, validated_data):
         role_data = validated_data.pop('role')
