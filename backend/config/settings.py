@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
-from dotenv import load_dotenv, find_dotenv
+
+from dotenv import find_dotenv, load_dotenv
 
 load_dotenv(find_dotenv())
 
@@ -32,6 +33,7 @@ INSTALLED_APPS += [
 INSTALLED_APPS += [
     'api.apps.ApiConfig',
     'users.apps.UsersConfig',
+    'workouts.apps.WorkoutsConfig',
 ]
 
 MIDDLEWARE = [
