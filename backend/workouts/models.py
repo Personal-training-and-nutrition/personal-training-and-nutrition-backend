@@ -96,13 +96,14 @@ class TrainingType(models.Model):
 
 
 class ExercisesList(models.Model):
-    exercise = models.ManyToManyField(
+    exercise = models.ForeignKey(
         Exercise,
         blank=True,
-        through='exercises_list_exercise',
+        null=True,
+        on_delete=models.SET_NULL,
         verbose_name='Список упражнений',
         help_text='Введите список упражнений',
-        related_name='exercise_exercises_list',
+        related_name='exercises_list_exercise',
     )
     describe = models.TextField(
         blank=True,
@@ -131,11 +132,11 @@ class ExercisesList(models.Model):
 
 
 class Training(models.Model):
-    exercises_list = models.ForeignKey(
+    exercises_list = models.ManyToManyField(
         ExercisesList,
         blank=True,
         null=True,
-        on_delete=models.SET_NULL,
+        through='TrainingExercisesList',
         verbose_name='Списки упражнений в тренировке',
         help_text='Введите списки упражнений в тренировке',
         related_name='exercises_list_training',
@@ -192,7 +193,7 @@ class Training(models.Model):
 
 
 class TrainingPlan(models.Model):
-    spec = models.ForeignKey(
+    specialist = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
@@ -257,28 +258,28 @@ class TrainingPlan(models.Model):
         return self.describe[:15]
 
 
-class Exercises_list_Exercise(models.Model):
+class TrainingExercisesList(models.Model):
+    training = models.ForeignKey(
+        Training,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='training_exercises_list',
+        verbose_name='Тренировка'
+    )
     exercises_list = models.ForeignKey(
         ExercisesList,
-        on_delete=models.SET_NULL,
         null=True,
-        related_name='exercises_list_exercise',
+        on_delete=models.SET_NULL,
+        related_name='training_exercises_list',
         verbose_name='Список упражнений'
-    )
-    exercise = models.ForeignKey(
-        Exercise,
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='exercises_list_exercise',
-        verbose_name='Упражнение'
     )
 
     class Meta:
-        verbose_name = 'Связь упражнения cо списком упражнений'
-        verbose_name_plural = 'Связи упражнений cо списками упражнений'
+        verbose_name = 'Связь тренировки cо списком упражнений'
+        verbose_name_plural = 'Связи тренировок cо списками упражнений'
         constraints = [
             models.UniqueConstraint(
-                name='unique_exercises_list_exercise',
-                fields=['exercises_list', 'exercise'],
+                name='unique_training_exercises_list',
+                fields=['training', 'exercises_list'],
             ),
         ]
