@@ -127,7 +127,6 @@ class UserSerializer(serializers.ModelSerializer):
                                    params=params,
                                    **validated_data)
 
-
     def update(self, instance, validated_data):
         role_data = validated_data.pop('role')
         gender_data = validated_data.pop('gender')
