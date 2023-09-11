@@ -141,3 +141,7 @@ backend/media/
 
 */migrations/
 /backend/api/migrations/
+
+
+
+/backend/workouts/migrations/
