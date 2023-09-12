@@ -1,8 +1,9 @@
 from django.contrib.auth import get_user_model
 from rest_framework import viewsets
 
-from .serializers import TrainingPlanSerializer
 from workouts.models import TrainingPlan
+
+from .serializers import TrainingPlanSerializer
 
 User = get_user_model()
 
