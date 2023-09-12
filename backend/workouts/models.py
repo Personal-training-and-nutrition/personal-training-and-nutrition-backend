@@ -217,6 +217,12 @@ class TrainingPlan(models.Model):
         help_text='Тренировка',
         related_name='training_training_plan'
     )
+    name = models.CharField(
+        max_length=128,
+        blank=True,
+        verbose_name='Название плана тренировок',
+        help_text='Введите название плана тренировок',
+    )
     describe = models.TextField(
         blank=True,
         max_length=1000,
