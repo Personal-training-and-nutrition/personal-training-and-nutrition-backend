@@ -1,38 +1,48 @@
 from django.db import models
-# from user.models import User
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class DietPlan(models.Model):
-    spec_id = models.ForeignKey(
+    specialist = models.ForeignKey(
         'users.User',
         on_delete=models.SET_NULL,
-        related_name='diet_plan',
+        related_name='diet_plan_spec',
         verbose_name='Специалист',
+        blank=True,
         null=True
+
     )
-    user_id = models.ForeignKey(
+    user = models.ForeignKey(
         'users.User',
         on_delete=models.SET_NULL,
-        related_name='diet_plan',
+        related_name='diet_plan_user',
         verbose_name='Клиент',
+        blank=True,
         null=True
     )
-    diet_id = models.ForeignKey(
+    diet = models.ForeignKey(
         'Diets',
         on_delete=models.SET_NULL,
+        blank=True,
         null=True,
-        related_name='diet_plan',
+        related_name='diet_plan_diet',
         verbose_name='Диета',
     )
     describe = models.TextField(
-        verbose_name='Описание плана питания'
+        verbose_name='Описание плана питания',
+        blank=True,
+        null=True
     )
     start_date = models.DateTimeField(
         verbose_name='Дата начала плана питания',
+        blank=True,
         null=True
     )
     end_date = models.DateTimeField(
         verbose_name='Дата окончания плана питания',
+        blank=True,
         null=True
     )
     is_active_user = models.BooleanField(
@@ -44,10 +54,13 @@ class DietPlan(models.Model):
         default=True
     )
     create_dt = models.DateTimeField(
+        auto_now_add=True,
         verbose_name='Дата создания плана питания',
     )
     edit_dt = models.DateTimeField(
+        auto_now=True,
         verbose_name='Дата изменения плана питания',
+        blank=True,
         null=True,
     )
 
@@ -61,27 +74,30 @@ class DietPlan(models.Model):
 
 
 class Diets(models.Model):
-    diet_id = models.ForeignKey(
+    diet = models.ForeignKey(
         'DietPlan',
         on_delete=models.SET_NULL,
         related_name='diets',
         verbose_name='Диета',
+        blank=True,
         null=True
     )
-    meals_list_id = models.ManyToManyField(
+    meals_list = models.ManyToManyField(
         'MealsList',
-        related_name='diets',
+        related_name='diets_ml',
         verbose_name='Список блюд',
     )
-    meals_type_id = models.ForeignKey(
+    meals_type = models.ForeignKey(
         'MealsType',
         on_delete=models.SET_NULL,
+        blank=True,
         null=True,
-        related_name='diets',
+        related_name='diets_mt',
         verbose_name='Тип питания',
     )
     diet_date = models.DateTimeField(
         verbose_name='Дата диеты',
+        blank=True,
         null=True
     )
     is_done = models.BooleanField(
@@ -90,18 +106,23 @@ class Diets(models.Model):
     )
     user_comment = models.TextField(
         verbose_name='Комментарий клиента',
+        blank=True,
         null=True
     )
     spec_comment = models.TextField(
         verbose_name='Комментарий специалиста',
+        blank=True,
         null=True
     )
     create_dt = models.DateTimeField(
+        auto_now_add=True,
         verbose_name='Дата создания диеты',
     )
     edit_dt = models.DateTimeField(
+        auto_now=True,
         verbose_name='Дата изменения диеты',
-        null=True
+        null=True,
+        blank=True,
     )
 
     class Meta:
@@ -111,22 +132,27 @@ class Diets(models.Model):
 
 
 class MealsList(models.Model):
-    meal_id = models.ForeignKey(
+    meal = models.ForeignKey(
         'Meals',
         on_delete=models.SET_NULL,
         related_name='mealslist',
         verbose_name='Питание',
+        blank=True,
         null=True
     )
     describe = models.TextField(
         verbose_name='Список блюд',
+        blank=True,
         null=True
     )
     create_dt = models.DateTimeField(
+        auto_now_add=True,
         verbose_name='Дата создания списка блюд',
     )
     edit_dt = models.DateTimeField(
+        auto_now=True,
         verbose_name='Дата изменения списка блюд',
+        blank=True,
         null=True
     )
 
@@ -145,10 +171,13 @@ class MealsType(models.Model):
         verbose_name='Описание'
     )
     create_dt = models.DateTimeField(
+        auto_now_add=True,
         verbose_name='Дата создания типа питания',
     )
     edit_dt = models.DateTimeField(
+        auto_now=True,
         verbose_name='Дата изменения типа питания',
+        blank=True,
         null=True
     )
 
@@ -175,7 +204,7 @@ class Meals(models.Model):
     describe = models.TextField(
         verbose_name='Описание блюда'
     )
-    meal_product_id = models.ManyToManyField(
+    meal_product = models.ManyToManyField(
         'Products',
         through='MealProduct',
         related_name='meals',
@@ -189,10 +218,13 @@ class Meals(models.Model):
         max_length=128,
     )
     create_dt = models.DateTimeField(
+        auto_now_add=True,
         verbose_name='Дата создания блюда',
     )
     edit_dt = models.DateTimeField(
+        auto_now=True,
         verbose_name='Дата изменения блюда',
+        blank=True,
         null=True
     )
 
@@ -206,25 +238,31 @@ class Meals(models.Model):
 
 
 class MealProduct(models.Model):
-    meal_id = models.ForeignKey(
+    meal = models.ForeignKey(
         'Meals',
         on_delete=models.SET_NULL,
         related_name='meals_products',
+        blank=True,
         null=True
     )
-    product_id = models.ForeignKey(
+    product = models.ForeignKey(
         'Products',
         on_delete=models.SET_NULL,
-        related_name='meals_products',
+        related_name='products_meals',
+        blank=True,
         null=True
     )
     create_dt = models.DateTimeField(
+        auto_now_add=True,
         verbose_name='Дата создания',
     )
     edit_dt = models.DateTimeField(
+        auto_now=True,
         verbose_name='Дата изменения',
+        blank=True,
         null=True
     )
+
     class Meta:
         ordering = ['-create_dt']
         verbose_name = 'Продукты для блюд'
@@ -258,10 +296,13 @@ class Products(models.Model):
         verbose_name='Описание продукта'
     )
     create_dt = models.DateTimeField(
+        auto_now_add=True,
         verbose_name='Дата добавления',
     )
     edit_dt = models.DateTimeField(
+        auto_now=True,
         verbose_name='Дата изменения',
+        blank=True,
         null=True
     )
 
