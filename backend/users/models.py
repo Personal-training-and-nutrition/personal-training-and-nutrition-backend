@@ -1,8 +1,8 @@
 from django.contrib.auth.models import AbstractUser
-from django.db.models import (CASCADE, ImageField, BooleanField, CharField,
+from django.db.models import (CASCADE, SET_NULL, BooleanField, CharField,
                               DateField, DateTimeField, EmailField, FloatField,
-                              ForeignKey, IntegerField, Model, TextField,
-                              ManyToManyField, SET_NULL)
+                              ForeignKey, ImageField, IntegerField,
+                              ManyToManyField, Model, TextField,)
 
 SPECIALIST_ROLE_CHOICES = (
     ('trainer', 'Тренер'),

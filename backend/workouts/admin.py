@@ -1,10 +1,7 @@
 from django.contrib import admin
-from .models import (Exercise,
-                     ExercisesList,
-                     TrainingExercisesList,
-                     Training,
-                     TrainingPlan,
-                     TrainingType)
+
+from .models import (Exercise, ExercisesList, Training, TrainingExercisesList,
+                     TrainingPlan, TrainingType,)
 
 admin.site.register(Exercise)
 admin.site.register(Training)

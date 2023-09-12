@@ -135,7 +135,6 @@ class Training(models.Model):
     exercises_list = models.ManyToManyField(
         ExercisesList,
         blank=True,
-        null=True,
         through='TrainingExercisesList',
         verbose_name='Списки упражнений в тренировке',
         help_text='Введите списки упражнений в тренировке',
