@@ -6,7 +6,7 @@ User = get_user_model()
 
 class DietPlan(models.Model):
     specialist = models.ForeignKey(
-        'users.User',
+        'User',
         on_delete=models.SET_NULL,
         related_name='diet_plan_spec',
         verbose_name='Специалист',
@@ -15,7 +15,7 @@ class DietPlan(models.Model):
 
     )
     user = models.ForeignKey(
-        'users.User',
+        'User',
         on_delete=models.SET_NULL,
         related_name='diet_plan_user',
         verbose_name='Клиент',
