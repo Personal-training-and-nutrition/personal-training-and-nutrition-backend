@@ -1,12 +1,12 @@
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.db import models
 
 User = get_user_model()
 
 
 class DietPlan(models.Model):
     specialist = models.ForeignKey(
-        'User',
+        User,
         on_delete=models.SET_NULL,
         related_name='diet_plan_spec',
         verbose_name='Специалист',
@@ -15,7 +15,7 @@ class DietPlan(models.Model):
 
     )
     user = models.ForeignKey(
-        'User',
+        User,
         on_delete=models.SET_NULL,
         related_name='diet_plan_user',
         verbose_name='Клиент',
