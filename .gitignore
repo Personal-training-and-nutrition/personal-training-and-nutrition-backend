@@ -142,3 +142,5 @@ backend/media/
 */migrations/
 /backend/api/migrations/
 /backend/diets/migrations/
+/backend/workouts/migrations/
+/backend/users/migrations/

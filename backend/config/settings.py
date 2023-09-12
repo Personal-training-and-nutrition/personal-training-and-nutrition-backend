@@ -1,6 +1,7 @@
 import os
+
+from dotenv import find_dotenv, load_dotenv
 from pathlib import Path
-from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
 
@@ -26,12 +27,15 @@ INSTALLED_APPS = [
 INSTALLED_APPS += [
     'rest_framework',
     'django_filters',
+    'drf_spectacular',
 ]
 
 # apps
 INSTALLED_APPS += [
     'api.apps.ApiConfig',
     'diets.apps.DietsConfig',
+    'users.apps.UsersConfig',
+    'workouts.apps.WorkoutsConfig',
 ]
 
 MIDDLEWARE = [
@@ -74,7 +78,6 @@ DATABASES = {
 
 AUTH_USER_MODEL = 'users.User'
 
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -114,9 +117,21 @@ REST_FRAMEWORK = {
 
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
-    ]
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
-
+###########################
+#  DRF Spectacular
+###########################
+SPECTACULAR_SETTINGS = {
+    "TITLE": "WellCoach",
+    "VERSION": "0.0.1",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SWAGGER_UI_SETTINGS": {
+        "filter": True,
+    },
+    "COMPONENT_SPLIT_REQUEST": True
+}
 ###########################
 #  STATIC AND MEDIA
 ###########################
