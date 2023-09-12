@@ -85,7 +85,7 @@ class InstitutionSerializer(serializers.ModelSerializer):
         instance.name
 
 
-class UserSerializer(serializers.ModelSerializer):
+class CustomUserSerializer(serializers.ModelSerializer):
     role = RoleSerializer()
     gender = GenderSerializer()
     params = ParamsSerializer()
@@ -162,7 +162,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class SpecialistSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
+    user = CustomUserSerializer()
     education = EducationSerializer(many=True)
 
     class Meta:
