@@ -5,15 +5,14 @@ from workouts.models import Training, TrainingPlan
 
 User = get_user_model()
 
-WEEKDAY_CHOICES = (
-    'Понедельник',
-    'Вторник',
-    'Среда',
-    'Четверг',
-    'Пятница',
-    'Суббота',
-    'Воскресенье',
-    )
+WEEKDAY_CHOICES = ('Понедельник',
+                   'Вторник',
+                   'Среда',
+                   'Четверг',
+                   'Пятница',
+                   'Суббота',
+                   'Воскресенье',
+                   )
 
 
 class TrainingPlanSerializer(serializers.ModelSerializer):

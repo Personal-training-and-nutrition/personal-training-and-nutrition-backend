@@ -225,14 +225,14 @@ class Training(models.Model):
         help_text='Введите название дня недели',
     )
     training_plan = models.ForeignKey(
-            TrainingPlan,
-            blank=True,
-            null=True,
-            on_delete=models.SET_NULL,
-            verbose_name='Тренировочный план',
-            help_text='Тренировочный план',
-            related_name='trainings'
-        )
+        TrainingPlan,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        verbose_name='Тренировочный план',
+        help_text='Тренировочный план',
+        related_name='trainings'
+    )
     exercises_list = models.ManyToManyField(
         ExercisesList,
         blank=True,
