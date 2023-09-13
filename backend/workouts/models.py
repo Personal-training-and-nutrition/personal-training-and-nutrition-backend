@@ -11,7 +11,7 @@ WEEKDAY_CHOICES = (
     ('Friday', 'Пятница'),
     ('Saturday', 'Суббота'),
     ('Sunday', 'Воскресенье'),
-    )
+)
 
 
 class Exercise(models.Model):

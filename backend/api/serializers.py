@@ -1,18 +1,18 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from workouts.models import TrainingPlan, Training
+from workouts.models import Training, TrainingPlan
 
 User = get_user_model()
 
 WEEKDAY_CHOICES = (
-     'Понедельник',
-     'Вторник',
-     'Среда',
-     'Четверг',
-     'Пятница',
-     'Суббота',
-     'Воскресенье',
+    'Понедельник',
+    'Вторник',
+    'Среда',
+    'Четверг',
+    'Пятница',
+    'Суббота',
+    'Воскресенье',
     )
 
 
