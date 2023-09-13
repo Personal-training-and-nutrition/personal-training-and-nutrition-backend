@@ -1,11 +1,11 @@
-from rest_framework import status
-from api.pagination import CustomPagination
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
-from rest_framework import viewsets, permissions
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
+from api.pagination import CustomPagination
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .serializers import CustomUserSerializer, RoleSerializer
