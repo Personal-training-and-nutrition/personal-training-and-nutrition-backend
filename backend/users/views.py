@@ -45,7 +45,10 @@ class CustomUserViewSet(viewsets.GenericViewSet):
         password = request.data.get('password')
         user = authenticate(username=email, password=password)
         if user is None:
-            return Response({'error': 'Wrong email or password.'}, status=400)
+            return Response(
+                {'error': 'Неверный адрес электронной почты или пароль'},
+                status=400
+            )
         refresh = RefreshToken.for_user(user)
         return Response(
             {'refresh': str(refresh), 'access': str(refresh.access_token)}
