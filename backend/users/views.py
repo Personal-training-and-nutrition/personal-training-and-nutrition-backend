@@ -55,6 +55,91 @@ class CustomUserViewSet(viewsets.GenericViewSet):
 
         return Response(user_serializer.data, status=201)
 
+    @action(detail=False, methods=['get'])
+    def client_profile(self, request):
+        user = request.user
+        if user.is_authenticated and user.role == 'client':
+            profile_data = {
+                'initials': user.first_name[0] + user.last_name[0],
+                'patronymic': user.patronymic,
+                'birth_date': user.birth_date,
+                'gender': user.gender,
+                'weight': user.weight,
+                'height': user.height
+            }
+            return Response(profile_data, status=status.HTTP_200_OK)
+
+        return Response(
+            {'error': 'Вы не авторизованы или не являетесь клиентом'},
+            status=status.HTTP_401_UNAUTHORIZED)
+
+    @action(detail=False, methods=['put'])
+    def edit_client_profile(self, request):
+        user = request.user
+        if user.is_authenticated and user.role == 'client':
+            user.patronymic = request.data.get('patronymic', user.patronymic)
+            user.birth_date = request.data.get('birth_date', user.birth_date)
+            user.gender = request.data.get('gender', user.gender)
+            user.weight = request.data.get('weight', user.weight)
+            user.height = request.data.get('height', user.height)
+            user.save()
+            return Response(
+                {'message': 'Профиль успешно отредактирован'},
+                status=status.HTTP_200_OK)
+
+        return Response(
+            {'error': 'Вы не авторизованы или не являетесь клиентом'},
+            status=status.HTTP_401_UNAUTHORIZED)
+
+    @action(detail=False, methods=['put'])
+    def edit_password(self, request):
+        user = request.user
+        if user.is_authenticated:
+            old_password = request.data.get('old_password')
+            new_password = request.data.get('new_password')
+            confirm_new_password = request.data.get('confirm_new_password')
+
+            if new_password != confirm_new_password:
+                return Response(
+                    {'error': 'Новый пароль и подтверждение не совпадают'},
+                    status=status.HTTP_400_BAD_REQUEST)
+
+            if not user.check_password(old_password):
+                return Response(
+                    {'error': 'Старый пароль неверен'},
+                    status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(
+            {'message': 'Пароль успешно обновлен'},
+            status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['delete'])
+    def delete_profile(self, request):
+        user = request.user
+        if user.is_authenticated and user.role == 'client':
+            user.delete()
+            return Response(
+                {'message': 'Профиль успешно удален'},
+                status=status.HTTP_200_OK)
+
+        return Response(
+            {'error': 'Вы не авторизованы или не являетесь клиентом'},
+            status=status.HTTP_401_UNAUTHORIZED)
+
+    @action(detail=False, methods=['get'])
+    def specialist_profile(self, request):
+        user = request.user
+        if user.is_authenticated and user.role == 'specialist':
+            profile_data = {
+                'name': user.first_name,
+                'initial': user.first_name[0] + user.last_name[0]
+            }
+            return Response(profile_data, status=status.HTTP_200_OK)
+
+        return Response(
+            {'error': 'Вы не авторизованы или не являетесь специалистом'},
+            status=status.HTTP_401_UNAUTHORIZED)
+
 
 class LoginView(APIView):
     def post(self, request):
