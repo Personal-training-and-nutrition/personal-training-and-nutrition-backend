@@ -85,7 +85,7 @@ class InstitutionSerializer(serializers.ModelSerializer):
         instance.name
 
 
-class CustomUserSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     role = RoleSerializer()
     gender = GenderSerializer()
     params = ParamsSerializer()

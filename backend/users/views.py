@@ -8,137 +8,66 @@ from rest_framework.views import APIView
 from api.pagination import CustomPagination
 from users.forms import LoginForm
 
-from .serializers import CustomUserSerializer, RoleSerializer
+from .models import User
+from .serializers import SpecialistSerializer, UserSerializer
 
 
-class CustomUserViewSet(viewsets.GenericViewSet):
+class UserViewSet(viewsets.GenericViewSet):
     permission_classes = [permissions.AllowAny]
-    serializer_class = CustomUserSerializer
+    serializer_class = UserSerializer
     pagination_class = CustomPagination
 
     @action(detail=False, methods=['post'])
     def register(self, request):
         data = {
-            'first_name': request.data.get('first_name'),
-            'last_name': request.data.get('last_name'),
+            # 'first_name': request.data.get('first_name'),
+            # 'last_name': request.data.get('last_name'),
             'email': request.data.get('email'),
             'password': request.data.get('password'),
             'password_confirmation': request.data.get('password_confirmation'),
-            'role': request.data.get('role')
+            'is_specialist': request.data.get('is_specialist', False)
         }
 
-        serializer = RoleSerializer(data={'role': data.get('role')})
-        if serializer.is_valid():
-            serializer.save()
-        else:
-            return Response(
-                serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user = User.objects.create_user(
+            email=data['email'], password=data['password'])
 
-        user_serializer = self.get_serializer(data=data)
-        user_serializer.is_valid(raise_exception=True)
-        if data.get('password') != data.get('password_confirmation'):
-            return Response(
-                {'error': 'Пароли не совпадают'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        user_serializer.save()
+        if data['is_specialist']:
+            # Создание профиль специалиста
+            specialist_data = {
+                'user': user,
+                # Добавление доп полей, относящиеся к профилю специалиста
+            }
+            specialist_serializer = SpecialistSerializer(data=specialist_data)
+            if specialist_serializer.is_valid():
+                specialist_serializer.save()
+            else:
+                user.delete()
+                return Response(specialist_serializer.errors,
+                                status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # Создание профиля клиента и сохранения доп инф
+            client_data = {
+                'user': user,
+            }
+            client_serializer = UserSerializer(data=client_data)
+            if client_serializer.is_valid():
+                client_serializer.save()
+            else:
+                user.delete()
+                return Response(client_serializer.errors,
+                                status=status.HTTP_400_BAD_REQUEST)
 
         send_mail(
             'Успешная регистрация',
-            f'Добро пожаловать, {data.get("first_name")} '
-            f'{data.get("last_name")}! '
+            f'Добро пожаловать, '
             f'Ваш адрес электронной почты: {data.get("email")}.',
             'from@example.com',
             [data.get('email')],
             fail_silently=False,
         )
 
-        return Response(user_serializer.data, status=201)
-
-    @action(detail=False, methods=['get'])
-    def client_profile(self, request):
-        user = request.user
-        if user.is_authenticated and user.role == 'client':
-            profile_data = {
-                'initials': user.first_name[0] + user.last_name[0],
-                'patronymic': user.patronymic,
-                'birth_date': user.birth_date,
-                'gender': user.gender,
-                'weight': user.weight,
-                'height': user.height
-            }
-            return Response(profile_data, status=status.HTTP_200_OK)
-
-        return Response(
-            {'error': 'Вы не авторизованы или не являетесь клиентом'},
-            status=status.HTTP_401_UNAUTHORIZED)
-
-    @action(detail=False, methods=['put'])
-    def edit_client_profile(self, request):
-        user = request.user
-        if user.is_authenticated and user.role == 'client':
-            user.patronymic = request.data.get('patronymic', user.patronymic)
-            user.birth_date = request.data.get('birth_date', user.birth_date)
-            user.gender = request.data.get('gender', user.gender)
-            user.weight = request.data.get('weight', user.weight)
-            user.height = request.data.get('height', user.height)
-            user.save()
-            return Response(
-                {'message': 'Профиль успешно отредактирован'},
-                status=status.HTTP_200_OK)
-
-        return Response(
-            {'error': 'Вы не авторизованы или не являетесь клиентом'},
-            status=status.HTTP_401_UNAUTHORIZED)
-
-    @action(detail=False, methods=['put'])
-    def edit_password(self, request):
-        user = request.user
-        if user.is_authenticated:
-            old_password = request.data.get('old_password')
-            new_password = request.data.get('new_password')
-            confirm_new_password = request.data.get('confirm_new_password')
-
-            if new_password != confirm_new_password:
-                return Response(
-                    {'error': 'Новый пароль и подтверждение не совпадают'},
-                    status=status.HTTP_400_BAD_REQUEST)
-
-            if not user.check_password(old_password):
-                return Response(
-                    {'error': 'Старый пароль неверен'},
-                    status=status.HTTP_400_BAD_REQUEST)
-
-        return Response(
-            {'message': 'Пароль успешно обновлен'},
-            status=status.HTTP_200_OK)
-
-    @action(detail=False, methods=['delete'])
-    def delete_profile(self, request):
-        user = request.user
-        if user.is_authenticated and user.role == 'client':
-            user.delete()
-            return Response(
-                {'message': 'Профиль успешно удален'},
-                status=status.HTTP_200_OK)
-
-        return Response(
-            {'error': 'Вы не авторизованы или не являетесь клиентом'},
-            status=status.HTTP_401_UNAUTHORIZED)
-
-    @action(detail=False, methods=['get'])
-    def specialist_profile(self, request):
-        user = request.user
-        if user.is_authenticated and user.role == 'specialist':
-            profile_data = {
-                'name': user.first_name,
-                'initial': user.first_name[0] + user.last_name[0]
-            }
-            return Response(profile_data, status=status.HTTP_200_OK)
-
-        return Response(
-            {'error': 'Вы не авторизованы или не являетесь специалистом'},
-            status=status.HTTP_401_UNAUTHORIZED)
+        return Response(UserSerializer(user).data,
+                        status=status.HTTP_201_CREATED)
 
 
 class LoginView(APIView):
