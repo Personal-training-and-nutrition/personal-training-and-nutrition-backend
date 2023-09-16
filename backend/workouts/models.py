@@ -141,81 +141,6 @@ class ExercisesList(models.Model):
         return self.describe[:15]
 
 
-class TrainingPlan(models.Model):
-    specialist = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        verbose_name='Специалист',
-        help_text='Специалист',
-        related_name='spec_training_plan'
-    )
-    user = models.ForeignKey(
-        User,
-        verbose_name='Клиент',
-        on_delete=models.SET_NULL,
-        null=True,
-        help_text='Клиент',
-        related_name='user_training_plan'
-    )
-    name = models.CharField(
-        max_length=128,
-        blank=True,
-        verbose_name='Название плана тренировок',
-        help_text='Введите название плана тренировок',
-    )
-    describe = models.TextField(
-        blank=True,
-        max_length=1000,
-        verbose_name='Описание плана тренировки',
-        help_text='Введите описание плана тренировки',
-    )
-    start_date = models.DateTimeField(
-        blank=True,
-        null=True,
-        verbose_name='Дата начала плана тренировки',
-        help_text='Введите дату начала плана тренировки'
-    )
-    end_date = models.DateTimeField(
-        blank=True,
-        null=True,
-        verbose_name='Дата окончания плана тренировки',
-        help_text='Введите дату окончания плана тренировки'
-    )
-    is_active_user = models.BooleanField(
-        blank=True,
-        null=True,
-        verbose_name='План тренировки не удален клиентом',
-    )
-    is_active_spec = models.BooleanField(
-        blank=True,
-        null=True,
-        verbose_name='План тренировки не удален специалистом',
-    )
-    create_dt = models.DateTimeField(
-        blank=True,
-        null=True,
-        auto_now_add=True,
-        verbose_name='Дата создания плана тренировки',
-        help_text='Введите дату создания плана тренировки'
-    )
-    edit_dt = models.DateTimeField(
-        blank=True,
-        null=True,
-        auto_now=True,
-        verbose_name='Дата редактирования плана тренировки',
-        help_text='Введите дату редактирования плана тренировки'
-    )
-
-    class Meta:
-        ordering = ['-create_dt']
-        verbose_name = 'План тренировки'
-        verbose_name_plural = 'Планы тренировок'
-
-    def __str__(self):
-        return self.name
-
-
 class Training(models.Model):
     weekday = models.CharField(
         max_length=128,
@@ -223,15 +148,6 @@ class Training(models.Model):
         choices=WEEKDAY_CHOICES,
         verbose_name='День недели',
         help_text='Введите название дня недели',
-    )
-    training_plan = models.ForeignKey(
-        TrainingPlan,
-        blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
-        verbose_name='Тренировочный план',
-        help_text='Тренировочный план',
-        related_name='trainings'
     )
     exercises_list = models.ManyToManyField(
         ExercisesList,
@@ -298,6 +214,89 @@ class Training(models.Model):
         return f'{self.weekday}: {self.spec_comment}'
 
 
+class TrainingPlan(models.Model):
+    specialist = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name='Специалист',
+        help_text='Специалист',
+        related_name='spec_training_plan'
+    )
+    user = models.ForeignKey(
+        User,
+        verbose_name='Клиент',
+        on_delete=models.SET_NULL,
+        null=True,
+        help_text='Клиент',
+        related_name='user_training_plan'
+    )
+    name = models.CharField(
+        max_length=128,
+        blank=True,
+        verbose_name='Название плана тренировок',
+        help_text='Введите название плана тренировок',
+    )
+    describe = models.TextField(
+        blank=True,
+        max_length=1000,
+        verbose_name='Описание плана тренировки',
+        help_text='Введите описание плана тренировки',
+    )
+    training = models.ManyToManyField(
+        Training,
+        blank=True,
+        through='TrainingPlanTraining',
+        verbose_name='Тренировочный план',
+        help_text='Тренировочный план',
+        related_name='training_training_plan'
+    )
+    start_date = models.DateTimeField(
+        blank=True,
+        null=True,
+        verbose_name='Дата начала плана тренировки',
+        help_text='Введите дату начала плана тренировки'
+    )
+    end_date = models.DateTimeField(
+        blank=True,
+        null=True,
+        verbose_name='Дата окончания плана тренировки',
+        help_text='Введите дату окончания плана тренировки'
+    )
+    is_active_user = models.BooleanField(
+        blank=True,
+        null=True,
+        verbose_name='План тренировки не удален клиентом',
+    )
+    is_active_spec = models.BooleanField(
+        blank=True,
+        null=True,
+        verbose_name='План тренировки не удален специалистом',
+    )
+    create_dt = models.DateTimeField(
+        blank=True,
+        null=True,
+        auto_now_add=True,
+        verbose_name='Дата создания плана тренировки',
+        help_text='Введите дату создания плана тренировки'
+    )
+    edit_dt = models.DateTimeField(
+        blank=True,
+        null=True,
+        auto_now=True,
+        verbose_name='Дата редактирования плана тренировки',
+        help_text='Введите дату редактирования плана тренировки'
+    )
+
+    class Meta:
+        ordering = ['-create_dt']
+        verbose_name = 'План тренировки'
+        verbose_name_plural = 'Планы тренировок'
+
+    def __str__(self):
+        return self.name
+
+
 class TrainingExercisesList(models.Model):
     training = models.ForeignKey(
         Training,
@@ -323,3 +322,33 @@ class TrainingExercisesList(models.Model):
                 fields=['training', 'exercises_list'],
             ),
         ]
+
+
+class TrainingPlanTraining(models.Model):
+    training = models.ForeignKey(
+        Training,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='train_training_plan',
+        verbose_name='Тренировка'
+    )
+    training_plan = models.ForeignKey(
+        TrainingPlan,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='training_plan_train',
+        verbose_name='Тренировочный план'
+    )
+
+    def __str__(self):
+        return f'{self.training_plan} {self.training}'
+
+    class Meta:
+        verbose_name = 'Связь тренировки cо списком упражнений'
+        verbose_name_plural = 'Связи тренировок cо списками упражнений'
+        # constraints = [
+        #     models.UniqueConstraint(
+        #         name='unique_training_exercises_list',
+        #         fields=['training', 'exercises_list'],
+        #     ),
+        # ]
