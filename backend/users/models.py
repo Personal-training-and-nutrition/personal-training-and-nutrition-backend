@@ -180,7 +180,7 @@ class Specialists(Model):
         related_name='specialists_educations',
     )
     contacts = TextField(verbose_name='Контакты специалиста')
-    about = TextField(null=True, blank=True, verbose_name='О специалисте')
+    about = TextField(null=True, blank=True, verbose_name='Обо мне')
     is_active = BooleanField(verbose_name='Флаг активный специалист')
     created_at = DateTimeField(auto_now_add=True, verbose_name='Дата создания')
     updated_at = DateTimeField(auto_now=True, verbose_name='Дата обновления')
@@ -208,6 +208,24 @@ class SpecialistClient(Model):
         blank=True,
         related_name='specialist_client_user',
     )
+    diseases = TextField(
+        null=True, blank=True,
+        verbose_name='Заболевания')
+    exp_diets = TextField(
+        null=True, blank=True,
+        verbose_name='Опыт диет')
+    exp_trainings = TextField(
+        null=True, blank=True,
+        verbose_name='Опыт тренировок')
+    bad_habits = TextField(
+        null=True, blank=True,
+        verbose_name='Вредные привычки')
+    food_preferences = TextField(
+        null=True, blank=True,
+        verbose_name='Предпочтения в еде')
+    notes = TextField(
+        null=True, blank=True,
+        verbose_name='Примечания')
     created_at = DateTimeField(auto_now_add=True, verbose_name='Дата создания')
     updated_at = DateTimeField(auto_now=True, verbose_name='Дата обновления')
 

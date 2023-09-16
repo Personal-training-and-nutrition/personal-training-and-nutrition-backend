@@ -20,11 +20,10 @@ class UserViewSet(viewsets.GenericViewSet):
     @action(detail=False, methods=['post'])
     def register(self, request):
         data = {
-            # 'first_name': request.data.get('first_name'),
-            # 'last_name': request.data.get('last_name'),
             'email': request.data.get('email'),
             'password': request.data.get('password'),
             'password_confirmation': request.data.get('password_confirmation'),
+            # По умолчанию регистрация как клиент
             'is_specialist': request.data.get('is_specialist', False)
         }
 

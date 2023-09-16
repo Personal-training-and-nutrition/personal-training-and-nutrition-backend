@@ -162,7 +162,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class SpecialistSerializer(serializers.ModelSerializer):
-    user = CustomUserSerializer()
+    user = UserSerializer()
     education = EducationSerializer(many=True)
 
     class Meta:
@@ -170,7 +170,13 @@ class SpecialistSerializer(serializers.ModelSerializer):
         fields = ('experience',
                   'education',
                   'contacts',
-                  'about',)
+                  'about',
+                  'diseases',
+                  'exp_diets',
+                  'exp_trainings',
+                  'bad_habits',
+                  'food_preferences',
+                  'notes')
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
@@ -194,8 +200,22 @@ class SpecialistSerializer(serializers.ModelSerializer):
 
         instance.experience = validated_data.get(
             'experience', instance.experience)
-        instance.contacts = validated_data.get('contacts', instance.contacts)
-        instance.about = validated_data.get('about', instance.about)
+        instance.contacts = validated_data.get(
+            'contacts', instance.contacts)
+        instance.about = validated_data.get(
+            'about', instance.about)
+        instance.diseases = validated_data.get(
+            'diseases', instance.diseases)
+        instance.exp_diets = validated_data.get(
+            'exp_diets', instance.exp_diets)
+        instance.exp_trainings = validated_data.get(
+            'exp_trainings', instance.exp_trainings)
+        instance.bad_habits = validated_data.get(
+            'bad_habits', instance.bad_habits)
+        instance.food_preferences = validated_data.get(
+            'food_preferences', instance.food_preferences)
+        instance.notes = validated_data.get(
+            'notes', instance.notes)
 
         instance.save()
 
