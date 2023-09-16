@@ -6,7 +6,6 @@ from workouts.models import TrainingPlan
 
 from .serializers import TrainingPlanSerializer
 
-
 User = get_user_model()
 
 
@@ -14,7 +13,3 @@ class TrainingPlanViewSet(viewsets.ModelViewSet):
     serializer_class = TrainingPlanSerializer
     queryset = TrainingPlan.objects.all()
     permission_classes = (AllowAny,)
-
-    # def perform_create(self, serializer):
-    #     serializer.save(specialist=self.request.user)
-
