@@ -33,6 +33,7 @@ INSTALLED_APPS += [
 # apps
 INSTALLED_APPS += [
     'api.apps.ApiConfig',
+    'diets.apps.DietsConfig',
     'users.apps.UsersConfig',
     'workouts.apps.WorkoutsConfig',
 ]
