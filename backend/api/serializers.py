@@ -45,12 +45,7 @@ class TrainingPlanSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ('specialist',)
 
-    def create(self, validated_data):
-        if 'training' not in self.initial_data:
-            training_plan = TrainingPlan.objects.create(**validated_data)
-            return training_plan
-        trainings = validated_data.pop('training')
-        training_plan = TrainingPlan.objects.create(**validated_data)
+    def add_trainings(self, trainings, training_plan):
         for training in trainings:
             current_training, status = Training.objects.get_or_create(
                 **training)
@@ -58,12 +53,16 @@ class TrainingPlanSerializer(serializers.ModelSerializer):
                 training=current_training, training_plan=training_plan)
         return training_plan
 
+    def create(self, validated_data):
+        if 'training' not in self.initial_data:
+            training_plan = TrainingPlan.objects.create(**validated_data)
+            return training_plan
+        trainings = validated_data.pop('training')
+        training_plan = TrainingPlan.objects.create(**validated_data)
+        return self.add_trainings(trainings, training_plan)
+
     def update(self, instance, validated_data):
+        instance.training.clear()
         trainings = validated_data.pop('training')
         instance = super().update(instance, validated_data)
-        for training in trainings:
-            current_training, status = Training.objects.get_or_create(
-                **training)
-            TrainingPlanTraining.objects.create(
-                training=current_training, training_plan=instance)
-        return instance
+        return self.add_trainings(trainings, instance)
