@@ -5,13 +5,13 @@ from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 User = get_user_model()
 
-WEEKDAY_CHOICES = ('Понедельник',
-                   'Вторник',
-                   'Среда',
-                   'Четверг',
-                   'Пятница',
-                   'Суббота',
-                   'Воскресенье',
+WEEKDAY_CHOICES = ('1',
+                   '2',
+                   '3',
+                   '4',
+                   '5',
+                   '6',
+                   '7',
                    )
 
 
@@ -57,3 +57,13 @@ class TrainingPlanSerializer(serializers.ModelSerializer):
             TrainingPlanTraining.objects.create(
                 training=current_training, training_plan=training_plan)
         return training_plan
+
+    def update(self, instance, validated_data):
+        trainings = validated_data.pop('training')
+        instance = super().update(instance, validated_data)
+        for training in trainings:
+            current_training, status = Training.objects.get_or_create(
+                **training)
+            TrainingPlanTraining.objects.create(
+                training=current_training, training_plan=instance)
+        return instance

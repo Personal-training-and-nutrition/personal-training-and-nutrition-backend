@@ -4,13 +4,13 @@ from django.db import models
 User = get_user_model()
 
 WEEKDAY_CHOICES = (
-    ('Monday', 'Понедельник'),
-    ('Tuesday', 'Вторник'),
-    ('Wednesday', 'Среда'),
-    ('Thursday', 'Четверг'),
-    ('Friday', 'Пятница'),
-    ('Saturday', 'Суббота'),
-    ('Sunday', 'Воскресенье'),
+    ('1', 'Понедельник'),
+    ('2', 'Вторник'),
+    ('3', 'Среда'),
+    ('4', 'Четверг'),
+    ('5', 'Пятница'),
+    ('6', 'Суббота'),
+    ('7', 'Воскресенье'),
 )
 
 
@@ -146,8 +146,8 @@ class Training(models.Model):
         max_length=128,
         blank=True,
         choices=WEEKDAY_CHOICES,
-        verbose_name='День недели',
-        help_text='Введите название дня недели',
+        verbose_name='Номер дня недели',
+        help_text='Введите номер дня недели от 1 до 7',
     )
     exercises_list = models.ManyToManyField(
         ExercisesList,
@@ -206,7 +206,7 @@ class Training(models.Model):
     )
 
     class Meta:
-        ordering = ['-create_dt']
+        ordering = ['weekday']
         verbose_name = 'Тренировка'
         verbose_name_plural = 'Тренировки'
 
