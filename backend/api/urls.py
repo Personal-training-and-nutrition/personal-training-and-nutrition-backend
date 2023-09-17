@@ -9,6 +9,7 @@ router = routers.DefaultRouter()
 
 router.register(
     r'training-plans', TrainingPlanViewSet, basename='training-plans')
+# router.register(r'diet-plans', DietPlanViewSet, basename='diet-plans')
 
 urlpatterns = [
     path('', include(router.urls)),
