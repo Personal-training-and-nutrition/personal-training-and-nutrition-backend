@@ -3,6 +3,16 @@ from django.db import models
 
 User = get_user_model()
 
+WEEKDAY_CHOICES = (
+    ('1', 'Понедельник'),
+    ('2', 'Вторник'),
+    ('3', 'Среда'),
+    ('4', 'Четверг'),
+    ('5', 'Пятница'),
+    ('6', 'Суббота'),
+    ('7', 'Воскресенье'),
+)
+
 
 class Exercise(models.Model):
     name = models.CharField(
@@ -132,6 +142,13 @@ class ExercisesList(models.Model):
 
 
 class Training(models.Model):
+    weekday = models.CharField(
+        max_length=128,
+        blank=True,
+        choices=WEEKDAY_CHOICES,
+        verbose_name='Номер дня недели',
+        help_text='Введите номер дня недели от 1 до 7',
+    )
     exercises_list = models.ManyToManyField(
         ExercisesList,
         blank=True,
@@ -156,6 +173,8 @@ class Training(models.Model):
         help_text='Введите дату тренировки'
     )
     is_done = models.BooleanField(
+        blank=True,
+        null=True,
         verbose_name='Тренировка выполнена',
         help_text='Введите статус выполнения тренировки'
     )
@@ -172,23 +191,27 @@ class Training(models.Model):
         help_text='Введите комментарий специалиста к тренировке',
     )
     create_dt = models.DateTimeField(
+        blank=True,
+        null=True,
         auto_now_add=True,
         verbose_name='Дата создания списка упражнений',
         help_text='Введите дату создания списка упражнений'
     )
     edit_dt = models.DateTimeField(
+        blank=True,
+        null=True,
         auto_now=True,
         verbose_name='Дата редактирования списка упражнений',
         help_text='Введите дату редактирования списка упражнений'
     )
 
     class Meta:
-        ordering = ['-create_dt']
+        ordering = ['weekday']
         verbose_name = 'Тренировка'
         verbose_name_plural = 'Тренировки'
 
     def __str__(self):
-        return self.training_type
+        return f'{self.weekday}: {self.spec_comment}'
 
 
 class TrainingPlan(models.Model):
@@ -208,14 +231,11 @@ class TrainingPlan(models.Model):
         help_text='Клиент',
         related_name='user_training_plan'
     )
-    training = models.ForeignKey(
-        Training,
+    name = models.CharField(
+        max_length=128,
         blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
-        verbose_name='Тренировка',
-        help_text='Тренировка',
-        related_name='training_training_plan'
+        verbose_name='Название плана тренировок',
+        help_text='Введите название плана тренировок',
     )
     describe = models.TextField(
         blank=True,
@@ -223,26 +243,46 @@ class TrainingPlan(models.Model):
         verbose_name='Описание плана тренировки',
         help_text='Введите описание плана тренировки',
     )
+    training = models.ManyToManyField(
+        Training,
+        blank=True,
+        through='TrainingPlanTraining',
+        verbose_name='Тренировочный план',
+        help_text='Тренировочный план',
+        related_name='training_training_plan'
+    )
     start_date = models.DateTimeField(
+        blank=True,
+        null=True,
         verbose_name='Дата начала плана тренировки',
         help_text='Введите дату начала плана тренировки'
     )
     end_date = models.DateTimeField(
+        blank=True,
+        null=True,
         verbose_name='Дата окончания плана тренировки',
         help_text='Введите дату окончания плана тренировки'
     )
     is_active_user = models.BooleanField(
+        blank=True,
+        null=True,
         verbose_name='План тренировки не удален клиентом',
     )
     is_active_spec = models.BooleanField(
+        blank=True,
+        null=True,
         verbose_name='План тренировки не удален специалистом',
     )
     create_dt = models.DateTimeField(
+        blank=True,
+        null=True,
         auto_now_add=True,
         verbose_name='Дата создания плана тренировки',
         help_text='Введите дату создания плана тренировки'
     )
     edit_dt = models.DateTimeField(
+        blank=True,
+        null=True,
         auto_now=True,
         verbose_name='Дата редактирования плана тренировки',
         help_text='Введите дату редактирования плана тренировки'
@@ -254,7 +294,7 @@ class TrainingPlan(models.Model):
         verbose_name_plural = 'Планы тренировок'
 
     def __str__(self):
-        return self.describe[:15]
+        return self.name
 
 
 class TrainingExercisesList(models.Model):
@@ -282,3 +322,33 @@ class TrainingExercisesList(models.Model):
                 fields=['training', 'exercises_list'],
             ),
         ]
+
+
+class TrainingPlanTraining(models.Model):
+    training = models.ForeignKey(
+        Training,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='train_training_plan',
+        verbose_name='Тренировка'
+    )
+    training_plan = models.ForeignKey(
+        TrainingPlan,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='training_plan_train',
+        verbose_name='Тренировочный план'
+    )
+
+    def __str__(self):
+        return f'{self.training_plan} {self.training}'
+
+    class Meta:
+        verbose_name = 'Связь тренировки cо списком упражнений'
+        verbose_name_plural = 'Связи тренировок cо списками упражнений'
+        # constraints = [
+        #     models.UniqueConstraint(
+        #         name='unique_training_exercises_list',
+        #         fields=['training', 'exercises_list'],
+        #     ),
+        # ]
