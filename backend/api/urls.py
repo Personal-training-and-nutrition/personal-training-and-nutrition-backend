@@ -1,7 +1,6 @@
 from django.urls import include, path
 from rest_framework import routers
 
-from diets.views import DietPlanViewSet
 from .views import TrainingPlanViewSet
 
 app_name = 'api'
