@@ -55,8 +55,7 @@ class TrainingPlanSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         if 'training' not in self.initial_data:
-            training_plan = TrainingPlan.objects.create(**validated_data)
-            return training_plan
+            return TrainingPlan.objects.create(**validated_data)
         trainings = validated_data.pop('training')
         training_plan = TrainingPlan.objects.create(**validated_data)
         return self.add_trainings(trainings, training_plan)
