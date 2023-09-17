@@ -17,7 +17,6 @@ class Gender(Model):
     gender = CharField(
         max_length=1,
         choices=GENDER_CHOICES,
-        primary_key=True,
         verbose_name='Пол пользователя',
     )
 
@@ -109,14 +108,14 @@ class User(AbstractUser):
         blank=True,
         verbose_name='Отчество',
     )
-    role = ForeignKey(
-        Role,
-        on_delete=CASCADE,
-        related_name='user_role',
-        default=None,
-        null=True,
-        blank=True,
-    )
+    # role = ForeignKey(
+    #     Role,
+    #     on_delete=CASCADE,
+    #     related_name='user_role',
+    #     default=None,
+    #     null=True,
+    #     blank=True,
+    # )
     email = EmailField(
         max_length=128,
         unique=True,
