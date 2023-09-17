@@ -54,7 +54,7 @@ class TrainingPlanSpecSerializer(serializers.ModelSerializer):
 
     def add_trainings(self, trainings, training_plan):
         for training in trainings:
-            current_training, status = Training.objects.get_or_create(
+            current_training = Training.objects.create(
                 **training)
             TrainingPlanTraining.objects.create(
                 training=current_training, training_plan=training_plan)
