@@ -28,10 +28,18 @@ class TrainingSerializer(serializers.ModelSerializer):
         )
 
 
-class TrainingPlanSerializer(serializers.ModelSerializer):
+class TrainingPlanSpecSerializer(serializers.ModelSerializer):
     training = TrainingSerializer(many=True, required=False)
-    specialist = serializers.PrimaryKeyRelatedField(
-        read_only=True, default=serializers.CurrentUserDefault())
+    if User.is_specialist:
+        specialist = serializers.PrimaryKeyRelatedField(
+            read_only=True,
+            default=serializers.CurrentUserDefault()
+        )
+    else:
+        user = serializers.PrimaryKeyRelatedField(
+            read_only=True,
+            default=serializers.CurrentUserDefault()
+        )
 
     class Meta:
         model = TrainingPlan
@@ -43,7 +51,6 @@ class TrainingPlanSerializer(serializers.ModelSerializer):
             'describe',
             'training'
         )
-        read_only_fields = ('specialist',)
 
     def add_trainings(self, trainings, training_plan):
         for training in trainings:
