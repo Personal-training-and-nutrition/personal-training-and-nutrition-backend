@@ -28,6 +28,7 @@ INSTALLED_APPS += [
     'rest_framework',
     'django_filters',
     'drf_spectacular',
+    'djoser',
 ]
 
 # apps
@@ -143,3 +144,22 @@ MEDIA_ROOT = '/media'
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+##################################
+#  Registration and authentication
+##################################
+DJOSER = {
+    # 'LOGIN_FIELD': 'email',
+    'HIDE_USERS': True,
+    'USER_CREATE_PASSWORD_RETYPE': True,
+    'SERIALIZERS': {
+        'user': 'api.serializers.UsersSerializer',
+        'user_create': 'api.serializers.CreateUserSerializer',
+        'current_user': 'api.serializers.UsersSerializer',
+    },
+    'PERMISSIONS': {
+        'user': 'rest_framework.permissions.IsAuthenticated',
+        'user_delete': 'rest_framework.permissions.IsAdminUser',
+    },
+}
