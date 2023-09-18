@@ -4,13 +4,22 @@ from rest_framework.permissions import AllowAny
 
 from workouts.models import TrainingPlan
 
-from .serializers import TrainingPlanSpecSerializer
+from diets.models import DietPlan
+
+from .serializers import DietPlanSerializer, TrainingPlanSerializer
 
 User = get_user_model()
 
 
 class TrainingPlanViewSet(viewsets.ModelViewSet):
-    serializer_class = TrainingPlanSpecSerializer
+    serializer_class = TrainingPlanSerializer
     queryset = TrainingPlan.objects.all()
+    permission_classes = (AllowAny,)
+    http_method_names = ['get', 'post', 'put', 'delete']
+
+
+class DietPlanViewSet(viewsets.ModelViewSet):
+    serializer_class = DietPlanSerializer
+    queryset = DietPlan.objects.all()
     permission_classes = (AllowAny,)
     http_method_names = ['get', 'post', 'put', 'delete']
