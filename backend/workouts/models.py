@@ -1,22 +1,13 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 
 User = get_user_model()
 
-WEEKDAY_CHOICES = (
-    ('1', 'Понедельник'),
-    ('2', 'Вторник'),
-    ('3', 'Среда'),
-    ('4', 'Четверг'),
-    ('5', 'Пятница'),
-    ('6', 'Суббота'),
-    ('7', 'Воскресенье'),
-)
-
 
 class Exercise(models.Model):
     name = models.CharField(
-        max_length=128,
+        max_length=settings.OTHER_MAX_LENGTH,
         verbose_name='Название упражнения',
         help_text='Введите название упражнения',
     )
@@ -47,7 +38,7 @@ class Exercise(models.Model):
         help_text='Введите вспомогательные мышцы',
     )
     link = models.CharField(
-        max_length=256,
+        max_length=settings.TEXT_MAX_LENGTH,
         blank=True,
         null=True,
         verbose_name='Ссылка на видео выполнения упражнения',
@@ -75,7 +66,7 @@ class Exercise(models.Model):
 
 class TrainingType(models.Model):
     name = models.CharField(
-        max_length=128,
+        max_length=settings.OTHER_MAX_LENGTH,
         verbose_name='Название типа тренировки',
         help_text='Введите название типа тренировки',
     )
@@ -143,9 +134,9 @@ class ExercisesList(models.Model):
 
 class Training(models.Model):
     weekday = models.CharField(
-        max_length=128,
+        max_length=settings.NAME_MAX_LENGTH,
         blank=True,
-        choices=WEEKDAY_CHOICES,
+        choices=settings.WEEKDAY_CHOICES,
         verbose_name='Номер дня недели',
         help_text='Введите номер дня недели от 1 до 7',
     )
@@ -232,14 +223,14 @@ class TrainingPlan(models.Model):
         related_name='user_training_plan'
     )
     name = models.CharField(
-        max_length=128,
+        max_length=settings.OTHER_MAX_LENGTH,
         blank=True,
         verbose_name='Название плана тренировок',
         help_text='Введите название плана тренировок',
     )
     describe = models.TextField(
         blank=True,
-        max_length=1000,
+        max_length=settings.TEXT_MAX_LENGTH,
         verbose_name='Описание плана тренировки',
         help_text='Введите описание плана тренировки',
     )

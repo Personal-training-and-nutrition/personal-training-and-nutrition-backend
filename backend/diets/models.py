@@ -1,26 +1,18 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 
 User = get_user_model()
 
-WEEKDAY_CHOICES = (
-    ('1', 'Понедельник'),
-    ('2', 'Вторник'),
-    ('3', 'Среда'),
-    ('4', 'Четверг'),
-    ('5', 'Пятница'),
-    ('6', 'Суббота'),
-    ('7', 'Воскресенье'),
-)
-
 
 class MealsType(models.Model):
     name = models.CharField(
         verbose_name='Название типа питания',
-        max_length=128,
+        max_length=settings.OTHER_MAX_LENGTH,
     )
     describe = models.TextField(
-        verbose_name='Описание'
+        verbose_name='Описание',
+        max_length=settings.TEXT_MAX_LENGTH,
     )
     create_dt = models.DateTimeField(
         auto_now_add=True,
@@ -45,7 +37,7 @@ class MealsType(models.Model):
 class Products(models.Model):
     name = models.CharField(
         verbose_name='Название продукта',
-        max_length=128,
+        max_length=settings.OTHER_MAX_LENGTH,
     )
     kkal = models.PositiveIntegerField(
         verbose_name='Калорийность'
@@ -91,7 +83,7 @@ class Products(models.Model):
 class Meals(models.Model):
     name = models.CharField(
         verbose_name='Название блюда',
-        max_length=128,
+        max_length=settings.OTHER_MAX_LENGTH,
     )
     photo = models.ImageField(
         blank=True,
@@ -100,7 +92,8 @@ class Meals(models.Model):
         upload_to='diets/',
     )
     describe = models.TextField(
-        verbose_name='Описание блюда'
+        verbose_name='Описание блюда',
+        max_length=settings.TEXT_MAX_LENGTH,
     )
     meal_product = models.ManyToManyField(
         Products,
@@ -109,11 +102,12 @@ class Meals(models.Model):
         verbose_name='Продукты',
     )
     recipe = models.TextField(
-        verbose_name='Описание рецепта'
+        verbose_name='Описание рецепта',
+        max_length=settings.TEXT_MAX_LENGTH,
     )
     link = models.CharField(
         verbose_name='Ссылка на видео рецепта',
-        max_length=128,
+        max_length=settings.TEXT_MAX_LENGTH,
     )
     create_dt = models.DateTimeField(
         auto_now_add=True,
@@ -146,6 +140,7 @@ class MealsList(models.Model):
     )
     describe = models.TextField(
         verbose_name='Список блюд',
+        max_length=settings.TEXT_MAX_LENGTH,
         blank=True,
         null=True
     )
@@ -168,9 +163,9 @@ class MealsList(models.Model):
 
 class Diets(models.Model):
     weekday = models.CharField(
-        max_length=128,
+        max_length=settings.NAME_MAX_LENGTH,
         blank=True,
-        choices=WEEKDAY_CHOICES,
+        choices=settings.WEEKDAY_CHOICES,
         verbose_name='Номер дня недели',
         help_text='Введите номер дня недели от 1 до 7',
     )
@@ -200,11 +195,13 @@ class Diets(models.Model):
     )
     user_comment = models.TextField(
         verbose_name='Комментарий клиента',
+        max_length=settings.TEXT_MAX_LENGTH,
         blank=True,
         null=True
     )
     spec_comment = models.TextField(
         verbose_name='Комментарий специалиста',
+        max_length=settings.TEXT_MAX_LENGTH,
         blank=True,
         null=True
     )
@@ -248,7 +245,7 @@ class DietPlan(models.Model):
         verbose_name='Диета',
     )
     name = models.CharField(
-        max_length=128,
+        max_length=settings.OTHER_MAX_LENGTH,
         blank=True,
         verbose_name='Название плана питания',
         help_text='Введите название плана питания',

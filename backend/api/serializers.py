@@ -1,20 +1,15 @@
-from django.contrib.auth import get_user_model
-from rest_framework import serializers
+from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth.hashers import make_password
+from rest_framework import serializers, validators
 
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
 
 User = get_user_model()
 
-WEEKDAY_CHOICES = ('1',
-                   '2',
-                   '3',
-                   '4',
-                   '5',
-                   '6',
-                   '7',
-                   )
+WEEKDAY_CHOICES = ('1', '2', '3', '4', '5', '6', '7')
 
 
 class TrainingSerializer(serializers.ModelSerializer):
@@ -110,7 +105,7 @@ class DietPlanSerializer(serializers.ModelSerializer):
             'user',
             'name',
             'describe',
-            'diet'
+            'diet',
         )
 
     def add_diets(self, diets, diet_plan):
@@ -133,3 +128,52 @@ class DietPlanSerializer(serializers.ModelSerializer):
         diets = validated_data.pop('diet')
         instance = super().update(instance, validated_data)
         return self.add_diets(diets, instance)
+
+
+class CreateUserSerializer(UserCreateSerializer):
+    """Сериализатор для регистрации пользователей."""
+    email = serializers.EmailField(
+        validators=[validators.UniqueValidator(
+            queryset=User.objects.all())])
+
+    class Meta:
+        model = User
+        fields = '__all__'
+        extra_kwargs = {'password': {'write_only': True}}
+
+
+class UsersSerializer(UserSerializer):
+    """Сериализатор пользователей"""
+    class Meta:
+        model = User
+        fields = '__all__'
+
+
+class UserPasswordSerializer(serializers.Serializer):
+    """Сериализатор для изменения пароля"""
+    new_password = serializers.CharField(
+        label='Новый пароль')
+    current_password = serializers.CharField(
+        label='Текущий пароль')
+
+    def validate_current_password(self, current_password):
+        user = self.context['request'].user
+        if not authenticate(
+                username=user.email,
+                password=current_password):
+            raise serializers.ValidationErrorCreateUserSerializer(
+                'Ошибка при вводе логина/пароля',
+                code='authorization')
+        return current_password
+
+    def validate_new_password(self, new_password):
+        validators.validate_password(new_password)
+        return new_password
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        password = make_password(
+            validated_data.get('new_password'))
+        user.password = password
+        user.save()
+        return validated_data
