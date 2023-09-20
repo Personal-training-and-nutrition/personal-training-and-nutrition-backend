@@ -1,11 +1,15 @@
-from django.contrib.auth.models import AbstractUser
-from django.core.validators import RegexValidator
+from django.conf import settings
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
+                                        PermissionsMixin,)
+from django.core.validators import MinLengthValidator, RegexValidator
 from django.db.models import (PROTECT, BooleanField, CharField, DateField,
                               DateTimeField, EmailField, FloatField,
                               ForeignKey, ImageField, IntegerField, Model,
                               TextField,)
 
 SPECIALIST_ROLE_CHOICES = (
+    ('CL', 'Client'),
     ('TR', 'Trainer'),
     ('NU', 'Nutritionist'))
 
@@ -18,6 +22,7 @@ class Gender(Model):
     gender = CharField(
         max_length=1,
         choices=GENDER_CHOICES,
+        default='F',
         verbose_name='Гендер пользователя',
     )
 
@@ -32,6 +37,7 @@ class Gender(Model):
 class Role(Model):
     role = CharField(
         max_length=2,
+        default='TR',
         choices=SPECIALIST_ROLE_CHOICES,
         verbose_name='Роль пользователя',
     )
@@ -64,7 +70,7 @@ class Education(Model):
         blank=True,
     )
     number = CharField(
-        max_length=64,
+        max_length=settings.NAME_MAX_LENGTH,
         verbose_name='Номер диплома',
         null=True,
         blank=True,
@@ -93,7 +99,7 @@ class Education(Model):
 
 class Institution(Model):
     name = CharField(
-        max_length=256,
+        max_length=settings.OTHER_MAX_LENGTH,
         primary_key=True,
         verbose_name='Название учебного заведения',
     )
@@ -157,8 +163,6 @@ class Specialists(Model):
         Education,
         on_delete=PROTECT,
         related_name='specialists_educations',
-        null=True,
-        blank=True,
     )
     contacts = TextField(
         'Контакты специалиста',
@@ -191,42 +195,74 @@ class Specialists(Model):
         return self.contacts
 
 
-class User(AbstractUser):
-    username = CharField(
-        'Никнейм',
-        max_length=128,
+class UserManager(BaseUserManager):
+    """Менеджер для создания пользователей
+    """
+    use_in_migrations = True
+
+    def _create_user(self, email, password, **extra_fields):
+        if not email:
+            raise ValueError('The given email must be set')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.password = make_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_user(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', False)
+        extra_fields.setdefault('is_superuser', False)
+        return self._create_user(email, password, **extra_fields)
+
+    def create_superuser(self, email, password, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError(
+                'Superuser must have is_staff=True.'
+            )
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError(
+                'Superuser must have is_superuser=True.'
+            )
+        return self._create_user(email, password, **extra_fields)
+
+
+class User(AbstractBaseUser, PermissionsMixin):
+    email = EmailField(
+        max_length=settings.EMAIL_MAX_LENGTH,
+        db_index=True,
         unique=True,
-        validators=[RegexValidator(
-            regex=r'^[\w.@+-]+\Z',
-            message='Введено некорректное значение поля username')],
+        validators=[MinLengthValidator(settings.EMAIL_MIN_LENGTH)],
+        error_messages={
+            'unique': 'Пользователь с таким e-mail уже существует.'}
     )
     first_name = CharField(
         verbose_name='Имя',
-        max_length=128,
+        max_length=settings.NAME_MAX_LENGTH,
+        validators=[MinLengthValidator(settings.NAME_MIN_LENGTH)],
         null=True,
         blank=True,
     )
     last_name = CharField(
         verbose_name='Фамилия',
-        max_length=128,
+        max_length=settings.NAME_MAX_LENGTH,
+        validators=[MinLengthValidator(settings.NAME_MIN_LENGTH)],
         null=True,
         blank=True,
     )
     middle_name = CharField(
         verbose_name='Отчество',
-        max_length=128,
+        max_length=settings.NAME_MAX_LENGTH,
+        validators=[MinLengthValidator(settings.NAME_MIN_LENGTH)],
         null=True,
         blank=True,
     )
-    email = EmailField(
-        max_length=128,
-        unique=True,
-        error_messages={
-            'unique': 'Пользователь с таким e-mail уже существует.'}
-    )
     password = CharField(
         'Пароль',
-        max_length=128,
+        max_length=settings.PASSWORD_MAX_LENGTH,
+        validators=[MinLengthValidator(settings.PASSWORD_MIN_LENGTH)],
         help_text='Введите пароль',
     )
     role = ForeignKey(
@@ -237,7 +273,11 @@ class User(AbstractUser):
         blank=True,
     )
     phone_number = CharField(
-        max_length=8,
+        max_length=settings.PHONE_MAX_LENGTH,
+        validators=[MinLengthValidator(settings.PHONE_MIN_LENGTH),
+                    RegexValidator(
+                        regex=r'^[\d+-)( ]+\Z',
+                        message='Допускаются цифры, (), +- и пробел')],
         blank=True,
         null=True,
         verbose_name='Номер телефона',
@@ -266,6 +306,14 @@ class User(AbstractUser):
         null=True,
         blank=True,
     )
+    is_staff = BooleanField(
+        'Staff status',
+        default=False,
+    )
+    is_superuser = BooleanField(
+        'Admin status',
+        default=False,
+    )
     is_specialist = BooleanField(
         default=True,
     )
@@ -289,6 +337,9 @@ class User(AbstractUser):
         auto_now=True,
         verbose_name='Дата обновления',
     )
+    objects = UserManager()
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['password']
 
     class Meta:
         verbose_name = 'Пользователь'

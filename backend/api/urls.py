@@ -20,4 +20,5 @@ urlpatterns = [
     path('users/set_password/',
          SetPasswordView.as_view(), name='set_password'),
     path('auth/', include('djoser.urls.authtoken'), name='auth'),
+    path('auth/', include('djoser.social.urls'), name='social'),
 ]
