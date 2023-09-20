@@ -15,6 +15,17 @@ EMAIL_MIN_LENGTH = 5
 PASSWORD_MIN_LENGTH = 8
 PASSWORD_MAX_LENGTH = 25
 
+WEEKDAY_CHOICES = (
+    ('1', 'Понедельник'),
+    ('2', 'Вторник'),
+    ('3', 'Среда'),
+    ('4', 'Четверг'),
+    ('5', 'Пятница'),
+    ('6', 'Суббота'),
+    ('7', 'Воскресенье'),
+)
+
+
 load_dotenv(find_dotenv())
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -33,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework.authtoken',
 ]
 
 # packages
@@ -126,12 +138,10 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES':
         ('rest_framework.permissions.IsAuthenticated',),
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
-    ],
+        'rest_framework.authentication.SessionAuthentication'],
     'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend',
-    ],
+        'django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 ###########################
@@ -169,12 +179,13 @@ DJOSER = {
     # 'LOGOUT_ON_PASSWORD_CHANGE': True,
     'PASSWORD_RESET_CONFIRM_URL': True,
     'SET_PASSWORD_RETYPE': True,
+    'ACTIVATION_URL': False,
     'PASSWORD_RESET_CONFIRM_RETYPE': True,
     'SERIALIZERS': {
         'user': 'api.serializers.UsersSerializer',
         'user_create': 'api.serializers.CreateUserSerializer',
         'current_user': 'api.serializers.UsersSerializer',
-        'set_password': 'rest_framework.permissions.CurrentUserOrAdmin',
+        'set_password': 'djoser.serializers.SetPasswordSerializer',
     },
     'PERMISSIONS': {
         'user': ('rest_framework.permissions.IsAuthenticated',),

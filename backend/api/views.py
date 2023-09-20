@@ -1,16 +1,18 @@
+from django.contrib.auth import get_user_model
 from rest_framework import status, viewsets
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from djoser.views import UserViewSet
-from users.models import User
 from workouts.models import TrainingPlan
 
 from diets.models import DietPlan
 
 from .serializers import (DietPlanSerializer, TrainingPlanSerializer,
                           UserPasswordSerializer, UsersSerializer,)
+
+User = get_user_model()
 
 
 class TrainingPlanViewSet(viewsets.ModelViewSet):

@@ -1,12 +1,13 @@
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.hashers import make_password
 from rest_framework import serializers, validators
 
 from djoser.serializers import UserCreateSerializer, UserSerializer
-from users.models import User
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
+
+User = get_user_model()
 
 WEEKDAY_CHOICES = ('1', '2', '3', '4', '5', '6', '7')
 
