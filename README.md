@@ -12,15 +12,20 @@
 
 ### Установка
 
-1. Клонировать репозиторий (открываешь терминал в нужной папке и вставляешь эту строчку, и нажимаешь ENTER,
-   в директории появится папка с названием проекта):
+1. Клонировать репозиторий (открываешь терминал в нужной папке и вставляешь эту строчку,
+   и нажимаешь "ENTER", в директории появится папка с названием проекта):
 
    ```python
    git clone git@github.com:Personal-training-and-nutrition/personal-training-and-nutrition-backend.git
    ```
+2. Переходишь в ветку develop:
 
-2. Установить виртуальное окружение для проекта (там же набираешь одну из этих команд и нажимаешь ENTER,
-   в директории появится папка env):
+   ```python
+   cd personal-training-and-nutrition-backend && git checkout develop
+   ```
+
+3. Установить виртуальное окружение для проекта (там же набираешь одну из этих команд
+   и нажимаешь "ENTER", в директории появится папка env):
 
    ```python
    # для OS Lunix
@@ -30,8 +35,8 @@
    python -m venv venv
    ```
 
-3. Активировать виртуальное окружение для проекта (там же набираешь одну из этих команд и нажимаешь ENTER,
-   в терминал слева появится (venv) - значит ты в виртуально окружении)):
+4. Активировать виртуальное окружение для проекта (там же набираешь одну из этих команд
+   и нажимаешь "ENTER", в терминал слева появится (venv) - значит ты в виртуально окружении)):
 
    ```python
    # для OS Lunix
@@ -41,32 +46,27 @@
    venv\Scripts\activate
    ```
 
-4. Установить зависимости (так же в той же директории):
+5. Установить зависимости (так же в той же директории):
 
       ```python
    # для OS Lunix
-   python3 -m pip install --upgrade pip
-   pip install -r requirements.txt
+   python3 -m pip install --upgrade pip && pip install -r requirements.txt
 
    # для OS Windows и MacOS
-   python -m pip install --upgrade pip
-   pip install -r requirements.txt
+   python -m pip install --upgrade pip && pip install -r requirements.txt
    ```
 
-5. Выполнить миграции на уровне проекта (Переходишь в папку backend, для этого набираешь в терминале команду "cd backend",
-   после этого увидишь, что в командной строке добавился /backend и последовательно выполняешь следующие две команды):
+6. Выполнить миграции на уровне проекта:
 
    ```python
    # для OS Lunix
-   python3 manage.py makemigrations
-   python3 manage.py migrate
+   cd backend && python3 manage.py makemigrations && python3 manage.py migrate
 
    # для OS Windows и MacOS
-   python manage.py makemigrations
-   python manage.py migrate
+   cd backend && python manage.py makemigrations && python manage.py migrate
    ```
 
-6. Запустить проект локально:
+7. Запускаешь проект локально:
 
    ```python
    # для OS Lunix
@@ -76,8 +76,22 @@
    python manage.py runserver
    ```
 
-7. Открываешь документацию по ссылке ниже:
+8. Открываешь документацию по ссылке ниже:
 
-      ```python
-    http://127.0.0.1:8000/api/schema/redoc/
+   ```python
+   - Swagger UI: http://127.0.0.1:8000/api/schema/swagger-ui/
+   - ReDoc (более аутентичный и простой интерфейс): http://127.0.0.1:8000/api/schema/redoc/
    ```
+
+9.  Чтобы импортировать коллекцию в Postman и использовать ее для тестирования:
+
+   ```python
+   - Откройте Postman и нажмите на кнопку "Import" в верхнем левом углу.
+   - В разделе "Link" вставьте ссылку http://127.0.0.1:8000/api/schema/ и нажмите на кнопку "Continue".
+   - В появившемся окне у вас будет возможность выбрать каталог, в который нужно импортировать.
+   ```
+
+### Работа с документацией и Postman
+
+ - _[Запись вебинара от ментора СА по OpenApi и Postman](https://disk.yandex.ru/i/IphJiDoH4ruBEA)_
+ - _[Видео по работе с Postman от Никиты](https://disk.yandex.ru/d/ej4OW0Am5hfSow)_
