@@ -123,9 +123,8 @@ USE_TZ = True
 #  DJANGO REST FRAMEWORK
 ###########################
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
+    'DEFAULT_PERMISSION_CLASSES':
+        ('rest_framework.permissions.IsAuthenticated',),
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
@@ -178,8 +177,8 @@ DJOSER = {
         'set_password': 'rest_framework.permissions.CurrentUserOrAdmin',
     },
     'PERMISSIONS': {
-        'user': 'rest_framework.permissions.IsAuthenticated',
-        'user_delete': 'rest_framework.permissions.IsAdminUser',
+        'user': ('rest_framework.permissions.IsAuthenticated',),
+        'user_delete': ('rest_framework.permissions.IsAdminUser',),
     },
 }
 

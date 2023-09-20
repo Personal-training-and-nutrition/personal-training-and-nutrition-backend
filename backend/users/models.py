@@ -276,7 +276,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=settings.PHONE_MAX_LENGTH,
         validators=[MinLengthValidator(settings.PHONE_MIN_LENGTH),
                     RegexValidator(
-                        regex=r'^[\d+-)( ]+\Z',
+                        regex=r'^[-\d\+\)\( ]+\Z',
                         message='Допускаются цифры, (), +- и пробел')],
         blank=True,
         null=True,
