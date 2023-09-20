@@ -114,7 +114,7 @@ AUTH_PASSWORD_VALIDATORS = [
 #  LOCALIZATION
 ###########################
 LANGUAGE_CODE = 'ru'
-TIME_ZONE = 'Europe/Moscow'
+TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
@@ -124,11 +124,11 @@ USE_TZ = True
 ###########################
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+        'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
-        'djoser.social.auth_backends.SocialAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
@@ -165,15 +165,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 ##################################
 DJOSER = {
     'LOGIN_FIELD': 'email',
-    'HIDE_USERS': False,
+    'HIDE_USERS': True,
     'USER_CREATE_PASSWORD_RETYPE': True,
-    'LOGOUT_ON_PASSWORD_CHANGE': True,
+    # 'LOGOUT_ON_PASSWORD_CHANGE': True,
     'PASSWORD_RESET_CONFIRM_URL': True,
+    'SET_PASSWORD_RETYPE': True,
     'PASSWORD_RESET_CONFIRM_RETYPE': True,
     'SERIALIZERS': {
         'user': 'api.serializers.UsersSerializer',
         'user_create': 'api.serializers.CreateUserSerializer',
         'current_user': 'api.serializers.UsersSerializer',
+        'set_password': 'rest_framework.permissions.CurrentUserOrAdmin',
     },
     'PERMISSIONS': {
         'user': 'rest_framework.permissions.IsAuthenticated',

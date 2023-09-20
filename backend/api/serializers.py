@@ -131,9 +131,6 @@ class DietPlanSerializer(serializers.ModelSerializer):
 
 class CreateUserSerializer(UserCreateSerializer):
     """Сериализатор для регистрации пользователей."""
-    username = serializers.CharField(
-        validators=[validators.UniqueValidator(
-            queryset=User.objects.all())])
     email = serializers.EmailField(
         validators=[validators.UniqueValidator(
             queryset=User.objects.all())])
