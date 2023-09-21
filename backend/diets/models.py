@@ -265,17 +265,17 @@ class DietPlan(models.Model):
     )
     specialist = models.ForeignKey(
         User,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name='diet_plan_spec',
         verbose_name='Специалист',
-        null=True
+        # null=True
     )
     user = models.ForeignKey(
         User,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name='diet_plan_user',
         verbose_name='Клиент',
-        null=True
+        # null=True
     )
     diet = models.ManyToManyField(
         Diets,

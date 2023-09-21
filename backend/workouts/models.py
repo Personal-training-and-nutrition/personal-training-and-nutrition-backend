@@ -208,8 +208,8 @@ class Training(models.Model):
 class TrainingPlan(models.Model):
     specialist = models.ForeignKey(
         User,
-        on_delete=models.SET_NULL,
-        null=True,
+        on_delete=models.CASCADE,
+        # null=True,
         verbose_name='Специалист',
         help_text='Специалист',
         related_name='spec_training_plan'
@@ -217,8 +217,8 @@ class TrainingPlan(models.Model):
     user = models.ForeignKey(
         User,
         verbose_name='Клиент',
-        on_delete=models.SET_NULL,
-        null=True,
+        on_delete=models.CASCADE,
+        # null=True,
         help_text='Клиент',
         related_name='user_training_plan'
     )
@@ -337,9 +337,3 @@ class TrainingPlanTraining(models.Model):
     class Meta:
         verbose_name = 'Связь тренировки cо списком упражнений'
         verbose_name_plural = 'Связи тренировок cо списками упражнений'
-        # constraints = [
-        #     models.UniqueConstraint(
-        #         name='unique_training_exercises_list',
-        #         fields=['training', 'exercises_list'],
-        #     ),
-        # ]

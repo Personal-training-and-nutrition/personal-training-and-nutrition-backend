@@ -26,16 +26,6 @@ class TrainingSerializer(serializers.ModelSerializer):
 
 class TrainingPlanSerializer(serializers.ModelSerializer):
     training = TrainingSerializer(many=True, required=False)
-    if User.is_specialist:
-        specialist = serializers.PrimaryKeyRelatedField(
-            read_only=True,
-            default=serializers.CurrentUserDefault()
-        )
-    else:
-        user = serializers.PrimaryKeyRelatedField(
-            read_only=True,
-            default=serializers.CurrentUserDefault()
-        )
 
     class Meta:
         model = TrainingPlan
@@ -85,16 +75,6 @@ class DietsSerializer(serializers.ModelSerializer):
 
 class DietPlanSerializer(serializers.ModelSerializer):
     diet = DietsSerializer(many=True, required=False)
-    if User.is_specialist:
-        specialist = serializers.PrimaryKeyRelatedField(
-            read_only=True,
-            default=serializers.CurrentUserDefault()
-        )
-    else:
-        user = serializers.PrimaryKeyRelatedField(
-            read_only=True,
-            default=serializers.CurrentUserDefault()
-        )
 
     class Meta:
         model = DietPlan
