@@ -28,7 +28,7 @@
    и нажимаешь "ENTER", в директории появится папка env):
 
    ```python
-   # для OS Lunix
+   # для OS Lunix и MacOS
    python3 -m venv venv
 
    # для OS Windows и MacOS
@@ -39,40 +39,48 @@
    и нажимаешь "ENTER", в терминал слева появится (venv) - значит ты в виртуально окружении)):
 
    ```python
-   # для OS Lunix
+   # для OS Lunix и MacOS
    source venv/bin/activate
 
-   # для OS Windows и MacOS
+   # для OS Windows
    venv\Scripts\activate
    ```
 
 5. Установить зависимости (так же в той же директории):
 
       ```python
-   # для OS Lunix
+   # для OS Lunix и MacOS
    python3 -m pip install --upgrade pip && pip install -r requirements.txt
 
-   # для OS Windows и MacOS
+   # для OS Windows
    python -m pip install --upgrade pip && pip install -r requirements.txt
    ```
 
 6. Выполнить миграции на уровне проекта:
 
    ```python
-   # для OS Lunix
+   # для OS Lunix и MacOS
    cd backend && python3 manage.py makemigrations && python3 manage.py migrate
 
-   # для OS Windows и MacOS
+   # для OS Windows
    cd backend && python manage.py makemigrations && python manage.py migrate
    ```
 
-7. Запускаешь проект локально:
+7. Cоздайте файл `.env` в директории `/backend/` с содержанием:
 
    ```python
-   # для OS Lunix
+   SECRET_KEY=любой_секретный_ключ_на_ваш_выбор
+   DEBUG=''
+   ALLOWED_HOSTS='*' (или,ваши,хосты,через,запятые,без,пробелов)
+   ```
+
+8. Запускаешь проект локально:
+
+   ```python
+   # для OS Lunix и MacOS
    python3 manage.py runserver
 
-   # для OS Windows и MacOS
+   # для OS Windows
    python manage.py runserver
    ```
 
