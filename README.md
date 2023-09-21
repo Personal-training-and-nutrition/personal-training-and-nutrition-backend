@@ -43,7 +43,7 @@
    source venv/bin/activate
 
    # для OS Windows
-   venv\Scripts\activate
+   source venv/Scripts/activate
    ```
 
 5. Установить зависимости (так же в той же директории):
@@ -66,7 +66,9 @@
    cd backend && python manage.py makemigrations && python manage.py migrate
    ```
 
-7. Cоздайте файл `.env` в директории `/backend/` с содержанием:
+7. Cоздайте файл `.env` в директории `/backend/` с содержанием
+   (файл можно создать командой "touch .env", а в директорию `/backend/`
+   вы перешли предыдущей комнадно cd backend):
 
    ```python
    SECRET_KEY=любой_секретный_ключ_на_ваш_выбор
