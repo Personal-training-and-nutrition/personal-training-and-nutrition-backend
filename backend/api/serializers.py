@@ -3,13 +3,13 @@ from django.contrib.auth.hashers import make_password
 from rest_framework import serializers, validators
 
 from djoser.serializers import UserCreateSerializer, UserSerializer
+
+from config.settings import WEEKDAY_CHOICES
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
 
 User = get_user_model()
-
-WEEKDAY_CHOICES = ('1', '2', '3', '4', '5', '6', '7')
 
 
 class TrainingSerializer(serializers.ModelSerializer):
@@ -46,7 +46,7 @@ class TrainingPlanSerializer(serializers.ModelSerializer):
             'user',
             'name',
             'describe',
-            'training'
+            'training',
         )
 
     def add_trainings(self, trainings, training_plan):
@@ -104,6 +104,10 @@ class DietPlanSerializer(serializers.ModelSerializer):
             'specialist',
             'user',
             'name',
+            'kkal',
+            'protein',
+            'carbo',
+            'fat',
             'describe',
             'diet',
         )
