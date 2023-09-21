@@ -4,7 +4,7 @@ from django.core.validators import MaxValueValidator
 from django.db import models
 
 from config.settings import (CARBO_MAX_PER_DAY, FAT_MAX_PER_DAY,
-                             KKAL_MAX_PER_DAY, PROTEIN_MAX_PER_DAY,)
+                             KKAL_MAX_PER_DAY, PROTEIN_MAX_PER_DAY)
 
 User = get_user_model()
 
@@ -231,8 +231,7 @@ class DietPlan(models.Model):
         verbose_name='Калорийность',
         validators=[
             MaxValueValidator(
-                KKAL_MAX_PER_DAY, 'Не более 40 000 калорий в день!'
-            )
+                KKAL_MAX_PER_DAY, 'Не более 40 000 калорий в день!')
         ],
         default=0,
     )
@@ -240,8 +239,7 @@ class DietPlan(models.Model):
         verbose_name='Белки',
         validators=[
             MaxValueValidator(
-                PROTEIN_MAX_PER_DAY, 'Не более 1000 г белков в день!'
-            )
+                PROTEIN_MAX_PER_DAY, 'Не более 1000 г белков в день!')
         ],
         default=0,
     )
@@ -249,8 +247,7 @@ class DietPlan(models.Model):
         verbose_name='Углеводы',
         validators=[
             MaxValueValidator(
-                CARBO_MAX_PER_DAY, 'Не более 5000 г углеводов в день!'
-            )
+                CARBO_MAX_PER_DAY, 'Не более 5000 г углеводов в день!')
         ],
         default=0,
     )
@@ -258,8 +255,7 @@ class DietPlan(models.Model):
         verbose_name='Жиры',
         validators=[
             MaxValueValidator(
-                FAT_MAX_PER_DAY, 'Не более 3000 г жиров в день!'
-            )
+                FAT_MAX_PER_DAY, 'Не более 3000 г жиров в день!')
         ],
         default=0,
     )
