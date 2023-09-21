@@ -3,10 +3,8 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator
 from django.db import models
 
-from config.settings import (KKAL_MAX_PER_DAY,
-                             PROTEIN_MAX_PER_DAY,
-                             CARBO_MAX_PER_DAY,
-                             FAT_MAX_PER_DAY)
+from config.settings import (CARBO_MAX_PER_DAY, FAT_MAX_PER_DAY,
+                             KKAL_MAX_PER_DAY, PROTEIN_MAX_PER_DAY,)
 
 User = get_user_model()
 

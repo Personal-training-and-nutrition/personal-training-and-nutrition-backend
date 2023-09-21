@@ -2,9 +2,8 @@ from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.hashers import make_password
 from rest_framework import serializers, validators
 
-from djoser.serializers import UserCreateSerializer, UserSerializer
-
 from config.settings import WEEKDAY_CHOICES
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
