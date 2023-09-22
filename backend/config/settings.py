@@ -175,11 +175,14 @@ LOGOUT_REDIRECT_URL = '/api/'
 #  Email
 #########
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.mail.ru'
+EMAIL_HOST = 'smtp.yandex.ru'
 EMAIL_PORT = 465
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 EMAIL_USE_SSL = True
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+SERVER_EMAIL = EMAIL_HOST_USER
+EMAIL_ADMIN = EMAIL_HOST_USER
 
 ##################################
 #  Registration and authentication
@@ -193,7 +196,7 @@ DJOSER = {
     'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': True,
     'PASSWORD_RESET_CONFIRM_URL': True,
     'SET_PASSWORD_RETYPE': True,
-    'ACTIVATION_URL': True,
+    'ACTIVATION_URL': '/activate/{uid}/{token}',
     'PASSWORD_RESET_CONFIRM_RETYPE': True,
     'SERIALIZERS': {
         'user': 'api.serializers.UsersSerializer',
