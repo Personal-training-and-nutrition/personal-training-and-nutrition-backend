@@ -139,6 +139,7 @@ REST_FRAMEWORK = {
         ('rest_framework.permissions.IsAuthenticated',),
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication'],
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend'],
@@ -168,13 +169,14 @@ MEDIA_ROOT = '/media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+LOGOUT_REDIRECT_URL = '/api/'
 
 ##################################
 #  Registration and authentication
 ##################################
 DJOSER = {
     'LOGIN_FIELD': 'email',
-    'HIDE_USERS': True,
+    'HIDE_USERS': False,
     'USER_CREATE_PASSWORD_RETYPE': True,
     # 'LOGOUT_ON_PASSWORD_CHANGE': True,
     'PASSWORD_RESET_CONFIRM_URL': True,
@@ -183,13 +185,13 @@ DJOSER = {
     'PASSWORD_RESET_CONFIRM_RETYPE': True,
     'SERIALIZERS': {
         'user': 'api.serializers.UsersSerializer',
-        'user_create': 'api.serializers.CreateUserSerializer',
+        'user_create': 'djoser.serializers.UserCreateSerializer',
         'current_user': 'api.serializers.UsersSerializer',
         'set_password': 'djoser.serializers.SetPasswordSerializer',
     },
     'PERMISSIONS': {
         'user': ('rest_framework.permissions.IsAuthenticated',),
-        'user_delete': ('rest_framework.permissions.IsAdminUser',),
+        'user_delete': ('rest_framework.permissions.IsAuthenticated',),
     },
 }
 

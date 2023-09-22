@@ -1,19 +1,17 @@
-from django.contrib.auth import authenticate, get_user_model
-from django.contrib.auth.hashers import make_password
-from rest_framework import serializers, validators
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from rest_framework import serializers
 
-from djoser.serializers import UserCreateSerializer, UserSerializer
+from djoser.serializers import UserSerializer
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
 
 User = get_user_model()
 
-WEEKDAY_CHOICES = ('1', '2', '3', '4', '5', '6', '7')
-
 
 class TrainingSerializer(serializers.ModelSerializer):
-    weekday = serializers.ChoiceField(choices=WEEKDAY_CHOICES)
+    weekday = serializers.ChoiceField(choices=settings.WEEKDAY_CHOICES)
 
     class Meta:
         model = Training
@@ -72,7 +70,7 @@ class TrainingPlanSerializer(serializers.ModelSerializer):
 
 
 class DietsSerializer(serializers.ModelSerializer):
-    weekday = serializers.ChoiceField(choices=WEEKDAY_CHOICES)
+    weekday = serializers.ChoiceField(choices=settings.WEEKDAY_CHOICES)
 
     class Meta:
         model = Diets
@@ -130,50 +128,8 @@ class DietPlanSerializer(serializers.ModelSerializer):
         return self.add_diets(diets, instance)
 
 
-class CreateUserSerializer(UserCreateSerializer):
-    """Сериализатор для регистрации пользователей."""
-    email = serializers.EmailField(
-        validators=[validators.UniqueValidator(
-            queryset=User.objects.all())])
-
-    class Meta:
-        model = User
-        fields = '__all__'
-        extra_kwargs = {'password': {'write_only': True}}
-
-
 class UsersSerializer(UserSerializer):
     """Сериализатор пользователей"""
     class Meta:
         model = User
         fields = '__all__'
-
-
-class UserPasswordSerializer(serializers.Serializer):
-    """Сериализатор для изменения пароля"""
-    new_password = serializers.CharField(
-        label='Новый пароль')
-    current_password = serializers.CharField(
-        label='Текущий пароль')
-
-    def validate_current_password(self, current_password):
-        user = self.context['request'].user
-        if not authenticate(
-                username=user.email,
-                password=current_password):
-            raise serializers.ValidationErrorCreateUserSerializer(
-                'Ошибка при вводе логина/пароля',
-                code='authorization')
-        return current_password
-
-    def validate_new_password(self, new_password):
-        validators.validate_password(new_password)
-        return new_password
-
-    def create(self, validated_data):
-        user = self.context['request'].user
-        password = make_password(
-            validated_data.get('new_password'))
-        user.password = password
-        user.save()
-        return validated_data
