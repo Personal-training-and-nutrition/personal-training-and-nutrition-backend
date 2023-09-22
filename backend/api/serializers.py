@@ -2,14 +2,13 @@ from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.hashers import make_password
 from rest_framework import serializers, validators
 
+from config.settings import WEEKDAY_CHOICES
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
 
 User = get_user_model()
-
-WEEKDAY_CHOICES = ('1', '2', '3', '4', '5', '6', '7')
 
 
 class TrainingSerializer(serializers.ModelSerializer):
@@ -27,16 +26,6 @@ class TrainingSerializer(serializers.ModelSerializer):
 
 class TrainingPlanSerializer(serializers.ModelSerializer):
     training = TrainingSerializer(many=True, required=False)
-    if User.is_specialist:
-        specialist = serializers.PrimaryKeyRelatedField(
-            read_only=True,
-            default=serializers.CurrentUserDefault()
-        )
-    else:
-        user = serializers.PrimaryKeyRelatedField(
-            read_only=True,
-            default=serializers.CurrentUserDefault()
-        )
 
     class Meta:
         model = TrainingPlan
@@ -46,7 +35,7 @@ class TrainingPlanSerializer(serializers.ModelSerializer):
             'user',
             'name',
             'describe',
-            'training'
+            'training',
         )
 
     def add_trainings(self, trainings, training_plan):
@@ -86,16 +75,6 @@ class DietsSerializer(serializers.ModelSerializer):
 
 class DietPlanSerializer(serializers.ModelSerializer):
     diet = DietsSerializer(many=True, required=False)
-    if User.is_specialist:
-        specialist = serializers.PrimaryKeyRelatedField(
-            read_only=True,
-            default=serializers.CurrentUserDefault()
-        )
-    else:
-        user = serializers.PrimaryKeyRelatedField(
-            read_only=True,
-            default=serializers.CurrentUserDefault()
-        )
 
     class Meta:
         model = DietPlan
@@ -104,6 +83,10 @@ class DietPlanSerializer(serializers.ModelSerializer):
             'specialist',
             'user',
             'name',
+            'kkal',
+            'protein',
+            'carbo',
+            'fat',
             'describe',
             'diet',
         )
