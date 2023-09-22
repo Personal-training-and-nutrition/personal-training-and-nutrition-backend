@@ -171,6 +171,16 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGOUT_REDIRECT_URL = '/api/'
 
+#########
+#  Email
+#########
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.mail.ru'
+EMAIL_PORT = 465
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_USE_SSL = True
+
 ##################################
 #  Registration and authentication
 ##################################
@@ -178,16 +188,19 @@ DJOSER = {
     'LOGIN_FIELD': 'email',
     'HIDE_USERS': False,
     'USER_CREATE_PASSWORD_RETYPE': True,
-    # 'LOGOUT_ON_PASSWORD_CHANGE': True,
+    'ACTIVATION_URL': '#/users/activate/{uid}/{token}',
+    'SEND_ACTIVATION_EMAIL': True,
+    'SEND_CONFIRMATION_EMAIL': True,
+    'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': True,
     'PASSWORD_RESET_CONFIRM_URL': True,
     'SET_PASSWORD_RETYPE': True,
-    'ACTIVATION_URL': False,
+    'ACTIVATION_URL': True,
     'PASSWORD_RESET_CONFIRM_RETYPE': True,
     'SERIALIZERS': {
         'user': 'api.serializers.UsersSerializer',
-        'user_create': 'djoser.serializers.UserCreateSerializer',
-        'current_user': 'api.serializers.UsersSerializer',
-        'set_password': 'djoser.serializers.SetPasswordSerializer',
+        'set_password': 'api.serializers.SetPasswordSerializer',
+        'user_delete': 'api.serializers.UsersSerializer',
+        'activation': 'djoser.email.ActivationEmail',
     },
     'PERMISSIONS': {
         'user': ('rest_framework.permissions.IsAuthenticated',),
