@@ -56,24 +56,35 @@
    python -m pip install --upgrade pip && pip install -r requirements.txt
    ```
 
-6. Выполнить миграции на уровне проекта:
+6. Cоздайте файл `.env` в директории `/backend/`:
 
    ```python
-   # для OS Lunix и MacOS
-   cd backend && python3 manage.py makemigrations && python3 manage.py migrate
+   cd backend && nano .env
 
-   # для OS Windows
-   cd backend && python manage.py makemigrations && python manage.py migrate
-   ```
+   В открывшийся редактор вставьте ключи ниже и после закройте командой "Ctrl + X"
 
-7. Cоздайте файл `.env` в директории `/backend/` с содержанием
-   (файл можно создать командой "touch .env", а в директорию `/backend/`
-   вы перешли предыдущей комнадно cd backend):
-
-   ```python
    SECRET_KEY=любой_секретный_ключ_на_ваш_выбор
    DEBUG=''
    ALLOWED_HOSTS='*' (или,ваши,хосты,через,запятые,без,пробелов)
+
+   SOCIAL_AUTH_MAILRU_KEY=
+   SOCIAL_AUTH_MAILRU_SECRET=
+   SOCIAL_AUTH_VK_OAUTH2_KEY=
+   SOCIAL_AUTH_VK_OAUTH2_SECRET=
+   SOCIAL_AUTH_YANDEX_KEY=
+   SOCIAL_AUTH_YANDEX_SECRET=
+   ```
+
+7. Выполнить миграции на уровне проекта из директории `/backend/`
+   (если не вы перешли на нее предыдущей комнадно cd backend,
+   то выполните команду cd backend):
+
+   ```python
+   # для OS Lunix и MacOS
+   python3 manage.py makemigrations && python3 manage.py migrate
+
+   # для OS Windows
+   python manage.py makemigrations && python manage.py migrate
    ```
 
 8. Запускаешь проект локально:
@@ -105,3 +116,27 @@
 
    - _[Запись вебинара от ментора СА по OpenApi и Postman](https://disk.yandex.ru/i/IphJiDoH4ruBEA)_
    - _[Видео по работе с Postman от Никиты](https://disk.yandex.ru/d/ej4OW0Am5hfSow)_
+
+
+### Вход в админку
+
+1. ввести команду 'python manage.py createsuperuser', там придумаешь почту и пароль
+
+   ```python
+   # для OS Lunix и MacOS
+   python3 manage.py createsuperuser
+
+   # для OS Windows
+   python manage.py createsuperuser
+   ```
+2. Запускаешь проект локально:
+
+   ```python
+   # для OS Lunix и MacOS
+   python3 manage.py runserver
+
+   # для OS Windows
+   python manage.py runserver
+   ```
+
+3. Заходишь по адресу http://127.0.0.1:8000/admin со своим почтой и паролем
