@@ -208,7 +208,7 @@ DJOSER = {
 }
 
 AUTHENTICATION_BACKENDS = (
-    'social_core.backends.mailru.MailruOAuth2',
+    'social_core.backends.mailru.MRGOAuth2',
     'social_core.backends.vk.VKOAuth2',
     'social_core.backends.yandex.YandexOAuth2',
     'django.contrib.auth.backends.ModelBackend',
