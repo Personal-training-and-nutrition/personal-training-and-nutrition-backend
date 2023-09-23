@@ -144,3 +144,6 @@ backend/media/
 /backend/diets/migrations/
 /backend/workouts/migrations/
 /backend/users/migrations/
+
+# personal file
+/logic
