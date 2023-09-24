@@ -1,5 +1,6 @@
 import os
 
+from datetime import timedelta
 from dotenv import find_dotenv, load_dotenv
 from pathlib import Path
 
@@ -48,7 +49,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework.authtoken',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 # packages
@@ -58,6 +60,7 @@ INSTALLED_APPS += [
     'drf_spectacular',
     'djoser',
     'social_django',
+    'corsheaders',
 ]
 
 # apps
@@ -100,7 +103,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -108,6 +110,71 @@ DATABASES = {
     }
 }
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGOUT_REDIRECT_URL = '/api/'
+
+###########################
+#  LOCALIZATION
+###########################
+LANGUAGE_CODE = 'ru'
+TIME_ZONE = 'UTC'
+USE_I18N = True
+USE_TZ = True
+
+###########################
+#  DJANGO REST FRAMEWORK
+###########################
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES':
+        ('rest_framework.permissions.IsAuthenticated',),
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication'],
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+###########################
+#  DRF Spectacular
+###########################
+SPECTACULAR_SETTINGS = {
+    "TITLE": "WellCoach",
+    "VERSION": "0.0.1",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SWAGGER_UI_SETTINGS": {
+        "filter": True,
+    },
+    "COMPONENT_SPLIT_REQUEST": True
+}
+
+###########################
+#  STATIC AND MEDIA
+###########################
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'collected_static'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/media'
+
+#########
+#  Email
+#########
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.yandex.ru'
+EMAIL_PORT = 465
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_USE_SSL = True
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+SERVER_EMAIL = EMAIL_HOST_USER
+EMAIL_ADMIN = EMAIL_HOST_USER
+
+##################################
+#  Registration and authentication
+##################################
 AUTH_USER_MODEL = 'users.User'
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -125,75 +192,34 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-###########################
-#  LOCALIZATION
-###########################
-LANGUAGE_CODE = 'ru'
-TIME_ZONE = 'UTC'
-USE_I18N = True
-USE_TZ = True
-
-
-###########################
-#  DJANGO REST FRAMEWORK
-###########################
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES':
-        ('rest_framework.permissions.IsAuthenticated',),
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication'],
-    'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend'],
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('JWT',),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
 }
-###########################
-#  DRF Spectacular
-###########################
-SPECTACULAR_SETTINGS = {
-    "TITLE": "WellCoach",
-    "VERSION": "0.0.1",
-    "SERVE_INCLUDE_SCHEMA": False,
-    "SWAGGER_UI_SETTINGS": {
-        "filter": True,
-    },
-    "COMPONENT_SPLIT_REQUEST": True
-}
-###########################
-#  STATIC AND MEDIA
-###########################
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'collected_static'
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = '/media'
-
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-##################################
-#  Registration and authentication
-##################################
 DJOSER = {
     'LOGIN_FIELD': 'email',
-    'HIDE_USERS': True,
+    'HIDE_USERS': False,
     'USER_CREATE_PASSWORD_RETYPE': True,
-    # 'LOGOUT_ON_PASSWORD_CHANGE': True,
-    'PASSWORD_RESET_CONFIRM_URL': True,
+    'SEND_ACTIVATION_EMAIL': True,
+    'SEND_CONFIRMATION_EMAIL': True,
     'SET_PASSWORD_RETYPE': True,
-    'ACTIVATION_URL': False,
-    'PASSWORD_RESET_CONFIRM_RETYPE': True,
+    'ACTIVATION_URL': 'api/activate/{uid}/{token}',
+    'SOCIAL_AUTH_TOKEN_STRATEGY': 'djoser.social.token.jwt.TokenStrategy',
+    'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': [
+        'https://connect.mail.ru',
+        'http://localhost:8000/complete/yandex-oauth2/',
+        'http://localhost:8000/complete/vk-oauth2/',
+    ],
     'SERIALIZERS': {
-        'user': 'api.serializers.UsersSerializer',
-        'user_create': 'api.serializers.CreateUserSerializer',
-        'current_user': 'api.serializers.UsersSerializer',
-        'set_password': 'djoser.serializers.SetPasswordSerializer',
+        'user': 'api.serializers.CustomUserSerializer',
+        'user_delete': 'api.serializers.CustomUserSerializer',
     },
     'PERMISSIONS': {
         'user': ('rest_framework.permissions.IsAuthenticated',),
-        'user_delete': ('rest_framework.permissions.IsAdminUser',),
+        'user_delete': ('rest_framework.permissions.IsAuthenticated',),
     },
 }
 
@@ -213,3 +239,8 @@ SOCIAL_AUTH_VK_OAUTH2_KEY = os.getenv('SOCIAL_AUTH_VK_OAUTH2_KEY')
 SOCIAL_AUTH_VK_OAUTH2_SECRET = os.getenv('SOCIAL_AUTH_VK_OAUTH2_SECRET')
 SOCIAL_AUTH_YANDEX_KEY = os.getenv('SOCIAL_AUTH_YANDEX_KEY')
 SOCIAL_AUTH_YANDEX_SECRET = os.getenv('SOCIAL_AUTH_YANDEX_SECRET')
+
+
+# CORS HEADERS
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
