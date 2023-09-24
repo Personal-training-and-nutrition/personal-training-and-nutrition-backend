@@ -1,5 +1,6 @@
 import os
 
+from datetime import timedelta
 from dotenv import find_dotenv, load_dotenv
 from pathlib import Path
 
@@ -48,7 +49,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework.authtoken',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 # packages
@@ -58,6 +60,7 @@ INSTALLED_APPS += [
     'drf_spectacular',
     'djoser',
     'social_django',
+    'corsheaders',
 ]
 
 # apps
@@ -100,7 +103,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -108,23 +110,9 @@ DATABASES = {
     }
 }
 
-AUTH_USER_MODEL = 'users.User'
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
+LOGOUT_REDIRECT_URL = '/api/'
 
 ###########################
 #  LOCALIZATION
@@ -134,7 +122,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-
 ###########################
 #  DJANGO REST FRAMEWORK
 ###########################
@@ -142,13 +129,14 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES':
         ('rest_framework.permissions.IsAuthenticated',),
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication'],
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
+
 ###########################
 #  DRF Spectacular
 ###########################
@@ -161,6 +149,7 @@ SPECTACULAR_SETTINGS = {
     },
     "COMPONENT_SPLIT_REQUEST": True
 }
+
 ###########################
 #  STATIC AND MEDIA
 ###########################
@@ -169,11 +158,6 @@ STATIC_ROOT = BASE_DIR / 'collected_static'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = '/media'
-
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-LOGOUT_REDIRECT_URL = '/api/'
 
 #########
 #  Email
@@ -191,22 +175,47 @@ EMAIL_ADMIN = EMAIL_HOST_USER
 ##################################
 #  Registration and authentication
 ##################################
+AUTH_USER_MODEL = 'users.User'
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('JWT',),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+}
+
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'HIDE_USERS': False,
     'USER_CREATE_PASSWORD_RETYPE': True,
     'SEND_ACTIVATION_EMAIL': True,
     'SEND_CONFIRMATION_EMAIL': True,
-    'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': True,
-    'PASSWORD_RESET_CONFIRM_URL': True,
     'SET_PASSWORD_RETYPE': True,
-    'ACTIVATION_URL': '/activate/{uid}/{token}',
-    'PASSWORD_RESET_CONFIRM_RETYPE': True,
+    'ACTIVATION_URL': 'api/activate/{uid}/{token}',
+    'SOCIAL_AUTH_TOKEN_STRATEGY': 'djoser.social.token.jwt.TokenStrategy',
+    'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': [
+        'https://connect.mail.ru',
+        'http://localhost:8000/complete/yandex-oauth2/',
+        'http://localhost:8000/complete/vk-oauth2/',
+    ],
     'SERIALIZERS': {
-        'user': 'api.serializers.UsersSerializer',
-        'set_password': 'api.serializers.SetPasswordSerializer',
-        'user_delete': 'api.serializers.UsersSerializer',
-        'activation': 'djoser.email.ActivationEmail',
+        'user': 'api.serializers.CustomUserSerializer',
+        'user_delete': 'api.serializers.CustomUserSerializer',
     },
     'PERMISSIONS': {
         'user': ('rest_framework.permissions.IsAuthenticated',),
@@ -215,7 +224,7 @@ DJOSER = {
 }
 
 AUTHENTICATION_BACKENDS = (
-    'social_core.backends.mailru.MRGOAuth2',
+    'social_core.backends.mailru.MailruOAuth2',
     'social_core.backends.vk.VKOAuth2',
     'social_core.backends.yandex.YandexOAuth2',
     'django.contrib.auth.backends.ModelBackend',
@@ -230,3 +239,8 @@ SOCIAL_AUTH_VK_OAUTH2_KEY = os.getenv('SOCIAL_AUTH_VK_OAUTH2_KEY')
 SOCIAL_AUTH_VK_OAUTH2_SECRET = os.getenv('SOCIAL_AUTH_VK_OAUTH2_SECRET')
 SOCIAL_AUTH_YANDEX_KEY = os.getenv('SOCIAL_AUTH_YANDEX_KEY')
 SOCIAL_AUTH_YANDEX_SECRET = os.getenv('SOCIAL_AUTH_YANDEX_SECRET')
+
+
+# CORS HEADERS
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True

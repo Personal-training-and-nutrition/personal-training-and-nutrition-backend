@@ -112,7 +112,7 @@ class DietPlanSerializer(serializers.ModelSerializer):
         return self.add_diets(diets, instance)
 
 
-class UsersSerializer(UserSerializer):
+class CustomUserSerializer(UserSerializer):
     """Сериализатор пользователей"""
     class Meta:
         model = User

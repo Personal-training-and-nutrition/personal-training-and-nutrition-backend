@@ -31,7 +31,7 @@ class DietPlanViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'delete']
 
 
-class UsersViewSet(UserViewSet):
+class CustomUserViewSet(UserViewSet):
     permission_classes = settings.PERMISSIONS.user
 
     def destroy(self, request, *args, **kwargs):
@@ -54,4 +54,17 @@ class UsersViewSet(UserViewSet):
         self.request.user.save()
         if settings.CREATE_SESSION_ON_LOGIN:
             update_session_auth_hash(self.request, self.request.user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ActivateUser(UserViewSet):
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        kwargs.setdefault('context', self.get_serializer_context())
+        kwargs['data'] = {"uid": self.kwargs['uid'],
+                          "token": self.kwargs['token']}
+        return serializer_class(*args, **kwargs)
+
+    def activation(self, request, uid, token, *args, **kwargs):
+        super().activation(request, *args, **kwargs)
         return Response(status=status.HTTP_204_NO_CONTENT)
