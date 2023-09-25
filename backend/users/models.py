@@ -229,7 +229,7 @@ class UserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 
-class User(AbstractBaseUser, PermissionsMixin):
+class User(PermissionsMixin, AbstractBaseUser):
     email = EmailField(
         max_length=settings.EMAIL_MAX_LENGTH,
         db_index=True,
@@ -282,7 +282,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         null=True,
         verbose_name='Номер телефона',
     )
-    date_of_birth = DateField(
+    dob = DateField(
         null=True,
         blank=True,
         verbose_name='Дата рождения',
@@ -317,7 +317,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_specialist = BooleanField(
         default=True,
     )
-    specialist_id = ForeignKey(
+    specialist = ForeignKey(
         Specialists,
         on_delete=PROTECT,
         null=True,

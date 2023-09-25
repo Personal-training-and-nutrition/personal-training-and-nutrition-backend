@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from rest_framework import serializers
+from rest_framework.serializers import (CharField, ChoiceField,
+                                        ModelSerializer, ReadOnlyField,)
 
 from djoser.serializers import UserSerializer
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
@@ -10,8 +11,8 @@ from diets.models import DietPlan, DietPlanDiet, Diets
 User = get_user_model()
 
 
-class TrainingSerializer(serializers.ModelSerializer):
-    weekday = serializers.ChoiceField(choices=settings.WEEKDAY_CHOICES)
+class TrainingSerializer(ModelSerializer):
+    weekday = ChoiceField(choices=settings.WEEKDAY_CHOICES)
 
     class Meta:
         model = Training
@@ -23,7 +24,7 @@ class TrainingSerializer(serializers.ModelSerializer):
         )
 
 
-class TrainingPlanSerializer(serializers.ModelSerializer):
+class TrainingPlanSerializer(ModelSerializer):
     training = TrainingSerializer(many=True, required=False)
 
     class Meta:
@@ -59,8 +60,8 @@ class TrainingPlanSerializer(serializers.ModelSerializer):
         return self.add_trainings(trainings, instance)
 
 
-class DietsSerializer(serializers.ModelSerializer):
-    weekday = serializers.ChoiceField(choices=settings.WEEKDAY_CHOICES)
+class DietsSerializer(ModelSerializer):
+    weekday = ChoiceField(choices=settings.WEEKDAY_CHOICES)
 
     class Meta:
         model = Diets
@@ -72,7 +73,7 @@ class DietsSerializer(serializers.ModelSerializer):
         )
 
 
-class DietPlanSerializer(serializers.ModelSerializer):
+class DietPlanSerializer(ModelSerializer):
     diet = DietsSerializer(many=True, required=False)
 
     class Meta:
@@ -116,4 +117,73 @@ class CustomUserSerializer(UserSerializer):
     """Сериализатор пользователей"""
     class Meta:
         model = User
-        fields = '__all__'
+        fields = (
+            'id',
+            'email',
+            'first_name',
+            'last_name',
+            'middle_name',
+            'password',
+            'role',
+            'phone_number',
+            'dob',
+            'gender',
+            'params',
+            'capture',
+            'is_staff',
+            'is_superuser',
+            'is_specialist',
+            'specialist',
+            'is_active',
+        )
+
+
+class ClientsListSerializer(ModelSerializer):
+    id = ReadOnlyField(source='user.id')
+    first_name = ReadOnlyField(source='user.first_name')
+    last_name = ReadOnlyField(source='user.last_name')
+    dob = ReadOnlyField(source='user.dob')
+    notes = CharField()
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'first_name',
+            'last_name',
+            'dob',
+            'notes',
+        )
+
+
+class ClientsListAddSerializer(ModelSerializer):
+    pass
+#     """Добавление нового клиента специалистом"""
+#     email = EmailField()
+#     first_name = CharField()
+#     last_name = CharField()
+
+#     class Meta:
+#         model = SpecialistClient
+#         fields = ('id', 'first_name', 'email',
+#                   'last_name', 'notes',
+#                   'diseases', 'exp_diets')
+
+#     def create(self, data):
+#         first_name = data.pop('first_name')
+#         email = data.pop('email')
+#         last_name = data.pop('last_name')
+#         client = User.objects.create(
+#             email=email,
+#             first_name=first_name,
+#             last_name=last_name
+#         )
+#         notes = data.pop('notes')
+#         diseases = data.pop('diseases')
+#         exp_diets = data.pop('exp_diets')
+#         return SpecialistClient.objects.create(
+#             user=client,
+#             notes=notes,
+#             exp_diets=exp_diets,
+#             diseases=diseases,
+#         )

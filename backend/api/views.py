@@ -5,14 +5,17 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from api.permissions import SpecialistOrAdmin
 from djoser import utils
 from djoser.conf import settings
 from djoser.views import UserViewSet
+from users.models import SpecialistClient
 from workouts.models import TrainingPlan
 
 from diets.models import DietPlan
 
-from .serializers import DietPlanSerializer, TrainingPlanSerializer
+from .serializers import (ClientsListAddSerializer, ClientsListSerializer,
+                          DietPlanSerializer, TrainingPlanSerializer,)
 
 User = get_user_model()
 
@@ -68,3 +71,25 @@ class ActivateUser(UserViewSet):
     def activation(self, request, uid, token, *args, **kwargs):
         super().activation(request, *args, **kwargs)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ClientsListViewSet(viewsets.ModelViewSet):
+    queryset = SpecialistClient.objects.all()
+    serializer_class = ClientsListSerializer
+    permission_classes = (SpecialistOrAdmin,)
+
+    def perform_create(self, serializer):
+        return serializer.save(specialist=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action in ['list']:
+            return ClientsListSerializer
+        return ClientsListAddSerializer
+
+    @action(detail=False, methods=['get'])
+    def get_list(self):
+        clients = SpecialistClient.objects.filter(
+            specialist=self.request.user)
+        serializer = ClientsListSerializer(clients)
+        return Response(data=serializer.data,
+                        status=status.HTTP_200_OK)
