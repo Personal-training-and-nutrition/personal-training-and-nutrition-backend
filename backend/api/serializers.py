@@ -114,6 +114,54 @@ class DietPlanSerializer(serializers.ModelSerializer):
 
 class CustomUserSerializer(UserSerializer):
     """Сериализатор пользователей"""
+    diet_plans = DietPlanSerializer(many=True, read_only=True)
+    training_plans = TrainingPlanSerializer(many=True, read_only=True)
+
     class Meta:
         model = User
-        fields = '__all__'
+        fields = (
+            'id',
+            'email',
+            # 'first_name',
+            # 'last_name',
+            # 'middle_name',
+            'diet_plans',
+            'training_plans',
+            # 'password',
+            # 'phone_number',
+            # 'date_of_birth',
+            # 'gender',
+            # 'params',
+            # 'capture',
+            # 'is_staff',
+            'is_superuser',
+            'is_specialist',
+            'specialist',
+            'is_active',
+        )
+
+
+class CreateClientSerializer(serializers.ModelSerializer):
+    """Сериализатор создания клиента"""
+
+    class Meta:
+        model = User
+        fields = ('last_name',
+                  'first_name',
+                  'date_of_birth',
+                  'gender',
+                # 'weight',
+                # 'height',
+                  'phone_number',
+                  'email',)
+    # def to_representation(self, instance):
+    #     return {
+    #         'first_name': instance.first_name,
+    #         'last_name': instance.last_name,
+    #     }
+
+        # exclude = ('is_active',
+        #            'is_specialist',
+        #            'role',
+        #            'gender',
+        #            'params',)

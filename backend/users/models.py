@@ -317,7 +317,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_specialist = BooleanField(
         default=True,
     )
-    specialist_id = ForeignKey(
+    specialist = ForeignKey(
         Specialists,
         on_delete=PROTECT,
         null=True,

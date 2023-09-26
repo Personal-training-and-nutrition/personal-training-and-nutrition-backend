@@ -21,5 +21,4 @@ urlpatterns = [
     path('auth/', include('djoser.urls.jwt')),
     path('activate/<uid>/<token>',
          ActivateUser.as_view({'get': 'activation'}), name='activation'),
-
 ]
