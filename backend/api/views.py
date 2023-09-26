@@ -59,6 +59,7 @@ class CustomUserViewSet(UserViewSet):
 
     @action(detail=False, methods=['get'])
     def workout_programs(self, serializer):
+        """Вывод программ тренировок клиента"""
         programs = TrainingPlan.objects.filter(user=self.request.user)
         serializer = WorkoutListSerializer(programs)
         return Response(data=serializer.data,
@@ -66,6 +67,7 @@ class CustomUserViewSet(UserViewSet):
     
     @action(detail=False, methods=['get'])
     def diet_programs(self, serializer):
+        """Вывод программ питания клиента"""
         programs = DietPlan.objects.filter(user=self.request.user)
         serializer = DietListSerializer(programs)
         return Response(data=serializer.data,
@@ -73,6 +75,7 @@ class CustomUserViewSet(UserViewSet):
 
 
 class ActivateUser(UserViewSet):
+    """Активация пользователя по ссылке в письме"""
     def get_serializer(self, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         kwargs.setdefault('context', self.get_serializer_context())

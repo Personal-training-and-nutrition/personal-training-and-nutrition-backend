@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework.serializers import (ChoiceField, Field,
-                                        ReadOnlyField,
                                         ModelSerializer)
 
 from djoser.serializers import UserSerializer
@@ -13,6 +12,7 @@ User = get_user_model()
 
 
 class TrainingSerializer(ModelSerializer):
+    """Сериализатор тренировок"""
     weekday = ChoiceField(choices=settings.WEEKDAY_CHOICES)
 
     class Meta:
@@ -26,6 +26,7 @@ class TrainingSerializer(ModelSerializer):
 
 
 class TrainingPlanSerializer(ModelSerializer):
+    """Сериализатор плана тренировок"""
     training = TrainingSerializer(many=True, required=False)
 
     class Meta:
@@ -63,6 +64,7 @@ class TrainingPlanSerializer(ModelSerializer):
 
 
 class DietsSerializer(ModelSerializer):
+    """Сериализатор диет"""
     weekday = ChoiceField(choices=settings.WEEKDAY_CHOICES)
 
     class Meta:
@@ -76,6 +78,7 @@ class DietsSerializer(ModelSerializer):
 
 
 class DietPlanSerializer(ModelSerializer):
+    """Сериализатор плана питания"""
     diet = DietsSerializer(many=True, required=False)
 
     class Meta:
@@ -160,6 +163,7 @@ class TrainingProgramUserField(Field):
 
 
 class WorkoutListSerializer(ModelSerializer):
+    """Сериализатор списка программ тренировок"""
     workout = TrainingProgramUserField()
 
     class Meta:
@@ -193,6 +197,7 @@ class DietProgramUserField(Field):
 
 
 class DietListSerializer(ModelSerializer):
+    """Сериализатор списка программ питания"""
     diet = DietProgramUserField()
 
     class Meta:
