@@ -8,12 +8,12 @@ from rest_framework.response import Response
 from djoser import utils
 from djoser.conf import settings
 from djoser.views import UserViewSet
-
-from api.permissions import ClientOrAdmin
 from workouts.models import TrainingPlan
+
 from diets.models import DietPlan
+
 from .serializers import (DietListSerializer, DietPlanSerializer,
-                          TrainingPlanSerializer, WorkoutListSerializer)
+                          TrainingPlanSerializer, WorkoutListSerializer,)
 
 User = get_user_model()
 
@@ -64,7 +64,7 @@ class CustomUserViewSet(UserViewSet):
         serializer = WorkoutListSerializer(programs)
         return Response(data=serializer.data,
                         status=status.HTTP_200_OK)
-    
+
     @action(detail=False, methods=['get'])
     def diet_programs(self, serializer):
         """Вывод программ питания клиента"""
@@ -86,4 +86,3 @@ class ActivateUser(UserViewSet):
     def activation(self, request, uid, token, *args, **kwargs):
         super().activation(request, *args, **kwargs)
         return Response(status=status.HTTP_204_NO_CONTENT)
-

@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from rest_framework.serializers import (ChoiceField, Field,
-                                        ModelSerializer)
+from rest_framework.serializers import ChoiceField, Field, ModelSerializer
 
 from djoser.serializers import UserSerializer
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
@@ -173,7 +172,7 @@ class WorkoutListSerializer(ModelSerializer):
             'name',
             'create_dt',
         )
-    
+
     def get_workout_program(self, obj):
         return TrainingPlan.objects.filter(user=obj.user).exists()
 
