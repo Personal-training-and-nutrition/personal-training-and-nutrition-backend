@@ -2,7 +2,6 @@ from django.urls import include, path
 from rest_framework import routers
 
 from .views import (ActivateUser, CustomUserViewSet, DietPlanViewSet,
-                    WorkoutListViewSet, DietListViewSet,
                     TrainingPlanViewSet,)
 
 app_name = 'api'
@@ -22,10 +21,4 @@ urlpatterns = [
     path('auth/', include('djoser.urls.jwt')),
     path('activate/<uid>/<token>',
          ActivateUser.as_view({'get': 'activation'}), name='activation'),
-    path('users/<id>/program_workout_list/',
-         WorkoutListViewSet.as_view({'get': 'get_list'}),
-         name='program-workout-list'),
-    path('users/<id>/program_diet_list/',
-         DietListViewSet.as_view({'get': 'get_list'}),
-         name='program-diet-list'),
 ]

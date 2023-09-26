@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from rest_framework.serializers import (ChoiceField,
+from rest_framework.serializers import (ChoiceField, Field,
                                         ReadOnlyField,
                                         ModelSerializer)
 
@@ -141,8 +141,26 @@ class CustomUserSerializer(UserSerializer):
         )
 
 
+class TrainingProgramUserField(Field):
+    """Сериализатор для вывода программ тренировок клиента"""
+    def get_attribute(self, instance):
+        return TrainingPlan.objects.filter(user=instance.user)
+
+    def to_representation(self, workout_list):
+        workout_data = []
+        for workout in workout_list:
+            workout_data.append(
+                {
+                    "id": workout.id,
+                    "name": workout.name,
+                    "create_dt": workout.create_dt,
+                }
+            )
+        return workout_data
+
+
 class WorkoutListSerializer(ModelSerializer):
-    id = ReadOnlyField()
+    workout = TrainingProgramUserField()
 
     class Meta:
         model = TrainingPlan
@@ -151,10 +169,31 @@ class WorkoutListSerializer(ModelSerializer):
             'name',
             'create_dt',
         )
+    
+    def get_workout_program(self, obj):
+        return TrainingPlan.objects.filter(user=obj.user).exists()
+
+
+class DietProgramUserField(Field):
+    """Сериализатор для вывода программ питания клиента"""
+    def get_attribute(self, instance):
+        return DietPlan.objects.filter(user=instance.user)
+
+    def to_representation(self, diet_list):
+        diet_data = []
+        for diet in diet_list:
+            diet_data.append(
+                {
+                    "id": diet.id,
+                    "name": diet.name,
+                    "create_dt": diet.create_dt,
+                }
+            )
+        return diet_data
 
 
 class DietListSerializer(ModelSerializer):
-    id = ReadOnlyField()
+    diet = DietProgramUserField()
 
     class Meta:
         model = DietPlan
@@ -163,3 +202,6 @@ class DietListSerializer(ModelSerializer):
             'name',
             'create_dt',
         )
+
+    def get_diet_program(self, obj):
+        return DietPlan.objects.filter(user=obj.user).exists()
