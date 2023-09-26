@@ -58,18 +58,18 @@ class CustomUserViewSet(UserViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=['get'])
-    def workout_programs(self, serializer):
+    def get_workout_programs(self, serializer):
         """Вывод программ тренировок клиента"""
         programs = TrainingPlan.objects.filter(user=self.request.user)
-        serializer = WorkoutListSerializer(programs)
+        serializer = WorkoutListSerializer(programs, many=True)
         return Response(data=serializer.data,
                         status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'])
-    def diet_programs(self, serializer):
+    def get_diet_programs(self, serializer):
         """Вывод программ питания клиента"""
         programs = DietPlan.objects.filter(user=self.request.user)
-        serializer = DietListSerializer(programs)
+        serializer = DietListSerializer(programs, many=True)
         return Response(data=serializer.data,
                         status=status.HTTP_200_OK)
 

@@ -1,8 +1,8 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from rest_framework.serializers import ChoiceField, Field, ModelSerializer
+from rest_framework.serializers import (ChoiceField, DateTimeField,
+                                        ModelSerializer,)
 
-from datetime import datetime
 from djoser.serializers import UserSerializer
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
@@ -121,25 +121,7 @@ class CustomUserSerializer(UserSerializer):
     """Сериализатор пользователей"""
     class Meta:
         model = User
-        fields = (
-            'id',
-            'email',
-            'first_name',
-            'last_name',
-            'middle_name',
-            'password',
-            'role',
-            'phone_number',
-            'dob',
-            'gender',
-            'params',
-            'capture',
-            'is_staff',
-            'is_superuser',
-            'is_specialist',
-            'specialist',
-            'is_active',
-        )
+        fields = '__all__'
 
     def get_diet_program(self, obj):
         user = self.context.get('request').user
@@ -148,29 +130,9 @@ class CustomUserSerializer(UserSerializer):
         return False
 
 
-class TrainingProgramUserField(Field):
-    """Сериализатор для вывода программ тренировок клиента"""
-    def get_attribute(self, instance):
-        if instance:
-            return TrainingPlan.objects.filter(user=instance[0].user)
-        return list()
-
-    def to_representation(self, workout_list):
-        workout_data = []
-        for workout in workout_list:
-            workout_data.append(
-                {
-                    "id": workout.id,
-                    "name": workout.name,
-                    "create_dt": datetime.date(workout.create_dt),
-                }
-            )
-        return workout_data
-
-
 class WorkoutListSerializer(ModelSerializer):
     """Сериализатор списка программ тренировок"""
-    workout = TrainingProgramUserField()
+    create_dt = DateTimeField(format='%Y-%m-%d')
 
     class Meta:
         model = TrainingPlan
@@ -185,34 +147,16 @@ class WorkoutListSerializer(ModelSerializer):
         return TrainingPlan.objects.filter(user=obj.user).exists()
 
 
-class DietProgramUserField(Field):
-    """Сериализатор для вывода программ питания клиента"""
-    def get_attribute(self, instance):
-        if instance:
-            return DietPlan.objects.filter(user=instance[0].user)
-        return list()
-
-    def to_representation(self, diet_list):
-        diet_data = []
-        for diet in diet_list:
-            diet_data.append(
-                {
-                    "id": diet.id,
-                    "name": diet.name,
-                    "create_dt": datetime.date(diet.create_dt),
-                }
-            )
-        return diet_data
-
-
 class DietListSerializer(ModelSerializer):
     """Сериализатор списка программ питания"""
-    diet = DietProgramUserField()
+    create_dt = DateTimeField(format='%Y-%m-%d')
 
     class Meta:
         model = DietPlan
         fields = (
-            'diet',
+            'id',
+            'name',
+            'create_dt',
         )
 
     def get_diet_program(self, obj):
