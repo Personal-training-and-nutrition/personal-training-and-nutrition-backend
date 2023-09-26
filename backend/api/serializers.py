@@ -154,22 +154,3 @@ class ClientListSerializer(ModelSerializer):
             'dob',
             'notes',
         )
-
-
-class ClientListAddSerializer(ModelSerializer):
-    """Добавление нового клиента специалистом"""
-    pass
-    # users = UserSerializer()
-    # specialist_client = SpecialistClientSerializer()
-    # params = ParamsSerializer()
-
-    # class Meta:
-    #     model = SpecialistClient
-    #     fields = ('id', 'specialist_client', 'params',
-    #               'users')
-
-    # @transaction.atomic
-    # def create(self, validated_data):
-    #     user_data = validated_data.pop('user')
-    #     params_data = validated_data.pop('params')
-    #     specialist_client_data = validated_data.pop('specialist_client')

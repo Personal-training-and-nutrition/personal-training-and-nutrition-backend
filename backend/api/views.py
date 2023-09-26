@@ -14,8 +14,8 @@ from workouts.models import TrainingPlan
 
 from diets.models import DietPlan
 
-from .serializers import (ClientListAddSerializer, ClientListSerializer,
-                          DietPlanSerializer, TrainingPlanSerializer,)
+from .serializers import (ClientListSerializer, DietPlanSerializer,
+                          TrainingPlanSerializer,)
 
 User = get_user_model()
 
@@ -80,11 +80,6 @@ class ClientListViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         return serializer.save(specialist=self.request.user)
-
-    def get_serializer_class(self):
-        if self.action in ['list']:
-            return ClientListSerializer
-        return ClientListAddSerializer
 
     @action(detail=False, methods=['get'])
     def get_list(self):
