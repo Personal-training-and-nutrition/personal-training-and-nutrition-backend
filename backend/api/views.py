@@ -14,7 +14,7 @@ from workouts.models import TrainingPlan
 
 from diets.models import DietPlan
 
-from .serializers import (ClientsListAddSerializer, ClientsListSerializer,
+from .serializers import (ClientListAddSerializer, ClientListSerializer,
                           DietPlanSerializer, TrainingPlanSerializer,)
 
 User = get_user_model()
@@ -73,9 +73,9 @@ class ActivateUser(UserViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ClientsListViewSet(viewsets.ModelViewSet):
+class ClientListViewSet(viewsets.ModelViewSet):
     queryset = SpecialistClient.objects.all()
-    serializer_class = ClientsListSerializer
+    serializer_class = ClientListSerializer
     permission_classes = (SpecialistOrAdmin,)
 
     def perform_create(self, serializer):
@@ -83,13 +83,13 @@ class ClientsListViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action in ['list']:
-            return ClientsListSerializer
-        return ClientsListAddSerializer
+            return ClientListSerializer
+        return ClientListAddSerializer
 
     @action(detail=False, methods=['get'])
     def get_list(self):
         clients = SpecialistClient.objects.filter(
             specialist=self.request.user)
-        serializer = ClientsListSerializer(clients)
+        serializer = ClientListSerializer(clients)
         return Response(data=serializer.data,
                         status=status.HTTP_200_OK)

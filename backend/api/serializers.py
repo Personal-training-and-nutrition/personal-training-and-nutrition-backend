@@ -138,7 +138,7 @@ class CustomUserSerializer(UserSerializer):
         )
 
 
-class ClientsListSerializer(ModelSerializer):
+class ClientListSerializer(ModelSerializer):
     id = ReadOnlyField(source='user.id')
     first_name = ReadOnlyField(source='user.first_name')
     last_name = ReadOnlyField(source='user.last_name')
@@ -156,34 +156,20 @@ class ClientsListSerializer(ModelSerializer):
         )
 
 
-class ClientsListAddSerializer(ModelSerializer):
+class ClientListAddSerializer(ModelSerializer):
+    """Добавление нового клиента специалистом"""
     pass
-#     """Добавление нового клиента специалистом"""
-#     email = EmailField()
-#     first_name = CharField()
-#     last_name = CharField()
+    # users = UserSerializer()
+    # specialist_client = SpecialistClientSerializer()
+    # params = ParamsSerializer()
 
-#     class Meta:
-#         model = SpecialistClient
-#         fields = ('id', 'first_name', 'email',
-#                   'last_name', 'notes',
-#                   'diseases', 'exp_diets')
+    # class Meta:
+    #     model = SpecialistClient
+    #     fields = ('id', 'specialist_client', 'params',
+    #               'users')
 
-#     def create(self, data):
-#         first_name = data.pop('first_name')
-#         email = data.pop('email')
-#         last_name = data.pop('last_name')
-#         client = User.objects.create(
-#             email=email,
-#             first_name=first_name,
-#             last_name=last_name
-#         )
-#         notes = data.pop('notes')
-#         diseases = data.pop('diseases')
-#         exp_diets = data.pop('exp_diets')
-#         return SpecialistClient.objects.create(
-#             user=client,
-#             notes=notes,
-#             exp_diets=exp_diets,
-#             diseases=diseases,
-#         )
+    # @transaction.atomic
+    # def create(self, validated_data):
+    #     user_data = validated_data.pop('user')
+    #     params_data = validated_data.pop('params')
+    #     specialist_client_data = validated_data.pop('specialist_client')
