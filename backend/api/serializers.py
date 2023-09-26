@@ -1,10 +1,8 @@
-from datetime import datetime
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from rest_framework.generics import get_object_or_404
-from rest_framework.serializers import (ChoiceField, DateField,
-                                        Field, ModelSerializer)
+from rest_framework.serializers import ChoiceField, Field, ModelSerializer
 
+from datetime import datetime
 from djoser.serializers import UserSerializer
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
@@ -142,7 +140,7 @@ class CustomUserSerializer(UserSerializer):
             'specialist',
             'is_active',
         )
-    
+
     def get_diet_program(self, obj):
         user = self.context.get('request').user
         if user.is_authenticated:
