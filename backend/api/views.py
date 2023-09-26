@@ -8,11 +8,12 @@ from rest_framework.response import Response
 from djoser import utils
 from djoser.conf import settings
 from djoser.views import UserViewSet
+
+from api.permissions import ClientOrAdmin
 from workouts.models import TrainingPlan
-
 from diets.models import DietPlan
-
-from .serializers import DietPlanSerializer, TrainingPlanSerializer
+from .serializers import (DietListSerializer, DietPlanSerializer,
+                          TrainingPlanSerializer, WorkoutListSerializer)
 
 User = get_user_model()
 
@@ -68,3 +69,36 @@ class ActivateUser(UserViewSet):
     def activation(self, request, uid, token, *args, **kwargs):
         super().activation(request, *args, **kwargs)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class WorkoutListViewSet(viewsets.ModelViewSet):
+    queryset = TrainingPlan.objects.all()
+    serializer_class = WorkoutListSerializer
+    permission_classes = (ClientOrAdmin,)
+
+    def perform_create(self, serializer):
+        return serializer.save(user=self.request.user)      
+
+    @action(detail=False, methods=['get'])
+    def get_list(self, request, id=None):
+        programs = TrainingPlan.objects.filter(
+            user=self.request.user)
+        serializer = WorkoutListSerializer(programs)
+        return Response(data=serializer.data,
+                        status=status.HTTP_200_OK)
+    
+
+class DietListViewSet(viewsets.ModelViewSet):
+    queryset = DietPlan.objects.all()
+    serializer_class = DietListSerializer
+    permission_classes = (ClientOrAdmin,)
+
+    def perform_create(self, serializer):
+        return serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=['get'])
+    def get_list(self, request, id=None):
+        programs = DietPlan.objects.filter(user=self.request.user)
+        serializer = DietListSerializer(programs)
+        return Response(data=serializer.data,
+                        status=status.HTTP_200_OK)
