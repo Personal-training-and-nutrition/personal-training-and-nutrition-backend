@@ -51,29 +51,29 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     #         return Response({'detail': 'Режим специалиста включен'})
     #     return super().update(request, pk)
 
-    # @action(detail=True, methods=['post'])
-    # def become_specialist(self, request, pk=None):
-    #     """Пользователь хочет стать тренером"""
-    #     user = self.get_object()
-    #     user.is_specialist = True
-    #     specialist = Specialists.objects.create()
-    #     user.specialist = specialist
-    #     user.save()
-    #     return Response({'status': 'Стал специалистом'})
+    @action(detail=True, methods=['post'])
+    def become_specialist(self, request, pk=None):
+        """Пользователь хочет стать тренером"""
+        user = self.get_object()
+        user.is_specialist = True
+        specialist = Specialists.objects.create()
+        user.specialist = specialist
+        user.save()
+        return Response({'status': 'Стал специалистом'})
 
-    # @action(detail=False, methods=['post'])
-    # def create_client(self, request, pk=None):
-    #     """Специалист создает клиента"""
-    #     specialist = self.get_object()
-    #     if not specialist.is_specialist:
-    #         return Response(
-    #             {'error': 'Вы не специалист.'}, status.HTTP_400_BAD_REQUEST)
-    #     client_data = request.data
-    #     # создание нового пользователя
-    #     client = User.objects.create(**client_data)
-    #     # создание связи между клиентом и специалистом
-    #     SpecialistClient.objects.create(user=client, specialist=specialist)
-    #     return Response({'status': 'Клиент создан.'})
+    @action(detail=False, methods=['post'])
+    def create_client(self, request, pk=None):
+        """Специалист создает клиента"""
+        specialist = self.get_object()
+        if not specialist.is_specialist:
+            return Response(
+                {'error': 'Вы не специалист.'}, status.HTTP_400_BAD_REQUEST)
+        client_data = request.data
+        # создание нового пользователя
+        client = User.objects.create(**client_data)
+        # создание связи между клиентом и специалистом
+        SpecialistClient.objects.create(user=client, specialist=specialist)
+        return Response({'status': 'Клиент создан.'})
 
     # def specialist_clients(self, request):
     #     """Получение клиентов текущего специалиста"""
