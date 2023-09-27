@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from rest_framework.serializers import (ChoiceField, DateTimeField,
-                                        ModelSerializer,)
+from rest_framework.serializers import (CharField, ChoiceField, DateTimeField,
+                                        ModelSerializer, ReadOnlyField,)
 
 from djoser.serializers import UserSerializer
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
@@ -160,3 +160,21 @@ class DietListSerializer(ModelSerializer):
 
     def get_diet_program(self, obj):
         return DietPlan.objects.filter(user=obj.user).exists()
+
+
+class ClientListSerializer(ModelSerializer):
+    id = ReadOnlyField(source='user.id')
+    first_name = ReadOnlyField(source='user.first_name')
+    last_name = ReadOnlyField(source='user.last_name')
+    dob = ReadOnlyField(source='user.dob')
+    notes = CharField()
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'first_name',
+            'last_name',
+            'dob',
+            'notes',
+        )
