@@ -40,12 +40,10 @@ class CustomUserViewSet(UserViewSet):
     permission_classes = settings.PERMISSIONS.user
     lookup_field = 'pk'
 
-    def profile(self, request, pk=None):
-        user = self.get_object()
-
+    def get_profile_data(self, user):
         profile_data = {
             'last_name': user.last_name,
-            'first_name ': user.first_name,
+            'first_name': user.first_name,
             'date_of_birth': user.date_of_birth,
             'gender': user.gender,
             'about': user.specialist.about if user.specialist else None,
@@ -53,8 +51,13 @@ class CustomUserViewSet(UserViewSet):
             'height': user.params.height if user.params else None,
             'email': user.email,
             'phone_number': user.phone_number,
-            'password': user.password
+            'password': user.password,
         }
+        return profile_data
+
+    def profile(self, request, pk=None):
+        user = self.get_object()
+        profile_data = self.get_profile_data(user)
         return Response(profile_data)
 
     def update_profile(self, request, pk=None):
@@ -78,18 +81,7 @@ class CustomUserViewSet(UserViewSet):
 
         user.save()
 
-        profile_data = {
-            'last_name': user.last_name,
-            'first_name': user.first_name,
-            'date_of_birth': user.date_of_birth,
-            'gender': user.gender,
-            'about': user.specialist.about if user.specialist else None,
-            'weight': user.params.weight if user.params else None,
-            'height': user.params.height if user.params else None,
-            'email': user.email,
-            'phone_number': user.phone_number,
-            'password': user.password,
-        }
+        profile_data = self.get_profile_data(user)
 
         return Response(profile_data)
 
