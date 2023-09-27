@@ -37,7 +37,7 @@ class CustomUserViewSet(UserViewSet):
     permission_classes = settings.PERMISSIONS.user
 
     def destroy(self, request, *args, **kwargs):
-        """Вместо удаления меняем флаг is_active"""
+        """Вместо удаления меняется флаг is_active"""
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -50,6 +50,7 @@ class CustomUserViewSet(UserViewSet):
 
     @action(["post"], detail=False)
     def set_password(self, request, *args, **kwargs):
+        """Кастомная смена пароля"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.request.user.set_password(serializer.data["new_password"])
