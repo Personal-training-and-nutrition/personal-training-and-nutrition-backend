@@ -11,7 +11,7 @@ from djoser.views import UserViewSet
 from workouts.models import TrainingPlan
 
 from diets.models import DietPlan
-
+from .permissions import ClientOrAdmin
 from .serializers import (DietListSerializer, DietPlanSerializer,
                           TrainingPlanSerializer, WorkoutListSerializer,)
 
@@ -57,7 +57,8 @@ class CustomUserViewSet(UserViewSet):
             update_session_auth_hash(self.request, self.request.user)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'],
+            permission_classes=[ClientOrAdmin])
     def get_workout_programs(self, serializer):
         """Вывод программ тренировок клиента"""
         programs = TrainingPlan.objects.filter(user=self.request.user)
@@ -65,7 +66,8 @@ class CustomUserViewSet(UserViewSet):
         return Response(data=serializer.data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'],
+            permission_classes=[ClientOrAdmin])
     def get_diet_programs(self, serializer):
         """Вывод программ питания клиента"""
         programs = DietPlan.objects.filter(user=self.request.user)
