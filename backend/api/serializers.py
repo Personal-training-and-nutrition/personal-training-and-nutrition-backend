@@ -215,7 +215,7 @@ class CustomUserSerializer(UserSerializer):
         if params_data:
             params = instance.params
             if params is None:
-                params = Params()  # Создайте новый объект Params, если он отсутствует
+                params = Params()
             params.weight = params_data.get('weight', params.weight)
             params.height = params_data.get('height', params.height)
             params.waist_size = params_data.get('waist_size', params.waist_size)
@@ -235,29 +235,3 @@ class CustomUserSerializer(UserSerializer):
         instance.save()
 
         return instance
-
-
-class CreateClientSerializer(serializers.ModelSerializer):
-    """Сериализатор создания клиента"""
-
-    class Meta:
-        model = User
-        fields = ('last_name',
-                  'first_name',
-                  'date_of_birth',
-                  'gender',
-                  # 'weight',
-                  # 'height',
-                  'phone_number',
-                  'email',)
-    # def to_representation(self, instance):
-    #     return {
-    #         'first_name': instance.first_name,
-    #         'last_name': instance.last_name,
-    #     }
-
-        # exclude = ('is_active',
-        #            'is_specialist',
-        #            'role',
-        #            'gender',
-        #            'params',)
