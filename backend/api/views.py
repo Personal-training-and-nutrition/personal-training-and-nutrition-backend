@@ -5,17 +5,16 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from api.permissions import SpecialistOrAdmin
 from djoser import utils
 from djoser.conf import settings
 from djoser.views import UserViewSet
-from users.models import SpecialistClient
 from workouts.models import TrainingPlan
 
 from diets.models import DietPlan
 
-from .serializers import (ClientListSerializer, DietPlanSerializer,
-                          TrainingPlanSerializer,)
+from .permissions import ClientOrAdmin
+from .serializers import (DietListSerializer, DietPlanSerializer,
+                          TrainingPlanSerializer, WorkoutListSerializer,)
 
 User = get_user_model()
 
@@ -61,17 +60,26 @@ class CustomUserViewSet(UserViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=['get'],
-            permission_classes=[SpecialistOrAdmin])
-    def get_client_list(self, serializer):
-        """Вывод всех клиентов специалиста"""
-        clients = SpecialistClient.objects.filter(
-            specialist=self.request.user)
-        serializer = ClientListSerializer(clients, many=True)
+            permission_classes=[ClientOrAdmin])
+    def get_workout_programs(self, serializer):
+        """Вывод программ тренировок клиента"""
+        programs = TrainingPlan.objects.filter(user=self.request.user)
+        serializer = WorkoutListSerializer(programs, many=True)
+        return Response(data=serializer.data,
+                        status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'],
+            permission_classes=[ClientOrAdmin])
+    def get_diet_programs(self, serializer):
+        """Вывод программ питания клиента"""
+        programs = DietPlan.objects.filter(user=self.request.user)
+        serializer = DietListSerializer(programs, many=True)
         return Response(data=serializer.data,
                         status=status.HTTP_200_OK)
 
 
 class ActivateUser(UserViewSet):
+    """Активация пользователя по ссылке в письме"""
     def get_serializer(self, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         kwargs.setdefault('context', self.get_serializer_context())

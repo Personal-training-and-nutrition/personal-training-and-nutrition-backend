@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from rest_framework.serializers import (CharField, ChoiceField,
-                                        ModelSerializer, ReadOnlyField,)
+from rest_framework.serializers import (ChoiceField, DateTimeField,
+                                        ModelSerializer,)
 
 from djoser.serializers import UserSerializer
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
@@ -12,6 +12,7 @@ User = get_user_model()
 
 
 class TrainingSerializer(ModelSerializer):
+    """Сериализатор тренировок"""
     weekday = ChoiceField(choices=settings.WEEKDAY_CHOICES)
 
     class Meta:
@@ -25,6 +26,7 @@ class TrainingSerializer(ModelSerializer):
 
 
 class TrainingPlanSerializer(ModelSerializer):
+    """Сериализатор плана тренировок"""
     training = TrainingSerializer(many=True, required=False)
 
     class Meta:
@@ -61,6 +63,7 @@ class TrainingPlanSerializer(ModelSerializer):
 
 
 class DietsSerializer(ModelSerializer):
+    """Сериализатор диет"""
     weekday = ChoiceField(choices=settings.WEEKDAY_CHOICES)
 
     class Meta:
@@ -74,6 +77,7 @@ class DietsSerializer(ModelSerializer):
 
 
 class DietPlanSerializer(ModelSerializer):
+    """Сериализатор плана питания"""
     diet = DietsSerializer(many=True, required=False)
 
     class Meta:
@@ -117,40 +121,42 @@ class CustomUserSerializer(UserSerializer):
     """Сериализатор пользователей"""
     class Meta:
         model = User
-        fields = (
-            'id',
-            'email',
-            'first_name',
-            'last_name',
-            'middle_name',
-            'password',
-            'role',
-            'phone_number',
-            'dob',
-            'gender',
-            'params',
-            'capture',
-            'is_staff',
-            'is_superuser',
-            'is_specialist',
-            'specialist',
-            'is_active',
-        )
+        fields = '__all__'
+
+    def get_diet_program(self, obj):
+        user = self.context.get('request').user
+        if user.is_authenticated:
+            return DietPlan.objects.filter(user=user, author=obj).exists()
+        return False
 
 
-class ClientListSerializer(ModelSerializer):
-    id = ReadOnlyField(source='user.id')
-    first_name = ReadOnlyField(source='user.first_name')
-    last_name = ReadOnlyField(source='user.last_name')
-    dob = ReadOnlyField(source='user.dob')
-    notes = CharField()
+class WorkoutListSerializer(ModelSerializer):
+    """Сериализатор списка программ тренировок"""
+    create_dt = DateTimeField(format='%Y-%m-%d')
 
     class Meta:
-        model = User
+        model = TrainingPlan
         fields = (
             'id',
-            'first_name',
-            'last_name',
-            'dob',
-            'notes',
+            'name',
+            'create_dt',
         )
+
+    def get_workout_program(self, obj):
+        return TrainingPlan.objects.filter(user=obj.user).exists()
+
+
+class DietListSerializer(ModelSerializer):
+    """Сериализатор списка программ питания"""
+    create_dt = DateTimeField(format='%Y-%m-%d')
+
+    class Meta:
+        model = DietPlan
+        fields = (
+            'id',
+            'name',
+            'create_dt',
+        )
+
+    def get_diet_program(self, obj):
+        return DietPlan.objects.filter(user=obj.user).exists()
