@@ -139,7 +139,6 @@ class WorkoutListSerializer(ModelSerializer):
         fields = (
             'id',
             'name',
-            'workout',
             'create_dt',
         )
 
