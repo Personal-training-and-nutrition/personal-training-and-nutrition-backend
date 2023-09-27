@@ -11,6 +11,7 @@ from djoser.views import UserViewSet
 from workouts.models import TrainingPlan
 
 from diets.models import DietPlan
+
 from .permissions import ClientOrAdmin
 from .serializers import (DietListSerializer, DietPlanSerializer,
                           TrainingPlanSerializer, WorkoutListSerializer,)
