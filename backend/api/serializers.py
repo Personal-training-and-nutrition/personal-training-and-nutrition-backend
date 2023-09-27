@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from djoser.serializers import UserSerializer
-from users.models import Params, Education, Specialists
+from users.models import Gender, Params, Education, Specialists
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
@@ -160,7 +160,22 @@ class SpecialistSerializer(serializers.ModelSerializer):
 class ParamsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Params
-        fields = ('weight', 'height')
+        fields = ('weight',
+                  'height',
+                  'waist_size',
+                  'created_at',
+                  'updated_at',)
+
+    def create(self, validated_data):
+        return Params.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.weight = validated_data.get('weight', instance.weight)
+        instance.height = validated_data.get('height', instance.height)
+        instance.waist_size = validated_data.get('waist_size',
+                                                 instance.waist_size)
+        instance.save()
+        return instance
 
 
 class CustomUserSerializer(UserSerializer):
@@ -188,6 +203,38 @@ class CustomUserSerializer(UserSerializer):
             'specialist',
             'is_active',
         )
+
+    def update(self, instance, validated_data):
+        gender_data = validated_data.pop('gender', None)
+        params_data = validated_data.pop('params', None)
+
+        if gender_data:
+            gender, created = Gender.objects.get_or_create(**gender_data)
+            instance.gender = gender
+
+        if params_data:
+            params = instance.params
+            if params is None:
+                params = Params()  # Создайте новый объект Params, если он отсутствует
+            params.weight = params_data.get('weight', params.weight)
+            params.height = params_data.get('height', params.height)
+            params.waist_size = params_data.get('waist_size', params.waist_size)
+            params.save()
+
+        fields = (
+            'first_name',
+            'last_name',
+            'middle_name',
+            'email',
+            'phone_number',
+            'date_of_birth',
+        )
+        for field in fields:
+            setattr(instance, field, validated_data.get(field, getattr(instance, field)))
+
+        instance.save()
+
+        return instance
 
 
 class CreateClientSerializer(serializers.ModelSerializer):

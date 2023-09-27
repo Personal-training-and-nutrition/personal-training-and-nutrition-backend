@@ -1,3 +1,4 @@
+from django.contrib.auth.hashers import make_password
 from django.contrib import messages
 from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.shortcuts import get_object_or_404
@@ -58,10 +59,39 @@ class CustomUserViewSet(UserViewSet):
 
     def update_profile(self, request, pk=None):
         user = self.get_object()
-        serializer = self.get_serializer(user, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
+
+        user.last_name = request.data.get('last_name', user.last_name)
+        user.first_name = request.data.get('first_name', user.first_name)
+        user.date_of_birth = request.data.get('date_of_birth', user.date_of_birth)
+        user.gender = request.data.get('gender', user.gender)
+        if user.specialist:
+            user.specialist.about = request.data.get('about', user.specialist.about)
+        if user.params:
+            user.params.weight = request.data.get('weight', user.params.weight)
+            user.params.height = request.data.get('height', user.params.height)
+            user.params.save()  # Сохраняем изменения в поле weight
+        user.email = request.data.get('email', user.email)
+        user.phone_number = request.data.get('phone_number', user.phone_number)
+        password = request.data.get('password')
+        if password:
+            user.password = make_password(password)
+
+        user.save()
+
+        profile_data = {
+            'last_name': user.last_name,
+            'first_name': user.first_name,
+            'date_of_birth': user.date_of_birth,
+            'gender': user.gender,
+            'about': user.specialist.about if user.specialist else None,
+            'weight': user.params.weight if user.params else None,
+            'height': user.params.height if user.params else None,
+            'email': user.email,
+            'phone_number': user.phone_number,
+            'password': user.password,
+        }
+
+        return Response(profile_data)
 
     def destroy(self, request, *args, **kwargs):
         """Вместо удаления меняем флаг is_active"""

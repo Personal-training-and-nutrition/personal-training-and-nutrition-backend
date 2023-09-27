@@ -287,12 +287,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         blank=True,
         verbose_name='Дата рождения',
     )
-    gender = ForeignKey(
-        Gender,
-        on_delete=PROTECT,
-        null=True,
-        blank=True,
-        related_name='user_gender',
+    gender = CharField(
+        max_length=1,
+        choices=GENDER_CHOICES,
+        default='F',
+        verbose_name='Гендер пользователя',
     )
     params = OneToOneField(
         Params,
