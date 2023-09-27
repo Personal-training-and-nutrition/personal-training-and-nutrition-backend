@@ -112,6 +112,11 @@ class DietPlanSerializer(serializers.ModelSerializer):
         return self.add_diets(diets, instance)
 
 
+class DietPlanLinkSerializer(serializers.Serializer):
+    diet_plan_id = serializers.IntegerField()
+    link = serializers.CharField()
+
+
 class CustomUserSerializer(UserSerializer):
     """Сериализатор пользователей"""
     class Meta:
