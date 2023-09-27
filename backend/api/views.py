@@ -5,14 +5,17 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from api.permissions import SpecialistOrAdmin
 from djoser import utils
 from djoser.conf import settings
 from djoser.views import UserViewSet
+from users.models import SpecialistClient
 from workouts.models import TrainingPlan
 
 from diets.models import DietPlan
 
-from .serializers import DietPlanSerializer, TrainingPlanSerializer
+from .serializers import (ClientListSerializer, DietPlanSerializer,
+                          TrainingPlanSerializer,)
 
 User = get_user_model()
 
@@ -35,7 +38,7 @@ class CustomUserViewSet(UserViewSet):
     permission_classes = settings.PERMISSIONS.user
 
     def destroy(self, request, *args, **kwargs):
-        """Вместо удаления меняем флаг is_active"""
+        """Вместо удаления меняется флаг is_active"""
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -48,6 +51,7 @@ class CustomUserViewSet(UserViewSet):
 
     @action(["post"], detail=False)
     def set_password(self, request, *args, **kwargs):
+        """Кастомная смена пароля"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.request.user.set_password(serializer.data["new_password"])
@@ -55,6 +59,16 @@ class CustomUserViewSet(UserViewSet):
         if settings.CREATE_SESSION_ON_LOGIN:
             update_session_auth_hash(self.request, self.request.user)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=['get'],
+            permission_classes=[SpecialistOrAdmin])
+    def get_client_list(self, serializer):
+        """Вывод всех клиентов специалиста"""
+        clients = SpecialistClient.objects.filter(
+            specialist=self.request.user)
+        serializer = ClientListSerializer(clients, many=True)
+        return Response(data=serializer.data,
+                        status=status.HTTP_200_OK)
 
 
 class ActivateUser(UserViewSet):
