@@ -8,13 +8,14 @@ from rest_framework.response import Response
 from djoser import utils
 from djoser.conf import settings
 from djoser.views import UserViewSet
+from users.models import SpecialistClient
 from workouts.models import TrainingPlan
 
 from diets.models import DietPlan
 
 from .permissions import ClientOrAdmin, SpecialistOrAdmin
-from .serializers import (DietListSerializer, DietPlanSerializer,
-                          SpecialistClient, TrainingPlanSerializer,
+from .serializers import (ClientListSerializer, DietListSerializer,
+                          DietPlanSerializer, TrainingPlanSerializer,
                           WorkoutListSerializer,)
 
 User = get_user_model()
