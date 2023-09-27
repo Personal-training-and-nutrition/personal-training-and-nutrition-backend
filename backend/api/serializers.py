@@ -4,9 +4,9 @@ from rest_framework.serializers import (CharField, ChoiceField, DateTimeField,
                                         ModelSerializer, ReadOnlyField,)
 
 from djoser.serializers import UserSerializer
-from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
+from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 User = get_user_model()
 
