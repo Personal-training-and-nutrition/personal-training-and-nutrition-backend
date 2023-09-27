@@ -6,7 +6,7 @@ from django.core.validators import MinLengthValidator, RegexValidator
 from django.db.models import (PROTECT, BooleanField, CharField, DateField,
                               DateTimeField, EmailField, FloatField,
                               ForeignKey, ImageField, IntegerField, Model,
-                              TextField,)
+                              TextField, OneToOneField)
 
 SPECIALIST_ROLE_CHOICES = (
     ('CL', 'Client'),
@@ -294,10 +294,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         blank=True,
         related_name='user_gender',
     )
-    params = ForeignKey(
+    params = OneToOneField(
         Params,
         on_delete=PROTECT,
-        related_name='user_params',
+        related_name='user',
         blank=True,
         null=True,
     )

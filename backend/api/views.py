@@ -35,27 +35,25 @@ class DietPlanViewSet(viewsets.ModelViewSet):
 
 
 class CustomUserViewSet(UserViewSet):
-    permission_classes = settings.PERMISSIONS.user
+    # queryset = User.objects.all()
+    # serializer_class = CustomUserSerializer
     lookup_field = 'pk'
 
-    def specialist_profile(self, request, pk=None):
-        """Профиль специалиста"""
-        user = request.user
-        specialist = user.specialist
-
-        data = {
-            'first_name': user.first_name,
+    def profile(self, request, pk=None):
+        user = self.get_object()
+        # Здесь вы можете выполнить логику для вывода профиля специалиста
+        # на основе данных пользователя `user`
+        # Например:
+        profile_data = {
             'last_name': user.last_name,
-            'middle_name': user.middle_name,
+            'first_name ': user.first_name,
             'date_of_birth': user.date_of_birth,
             'gender': user.gender,
-            'about': specialist.about,
-            'experience': specialist.experience,
-            'education': specialist.education,
-            'contacts': specialist.contacts
+            # 'weight': user.params.weight,
+            'email': user.email,
+            # Добавьте другие необходимые поля профиля
         }
-
-        return Response(data)
+        return Response(profile_data)
 
     def destroy(self, request, *args, **kwargs):
         """Вместо удаления меняем флаг is_active"""

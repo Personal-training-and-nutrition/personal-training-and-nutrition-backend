@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from djoser.serializers import UserSerializer
+from users.models import Params
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
@@ -112,28 +113,31 @@ class DietPlanSerializer(serializers.ModelSerializer):
         return self.add_diets(diets, instance)
 
 
+class ParamsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Params
+        fields = '__all__'
+
+
 class CustomUserSerializer(UserSerializer):
     """Сериализатор пользователей"""
-    diet_plans = DietPlanSerializer(many=True, read_only=True)
-    training_plans = TrainingPlanSerializer(many=True, read_only=True)
+    params = ParamsSerializer()
 
     class Meta:
         model = User
         fields = (
             'id',
             'email',
-            # 'first_name',
-            # 'last_name',
-            # 'middle_name',
-            'diet_plans',
-            'training_plans',
-            # 'password',
-            # 'phone_number',
-            # 'date_of_birth',
-            # 'gender',
-            # 'params',
-            # 'capture',
-            # 'is_staff',
+            'first_name',
+            'last_name',
+            'middle_name',
+            'password',
+            'phone_number',
+            'date_of_birth',
+            'gender',
+            'params',
+            'capture',
+            'is_staff',
             'is_superuser',
             'is_specialist',
             'specialist',
@@ -150,8 +154,8 @@ class CreateClientSerializer(serializers.ModelSerializer):
                   'first_name',
                   'date_of_birth',
                   'gender',
-                # 'weight',
-                # 'height',
+                  # 'weight',
+                  # 'height',
                   'phone_number',
                   'email',)
     # def to_representation(self, instance):
