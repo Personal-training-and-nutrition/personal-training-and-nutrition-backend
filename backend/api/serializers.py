@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from djoser.serializers import UserSerializer
-from users.models import Params
+from users.models import Params, Education, Specialists
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
@@ -113,15 +113,60 @@ class DietPlanSerializer(serializers.ModelSerializer):
         return self.add_diets(diets, instance)
 
 
+class EducationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Education
+        fields = ('institution',
+                  'graduate',
+                  'completion_date',
+                  'number',
+                  'capture',
+                  'created_at',
+                  'updated_at',)
+
+    def create(self, validated_data):
+        return Education.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.institution = validated_data.get(
+            'institution', instance.institution)
+        instance.graduate = validated_data.get('graduate', instance.graduate)
+        instance.completion_date = validated_data.get(
+            'completion_date', instance.completion_date)
+        instance.number = validated_data.get('number', instance.number)
+        instance.capture = validated_data.get('capture', instance.capture)
+        instance.save()
+        return instance
+
+
+class SpecialistSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    education = EducationSerializer(many=True)
+
+    class Meta:
+        model = Specialists
+        fields = ('experience',
+                  'education',
+                  'contacts',
+                  'about',
+                  'diseases',
+                  'exp_diets',
+                  'exp_trainings',
+                  'bad_habits',
+                  'food_preferences',
+                  'notes')
+
+
 class ParamsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Params
-        fields = '__all__'
+        fields = ('weight', 'height')
 
 
 class CustomUserSerializer(UserSerializer):
     """Сериализатор пользователей"""
     params = ParamsSerializer()
+    specialist = SpecialistSerializer
 
     class Meta:
         model = User

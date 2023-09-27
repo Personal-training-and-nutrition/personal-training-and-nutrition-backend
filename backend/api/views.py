@@ -9,7 +9,8 @@ from rest_framework.response import Response
 from djoser import utils
 from djoser.conf import settings
 from djoser.views import UserViewSet
-from users.models import SpecialistClient, Specialists, Education, Institution, Params
+from users.models import (Education, Institution, Params, SpecialistClient,
+                          Specialists,)
 from workouts.models import TrainingPlan
 
 from diets.models import DietPlan
@@ -35,25 +36,32 @@ class DietPlanViewSet(viewsets.ModelViewSet):
 
 
 class CustomUserViewSet(UserViewSet):
-    # queryset = User.objects.all()
-    # serializer_class = CustomUserSerializer
+    permission_classes = settings.PERMISSIONS.user
     lookup_field = 'pk'
 
     def profile(self, request, pk=None):
         user = self.get_object()
-        # Здесь вы можете выполнить логику для вывода профиля специалиста
-        # на основе данных пользователя `user`
-        # Например:
+
         profile_data = {
             'last_name': user.last_name,
             'first_name ': user.first_name,
             'date_of_birth': user.date_of_birth,
             'gender': user.gender,
-            # 'weight': user.params.weight,
+            'about': user.specialist.about if user.specialist else None,
+            'weight': user.params.weight if user.params else None,
+            'height': user.params.height if user.params else None,
             'email': user.email,
-            # Добавьте другие необходимые поля профиля
+            'phone_number': user.phone_number,
+            'password': user.password
         }
         return Response(profile_data)
+
+    def update_profile(self, request, pk=None):
+        user = self.get_object()
+        serializer = self.get_serializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
         """Вместо удаления меняем флаг is_active"""
