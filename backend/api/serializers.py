@@ -1,9 +1,13 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from rest_framework.serializers import (CharField, ChoiceField, DateTimeField,
-                                        ModelSerializer, ReadOnlyField,)
+from rest_framework.serializers import (CharField, ChoiceField, DateField,
+                                        DateTimeField, EmailField, Field,
+                                        ModelSerializer,
+                                        PrimaryKeyRelatedField, ReadOnlyField,
+                                        Serializer, SerializerMethodField,)
 
 from djoser.serializers import UserSerializer
+from users.models import Gender, Specialists
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
@@ -178,3 +182,46 @@ class ClientListSerializer(ModelSerializer):
             'dob',
             'notes',
         )
+
+
+class SpecialistSerializer(ModelSerializer):
+    """Сериализатор для данных о специалисте"""
+    user = CustomUserSerializer
+    id = ReadOnlyField(source='user.id')
+    last_name = CharField(source='user.last_name')
+    first_name = CharField(source='user.first_name')
+    date_of_birth = DateField(source='user.dob')
+    gender = PrimaryKeyRelatedField(
+        source='user.gender', queryset=Gender.objects.all())
+    about = SerializerMethodField()
+    weight = SerializerMethodField()
+    height = SerializerMethodField()
+    email = EmailField(source='user.email')
+    phone_number = CharField(source='user.phone_number')
+    password = CharField(source='user.password')
+
+    def get_about(self, obj):
+        specialist = obj.user.specialist if obj.user.specialist and obj.user.specialist.is_specialist else None
+        return specialist.about if specialist else None
+
+    def get_weight(self, obj):
+        return obj.user.params.weight if obj.user.params else None
+
+    def get_height(self, obj):
+        return obj.user.params.height if obj.user.params else None
+
+    class Meta:
+        model = Specialists
+        fields = ('user',
+                  'id',
+                  'last_name',
+                  'first_name',
+                  'date_of_birth',
+                  'gender',
+                  'about',
+                  'weight',
+                  'height',
+                  'email',
+                  'phone_number',
+                  'password',
+                  )
