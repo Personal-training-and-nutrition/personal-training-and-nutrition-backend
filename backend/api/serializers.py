@@ -204,14 +204,21 @@ class CustomUserSerializer(UserSerializer):
         model = User
         fields = (
             'id',
+            'email',
             'first_name',
             'last_name',
-            'email',
+            'middle_name',
+            'password',
             'phone_number',
             'dob',
             'gender',
             'spec',
+            'params',
             'capture',
+            'is_staff',
+            'is_superuser',
+            'is_specialist',
+            'specialist',
             'is_active',
         )
 
