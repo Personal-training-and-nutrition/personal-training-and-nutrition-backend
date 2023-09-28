@@ -7,7 +7,7 @@ from rest_framework.serializers import (CharField, ChoiceField, DateField,
                                         Serializer, SerializerMethodField,)
 
 from djoser.serializers import UserSerializer
-from users.models import Gender, Specialists
+from users.models import Education, Gender, Specialists
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
@@ -184,9 +184,22 @@ class ClientListSerializer(ModelSerializer):
         )
 
 
+class EducationSerializer(ModelSerializer):
+    class Meta:
+        model = Education
+        fields = ('institution',
+                  'graduate',
+                  'completion_date',
+                  'number',
+                  'capture',
+                  'created_at',
+                  'updated_at',)
+
+
 class SpecialistSerializer(ModelSerializer):
     """Сериализатор для данных о специалисте"""
     user = CustomUserSerializer
+    education = EducationSerializer(many=True)
     id = ReadOnlyField(source='user.id')
     last_name = CharField(source='user.last_name')
     first_name = CharField(source='user.first_name')
@@ -209,6 +222,53 @@ class SpecialistSerializer(ModelSerializer):
 
     def get_height(self, obj):
         return obj.user.params.height if obj.user.params else None
+
+    def create(self, validated_data):
+        user_data = validated_data.pop('user')
+        education_data = validated_data.pop('education')
+
+        user = User.objects.create(**user_data, is_specialist=True)
+        specialist = Specialists.objects.create(
+            user=user, **validated_data)
+
+        for education_item in education_data:
+            Education.objects.create(specialist=specialist, **education_item)
+
+        return specialist
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user')
+        education_data = validated_data.pop('education')
+
+        user_serializer = self.fields['user']
+        user_serializer.update(instance.user, user_data)
+
+        instance.experience = validated_data.get(
+            'experience', instance.experience)
+        instance.contacts = validated_data.get(
+            'contacts', instance.contacts)
+        instance.about = validated_data.get(
+            'about', instance.about)
+        instance.diseases = validated_data.get(
+            'diseases', instance.diseases)
+        instance.exp_diets = validated_data.get(
+            'exp_diets', instance.exp_diets)
+        instance.exp_trainings = validated_data.get(
+            'exp_trainings', instance.exp_trainings)
+        instance.bad_habits = validated_data.get(
+            'bad_habits', instance.bad_habits)
+        instance.food_preferences = validated_data.get(
+            'food_preferences', instance.food_preferences)
+        instance.notes = validated_data.get(
+            'notes', instance.notes)
+
+        instance.save()
+
+        instance.education.all().delete()
+        for education_item in education_data:
+            Education.objects.create(specialist=instance, **education_item)
+
+        return instance
 
     class Meta:
         model = Specialists

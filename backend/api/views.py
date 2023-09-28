@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model, update_session_auth_hash
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -14,9 +15,9 @@ from workouts.models import TrainingPlan
 from diets.models import DietPlan
 
 from .permissions import ClientOrAdmin, SpecialistOrAdmin
-from .serializers import (ClientListSerializer, DietListSerializer,
+from .serializers import (ClientListSerializer, CustomUserSerializer, DietListSerializer,
                           DietPlanSerializer, TrainingPlanSerializer,
-                          WorkoutListSerializer,)
+                          WorkoutListSerializer, SpecialistSerializer)
 
 User = get_user_model()
 
@@ -37,6 +38,56 @@ class DietPlanViewSet(viewsets.ModelViewSet):
 
 class CustomUserViewSet(UserViewSet):
     permission_classes = settings.PERMISSIONS.user
+    queryset = User.objects.all()
+    serializer_class = CustomUserSerializer
+    lookup_field = 'pk'
+
+    def get_profile_data(self, user):
+        """Поля для заполнения профиля"""
+        profile_data = {
+            'last_name': user.last_name,
+            'first_name': user.first_name,
+            'dob': user.dob,
+            'gender': user.gender,
+            'about': user.specialist.about if user.specialist
+            and user.specialist.is_specialist else None,
+            'weight': user.params.weight if user.params else None,
+            'height': user.params.height if user.params else None,
+            'email': user.email,
+            'phone_number': user.phone_number,
+            'password': user.password,
+        }
+        return profile_data
+
+    def update_profile(self, request, pk=None):
+        """Редактирование профиля"""
+        user = self.get_object()
+        user.last_name = request.data.get('last_name', user.last_name)
+        user.first_name = request.data.get('first_name', user.first_name)
+        user.dob = request.data.get(
+            'dob', user.dob)
+        user.gender = request.data.get('gender', user.gender)
+        if user.specialist:
+            user.specialist.about = request.data.get(
+                'about', user.specialist.about)
+        if user.params:
+            user.params.weight = request.data.get('weight', user.params.weight)
+            user.params.height = request.data.get('height', user.params.height)
+            user.params.save()
+        user.email = request.data.get('email', user.email)
+        user.phone_number = request.data.get('phone_number', user.phone_number)
+        password = request.data.get('password')
+        if password:
+            user.password = make_password(password)
+        user.save()
+        profile_data = self.get_profile_data(user)
+        return Response(profile_data)
+
+    def profile(self, request, pk=None):
+        """Профиль специалиста или пользователя"""
+        user = self.get_object()
+        profile_data = self.get_profile_data(user)
+        return Response(profile_data)
 
     def destroy(self, request, *args, **kwargs):
         """Вместо удаления меняется флаг is_active"""
