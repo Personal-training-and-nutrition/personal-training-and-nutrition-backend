@@ -321,7 +321,7 @@ class User(PermissionsMixin, AbstractBaseUser):
         on_delete=PROTECT,
         null=True,
         blank=True,
-        related_name='user_specialists',
+        related_name='users',
     )
     is_active = BooleanField(
         default=True,

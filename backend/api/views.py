@@ -37,46 +37,17 @@ class DietPlanViewSet(viewsets.ModelViewSet):
 
 
 class CustomUserViewSet(UserViewSet):
-    permission_classes = settings.PERMISSIONS.user
+    # permission_classes = settings.PERMISSIONS.user
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
     lookup_field = 'pk'
 
-    # def get_profile_data(self, user):
-    #     """Поля для заполнения профиля"""
-    #     profile_data = {
-    #         'last_name': user.last_name,
-    #         'first_name': user.first_name,
-    #         'dob': user.dob,
-    #         'gender': user.gender,
-    #         'about': user.specialist.about if user.specialist
-    #         and user.specialist.is_specialist else None,
-    #         'weight': user.params.weight if user.params else None,
-    #         'height': user.params.height if user.params else None,
-    #         'email': user.email,
-    #         'phone_number': user.phone_number,
-    #         'password': user.password,
-    #     }
-    #     return profile_data
-
-    # def profile(self, request, pk=None):
-    #     """Профиль специалиста или пользователя"""
-    #     user = self.get_object()
-    #     profile_data = self.get_profile_data(user)
-    #     return Response(profile_data)
-
+    @action(detail=True, methods=['get', 'put'])
     def profile(self, request, pk=None):
         user = self.get_object()
         serializer = self.get_serializer(user.specialist)
         profile_data = serializer.data
         return Response(profile_data)
-
-    def update_profile(self, request, pk=None):
-        user = self.get_object()
-        serializer = self.get_serializer(user, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
         """Вместо удаления меняется флаг is_active"""

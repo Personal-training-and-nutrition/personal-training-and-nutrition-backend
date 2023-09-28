@@ -7,7 +7,7 @@ from rest_framework.serializers import (CharField, ChoiceField, DateField,
                                         Serializer, SerializerMethodField,)
 
 from djoser.serializers import UserSerializer
-from users.models import Education, Gender, Specialists
+from users.models import Education, Gender, Specialists, Params, Role
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
@@ -121,7 +121,6 @@ class DietPlanSerializer(ModelSerializer):
         return self.add_diets(diets, instance)
 
 
-
 class WorkoutListSerializer(ModelSerializer):
     """Сериализатор списка программ тренировок"""
     create_dt = DateTimeField(format='%Y-%m-%d')
@@ -184,45 +183,34 @@ class EducationSerializer(ModelSerializer):
                   'updated_at',)
 
 
-class CustomUserSerializer(UserSerializer):
-    """Сериализатор пользователей"""
+class ParamsSerializer(ModelSerializer):
     class Meta:
-        model = User
-        fields = '__all__'
+        model = Params
+        fields = ('weight',
+                  'height',
+                  )
 
-    def get_diet_program(self, obj):
-        user = self.context.get('request').user
-        if user.is_authenticated:
-            return DietPlan.objects.filter(user=user, author=obj).exists()
-        return False
+    def create(self, validated_data):
+        return Params.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.weight = validated_data.get('weight', instance.weight)
+        instance.height = validated_data.get('height', instance.height)
+
+        instance.save()
+        return instance
 
 
 class SpecialistSerializer(ModelSerializer):
-    """Сериализатор для данных о специалисте"""
-    user = CustomUserSerializer
-    # education = EducationSerializer(many=True)
-    id = ReadOnlyField(source='user.id')
-    last_name = CharField(source='user.last_name')
-    first_name = CharField(source='user.first_name')
-    date_of_birth = DateField(source='user.dob')
-    gender = PrimaryKeyRelatedField(
-        source='user.gender', queryset=Gender.objects.all())
-    about = SerializerMethodField()
-    weight = SerializerMethodField()
-    height = SerializerMethodField()
-    email = EmailField(source='user.email')
-    phone_number = CharField(source='user.phone_number')
-    password = CharField(source='user.password')
+    education = EducationSerializer(many=True)
 
-    def get_about(self, obj):
-        specialist = obj.user.specialist if obj.user.specialist and obj.user.specialist.is_specialist else None
-        return specialist.about if specialist else None
-
-    def get_weight(self, obj):
-        return obj.user.params.weight if obj.user.params else None
-
-    def get_height(self, obj):
-        return obj.user.params.height if obj.user.params else None
+    class Meta:
+        model = Specialists
+        fields = ('experience',
+                  'education',
+                  'contacts',
+                  'about',
+                  )
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
@@ -271,18 +259,64 @@ class SpecialistSerializer(ModelSerializer):
 
         return instance
 
+
+class CustomUserSerializer(UserSerializer):
+    """Сериализатор пользователей"""
+    params = ParamsSerializer(many=False)
+    specialists = SpecialistSerializer(source='specialist')
+
     class Meta:
-        model = Specialists
-        fields = ('user',
-                  'id',
+        model = User
+        fields = '__all__'
+
+    def create(self, validated_data):
+        # role_data = validated_data.pop('role')
+        # gender_data = validated_data.pop('gender')
+        params_data = validated_data.pop('params')
+
+        # role, created = Role.objects.get_or_create(**role_data)
+        # gender, created = Gender.objects.get_or_create(**gender_data)
+        params = Params.objects.create(**params_data)
+
+        return User.objects.create(
+            # role=role,
+            # gender=gender,
+            params=params,
+            **validated_data)
+
+    def update(self, instance, validated_data):
+        # Обновление связанной модели Params
+        params_data = validated_data.pop('params')
+        params_serializer = self.fields['params']
+        params_instance = instance.params
+        params_serializer.update(params_instance, params_data)
+
+        # Обновление связанной модели Specialist
+        specialist_data = validated_data.pop('specialists')
+        specialist_serializer = self.fields['specialists']
+        specialist_instance = instance.specialist
+        specialist_serializer.update(specialist_instance, specialist_data)
+
+        # Обновление остальных полей пользователя
+        fields = ('first_name',
                   'last_name',
-                  'first_name',
-                  'date_of_birth',
-                  'gender',
-                  'about',
-                  'weight',
-                  'height',
+                  'middle_name',
                   'email',
                   'phone_number',
-                  'password',
+                  'dob',
+                  'gender',
+                  'capture',
+                  'is_active',
                   )
+        for field in fields:
+            setattr(instance, field, validated_data.get(
+                field, getattr(instance, field)))
+
+        instance.save()
+        return instance
+
+    def get_diet_program(self, obj):
+        user = self.context.get('request').user
+        if user.is_authenticated:
+            return DietPlan.objects.filter(user=user, author=obj).exists()
+        return False
