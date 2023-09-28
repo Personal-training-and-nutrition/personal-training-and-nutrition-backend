@@ -121,18 +121,6 @@ class DietPlanSerializer(ModelSerializer):
         return self.add_diets(diets, instance)
 
 
-class CustomUserSerializer(UserSerializer):
-    """Сериализатор пользователей"""
-    class Meta:
-        model = User
-        fields = '__all__'
-
-    def get_diet_program(self, obj):
-        user = self.context.get('request').user
-        if user.is_authenticated:
-            return DietPlan.objects.filter(user=user, author=obj).exists()
-        return False
-
 
 class WorkoutListSerializer(ModelSerializer):
     """Сериализатор списка программ тренировок"""
@@ -196,10 +184,23 @@ class EducationSerializer(ModelSerializer):
                   'updated_at',)
 
 
+class CustomUserSerializer(UserSerializer):
+    """Сериализатор пользователей"""
+    class Meta:
+        model = User
+        fields = '__all__'
+
+    def get_diet_program(self, obj):
+        user = self.context.get('request').user
+        if user.is_authenticated:
+            return DietPlan.objects.filter(user=user, author=obj).exists()
+        return False
+
+
 class SpecialistSerializer(ModelSerializer):
     """Сериализатор для данных о специалисте"""
     user = CustomUserSerializer
-    education = EducationSerializer(many=True)
+    # education = EducationSerializer(many=True)
     id = ReadOnlyField(source='user.id')
     last_name = CharField(source='user.last_name')
     first_name = CharField(source='user.first_name')
