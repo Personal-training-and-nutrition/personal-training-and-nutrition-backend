@@ -171,18 +171,6 @@ class ClientListSerializer(ModelSerializer):
         )
 
 
-class EducationSerializer(ModelSerializer):
-    class Meta:
-        model = Education
-        fields = ('institution',
-                  'graduate',
-                  'completion_date',
-                  'number',
-                  'capture',
-                  'created_at',
-                  'updated_at',)
-
-
 class ParamsSerializer(ModelSerializer):
     class Meta:
         model = Params
@@ -202,115 +190,52 @@ class ParamsSerializer(ModelSerializer):
 
 
 class SpecialistSerializer(ModelSerializer):
-    education = EducationSerializer(many=True)
 
     class Meta:
         model = Specialists
-        fields = ('experience',
-                  'education',
-                  'contacts',
-                  'about',
-                  )
-
-    def create(self, validated_data):
-        user_data = validated_data.pop('user')
-        education_data = validated_data.pop('education')
-
-        user = User.objects.create(**user_data, is_specialist=True)
-        specialist = Specialists.objects.create(
-            user=user, **validated_data)
-
-        for education_item in education_data:
-            Education.objects.create(specialist=specialist, **education_item)
-
-        return specialist
-
-    def update(self, instance, validated_data):
-        user_data = validated_data.pop('user')
-        education_data = validated_data.pop('education')
-
-        user_serializer = self.fields['user']
-        user_serializer.update(instance.user, user_data)
-
-        instance.experience = validated_data.get(
-            'experience', instance.experience)
-        instance.contacts = validated_data.get(
-            'contacts', instance.contacts)
-        instance.about = validated_data.get(
-            'about', instance.about)
-        instance.diseases = validated_data.get(
-            'diseases', instance.diseases)
-        instance.exp_diets = validated_data.get(
-            'exp_diets', instance.exp_diets)
-        instance.exp_trainings = validated_data.get(
-            'exp_trainings', instance.exp_trainings)
-        instance.bad_habits = validated_data.get(
-            'bad_habits', instance.bad_habits)
-        instance.food_preferences = validated_data.get(
-            'food_preferences', instance.food_preferences)
-        instance.notes = validated_data.get(
-            'notes', instance.notes)
-
-        instance.save()
-
-        instance.education.all().delete()
-        for education_item in education_data:
-            Education.objects.create(specialist=instance, **education_item)
-
-        return instance
+        fields = ('about',)
 
 
 class CustomUserSerializer(UserSerializer):
     """Сериализатор пользователей"""
-    params = ParamsSerializer(many=False)
-    specialists = SpecialistSerializer(source='specialist')
+    spec = SpecialistSerializer(source='specialist')
 
     class Meta:
         model = User
-        fields = '__all__'
-
-    def create(self, validated_data):
-        # role_data = validated_data.pop('role')
-        # gender_data = validated_data.pop('gender')
-        params_data = validated_data.pop('params')
-
-        # role, created = Role.objects.get_or_create(**role_data)
-        # gender, created = Gender.objects.get_or_create(**gender_data)
-        params = Params.objects.create(**params_data)
-
-        return User.objects.create(
-            # role=role,
-            # gender=gender,
-            params=params,
-            **validated_data)
+        fields = (
+            'id',
+            'first_name',
+            'last_name',
+            'email',
+            'phone_number',
+            'dob',
+            'gender',
+            'spec',
+            'capture',
+            'is_active',
+        )
 
     def update(self, instance, validated_data):
-        # Обновление связанной модели Params
-        params_data = validated_data.pop('params')
-        params_serializer = self.fields['params']
-        params_instance = instance.params
-        params_serializer.update(params_instance, params_data)
+        # Обновляем поля из validated_data для модели User
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.email = validated_data.get('email', instance.email)
+        instance.phone_number = validated_data.get('phone_number', instance.phone_number)
+        instance.dob = validated_data.get('dob', instance.dob)
+        instance.gender = validated_data.get('gender', instance.gender)
+        instance.is_active = validated_data.get('is_active', instance.is_active)
 
-        # Обновление связанной модели Specialist
-        specialist_data = validated_data.pop('specialists')
-        specialist_serializer = self.fields['specialists']
-        specialist_instance = instance.specialist
-        specialist_serializer.update(specialist_instance, specialist_data)
-
-        # Обновление остальных полей пользователя
-        fields = ('first_name',
-                  'last_name',
-                  'middle_name',
-                  'email',
-                  'phone_number',
-                  'dob',
-                  'gender',
-                  'capture',
-                  'is_active',
-                  )
-        for field in fields:
-            setattr(instance, field, validated_data.get(
-                field, getattr(instance, field)))
+        # Обновляем поля из validated_data для модели Specialists
+        specialist_data = validated_data.get('spec')
+        if specialist_data:
+            specialist, _ = Specialists.objects.get_or_create(user=instance)
+            specialist.about = specialist_data.get('about', specialist.about)
+            specialist.save()
+            if not specialist:
+                specialist = Specialists.objects.create(user=instance)
+            specialist.some_field = specialist_data.get(
+                'some_field', specialist.some_field)
+            specialist.save()
 
         instance.save()
         return instance
