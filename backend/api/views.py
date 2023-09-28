@@ -8,13 +8,15 @@ from rest_framework.response import Response
 from djoser import utils
 from djoser.conf import settings
 from djoser.views import UserViewSet
+from users.models import SpecialistClient
 from workouts.models import TrainingPlan
 
 from diets.models import DietPlan
 
-from .permissions import ClientOrAdmin
-from .serializers import (DietListSerializer, DietPlanSerializer,
-                          TrainingPlanSerializer, WorkoutListSerializer,)
+from .permissions import ClientOrAdmin, SpecialistOrAdmin
+from .serializers import (ClientListSerializer, DietListSerializer,
+                          DietPlanSerializer, TrainingPlanSerializer,
+                          WorkoutListSerializer,)
 
 User = get_user_model()
 
@@ -74,6 +76,16 @@ class CustomUserViewSet(UserViewSet):
         """Вывод программ питания клиента"""
         programs = DietPlan.objects.filter(user=self.request.user)
         serializer = DietListSerializer(programs, many=True)
+        return Response(data=serializer.data,
+                        status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'],
+            permission_classes=[SpecialistOrAdmin])
+    def get_client_list(self, serializer):
+        """Вывод всех клиентов специалиста"""
+        clients = SpecialistClient.objects.filter(
+            specialist=self.request.user)
+        serializer = ClientListSerializer(clients, many=True)
         return Response(data=serializer.data,
                         status=status.HTTP_200_OK)
 
