@@ -16,7 +16,7 @@ from diets.models import DietPlan
 
 from .permissions import ClientOrAdmin, SpecialistOrAdmin
 from .serializers import (ClientListSerializer, CustomUserSerializer, DietListSerializer,
-                          DietPlanSerializer, TrainingPlanSerializer,
+                          DietPlanSerializer, TrainingPlanSerializer, SpecialistSerializer,
                           WorkoutListSerializer, SpecialistSerializer)
 
 User = get_user_model()
@@ -45,7 +45,7 @@ class CustomUserViewSet(UserViewSet):
     @action(detail=True, methods=['get', 'put'])
     def profile(self, request, pk=None):
         user = self.get_object()
-        serializer = self.get_serializer(user.specialist)
+        serializer = SpecialistSerializer(user)
         profile_data = serializer.data
         return Response(profile_data)
 

@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework.serializers import (CharField, ChoiceField, DateField,
                                         DateTimeField, EmailField, Field,
-                                        ModelSerializer,
+                                        ModelSerializer, StringRelatedField,
                                         PrimaryKeyRelatedField, ReadOnlyField,
                                         Serializer, SerializerMethodField,)
 
@@ -171,6 +171,12 @@ class ClientListSerializer(ModelSerializer):
         )
 
 
+class GenderSerializer(ModelSerializer):
+    class Meta:
+        model = Gender
+        fields = 'gender'
+
+
 class ParamsSerializer(ModelSerializer):
     class Meta:
         model = Params
@@ -189,16 +195,9 @@ class ParamsSerializer(ModelSerializer):
         return instance
 
 
-class SpecialistSerializer(ModelSerializer):
-
-    class Meta:
-        model = Specialists
-        fields = ('about',)
-
-
 class CustomUserSerializer(UserSerializer):
     """Сериализатор пользователей"""
-    spec = SpecialistSerializer(source='specialist')
+    gender = StringRelatedField(source='sex.gender')
 
     class Meta:
         model = User
@@ -212,7 +211,6 @@ class CustomUserSerializer(UserSerializer):
             'phone_number',
             'dob',
             'gender',
-            'spec',
             'params',
             'capture',
             'is_staff',
@@ -224,26 +222,29 @@ class CustomUserSerializer(UserSerializer):
 
     def update(self, instance, validated_data):
         # Обновляем поля из validated_data для модели User
-        instance.first_name = validated_data.get('first_name', instance.first_name)
-        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.first_name = validated_data.get(
+            'first_name', instance.first_name)
+        instance.last_name = validated_data.get(
+            'last_name', instance.last_name)
         instance.email = validated_data.get('email', instance.email)
-        instance.phone_number = validated_data.get('phone_number', instance.phone_number)
+        instance.phone_number = validated_data.get(
+            'phone_number', instance.phone_number)
         instance.dob = validated_data.get('dob', instance.dob)
         instance.gender = validated_data.get('gender', instance.gender)
-        instance.is_active = validated_data.get('is_active', instance.is_active)
+        instance.password = validated_data.get('password', instance.password)
 
         # Обновляем поля из validated_data для модели Specialists
         specialist_data = validated_data.get('spec')
         if specialist_data:
-            specialist, _ = Specialists.objects.get_or_create(user=instance)
+            specialist, created = Specialists.objects.get_or_create(
+                user=instance)
             specialist.about = specialist_data.get('about', specialist.about)
-            specialist.save()
-            if not specialist:
-                specialist = Specialists.objects.create(user=instance)
             specialist.some_field = specialist_data.get(
                 'some_field', specialist.some_field)
             specialist.save()
 
+        if 'password' in validated_data:
+            instance.set_password(validated_data['password'])
         instance.save()
         return instance
 
@@ -252,3 +253,27 @@ class CustomUserSerializer(UserSerializer):
         if user.is_authenticated:
             return DietPlan.objects.filter(user=user, author=obj).exists()
         return False
+
+
+class SpecialistSerializer(ModelSerializer):
+    id = StringRelatedField(source='user.id')
+    first_name = StringRelatedField(source='user.first_name')
+    last_name = StringRelatedField(source='user.last_name')
+    dob = StringRelatedField(source='user.dob')
+    gender = StringRelatedField(source='sex.gender')
+    about = StringRelatedField(source='users.about')
+    email = StringRelatedField(source='users.email')
+    phone_number = StringRelatedField(source='users.phone_number')
+    password = StringRelatedField(source='users.password')
+
+    class Meta:
+        model = Specialists
+        fields = ('id',
+                  'first_name',
+                  'last_name',
+                  'phone_number',
+                  'dob',
+                  'gender',
+                  'about',
+                  'email',
+                  'password',)
