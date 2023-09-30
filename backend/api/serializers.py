@@ -1,6 +1,11 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
+from rest_framework.serializers import (CharField, ChoiceField, DateField,
+                                        DateTimeField, EmailField, FloatField,
+                                        ModelSerializer, StringRelatedField,
+                                        PrimaryKeyRelatedField, ReadOnlyField,
+                                        Serializer, SerializerMethodField,)
 
 from djoser.serializers import UserSerializer
 from users.models import Gender, Params, Education, Specialists
@@ -139,32 +144,11 @@ class EducationSerializer(serializers.ModelSerializer):
         return instance
 
 
-class SpecialistSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
-    education = EducationSerializer(many=True)
-
-    class Meta:
-        model = Specialists
-        fields = ('experience',
-                  'education',
-                  'contacts',
-                  'about',
-                  'diseases',
-                  'exp_diets',
-                  'exp_trainings',
-                  'bad_habits',
-                  'food_preferences',
-                  'notes')
-
-
 class ParamsSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Params
-        fields = ('weight',
-                  'height',
-                  'waist_size',
-                  'created_at',
-                  'updated_at',)
+        fields = ('weight', 'height')
 
     def create(self, validated_data):
         return Params.objects.create(**validated_data)
@@ -172,16 +156,12 @@ class ParamsSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.weight = validated_data.get('weight', instance.weight)
         instance.height = validated_data.get('height', instance.height)
-        instance.waist_size = validated_data.get('waist_size',
-                                                 instance.waist_size)
         instance.save()
         return instance
 
 
 class CustomUserSerializer(UserSerializer):
-    """Сериализатор пользователей"""
     params = ParamsSerializer()
-    specialist = SpecialistSerializer
 
     class Meta:
         model = User
@@ -190,48 +170,95 @@ class CustomUserSerializer(UserSerializer):
             'email',
             'first_name',
             'last_name',
-            'middle_name',
             'password',
             'phone_number',
             'date_of_birth',
             'gender',
             'params',
             'capture',
-            'is_staff',
-            'is_superuser',
-            'is_specialist',
-            'specialist',
-            'is_active',
+            # 'weight',
+            # 'height',
         )
+
+    def create(self, validated_data):
+        params_data = validated_data.pop('params')
+        user = User.objects.create(**validated_data)
+        Params.objects.create(user=user, **params_data)
+        return user
 
     def update(self, instance, validated_data):
-        gender_data = validated_data.pop('gender', None)
-        params_data = validated_data.pop('params', None)
+        params_data = validated_data.pop('params')
+        params_serializer = self.fields['params']
+        params_serializer.update(instance.params, params_data)
+        return super().update(instance, validated_data)
 
-        if gender_data:
-            gender, created = Gender.objects.get_or_create(**gender_data)
-            instance.gender = gender
 
-        if params_data:
-            params = instance.params
-            if params is None:
-                params = Params()
-            params.weight = params_data.get('weight', params.weight)
-            params.height = params_data.get('height', params.height)
-            params.waist_size = params_data.get('waist_size', params.waist_size)
-            params.save()
+class SpecialistSerializer(serializers.ModelSerializer):
+    user = CustomUserSerializer(required=True)
+    education = EducationSerializer(many=True)
 
+    class Meta:
+        model = Specialists
         fields = (
+            'experience',
+            'education',
+            'contacts',
+            'about',
+            'diseases',
+            'exp_diets',
+            'exp_trainings',
+            'bad_habits',
+            'food_preferences',
+            'notes'
+        )
+
+    def create(self, validated_data):
+        user_data = validated_data.pop('user')
+        user = User.objects.create(**user_data)
+        return Specialists.objects.create(user=user, **validated_data)
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user')
+        user = instance.user
+        for attr, value in user_data.items():
+            setattr(user, attr, value)
+        user.save()
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
+
+class ClientSerializer(serializers.ModelSerializer):
+    params = ParamsSerializer()
+    # weight = serializers.FloatField(read_only=True)
+    # height = serializers.FloatField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'email',
             'first_name',
             'last_name',
-            'middle_name',
-            'email',
+            'params',
             'phone_number',
-            'date_of_birth',
+            # 'weight',
+            # 'height',
         )
-        for field in fields:
-            setattr(instance, field, validated_data.get(field, getattr(instance, field)))
 
+    def create(self, validated_data):
+        params_data = validated_data.pop('params')
+        params = Params.objects.create(**params_data)
+        return User.objects.create(params=params, **validated_data)
+
+    def update(self, instance, validated_data):
+        params_data = validated_data.pop('params')
+        params = instance.params
+        for attr, value in params_data.items():
+            setattr(params, attr, value)
+        params.save()
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
         instance.save()
-
         return instance
