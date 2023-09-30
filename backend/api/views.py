@@ -11,12 +11,13 @@ from djoser.conf import settings
 from djoser.views import UserViewSet
 from users.models import SpecialistClient
 from workouts.models import TrainingPlan
+from users.models import Specialists
 
 from diets.models import DietPlan
 
 from .permissions import ClientOrAdmin, SpecialistOrAdmin
 from .serializers import (ClientListSerializer, CustomUserSerializer, DietListSerializer,
-                          DietPlanSerializer, TrainingPlanSerializer, SpecialistSerializer,
+                          DietPlanSerializer, TrainingPlanSerializer, SpecialistSerializer, ClientSerializer,
                           WorkoutListSerializer, SpecialistSerializer)
 
 User = get_user_model()
@@ -37,17 +38,30 @@ class DietPlanViewSet(viewsets.ModelViewSet):
 
 
 class CustomUserViewSet(UserViewSet):
-    # permission_classes = settings.PERMISSIONS.user
+    permission_classes = settings.PERMISSIONS.user
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
     lookup_field = 'pk'
 
     @action(detail=True, methods=['get', 'put'])
     def profile(self, request, pk=None):
+
         user = self.get_object()
-        serializer = SpecialistSerializer(user)
-        profile_data = serializer.data
-        return Response(profile_data)
+
+        if user.is_specialist:
+            try:
+                specialist_profile = user.specialist
+                serializer = SpecialistSerializer(specialist_profile)
+                profile_data = serializer.data
+                return Response(profile_data, status=status.HTTP_200_OK)
+            except Specialists.DoesNotExist:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+
+        else:
+            client_profile = user.specialist_client_user.first()
+            serializer = ClientSerializer(client_profile)
+            profile_data = serializer.data
+            return Response(profile_data, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
         """Вместо удаления меняется флаг is_active"""

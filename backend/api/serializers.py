@@ -171,6 +171,32 @@ class ClientListSerializer(ModelSerializer):
         )
 
 
+class EducationSerializer(ModelSerializer):
+    class Meta:
+        model = Education
+        fields = ('institution',
+                  'graduate',
+                  'completion_date',
+                  'number',
+                  'capture',
+                  'created_at',
+                  'updated_at',)
+
+    def create(self, validated_data):
+        return Education.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.institution = validated_data.get(
+            'institution', instance.institution)
+        instance.graduate = validated_data.get('graduate', instance.graduate)
+        instance.completion_date = validated_data.get(
+            'completion_date', instance.completion_date)
+        instance.number = validated_data.get('number', instance.number)
+        instance.capture = validated_data.get('capture', instance.capture)
+        instance.save()
+        return instance
+
+
 class GenderSerializer(ModelSerializer):
     class Meta:
         model = Gender
@@ -178,11 +204,10 @@ class GenderSerializer(ModelSerializer):
 
 
 class ParamsSerializer(ModelSerializer):
+
     class Meta:
         model = Params
-        fields = ('weight',
-                  'height',
-                  )
+        fields = ('weight', 'height')
 
     def create(self, validated_data):
         return Params.objects.create(**validated_data)
@@ -190,14 +215,12 @@ class ParamsSerializer(ModelSerializer):
     def update(self, instance, validated_data):
         instance.weight = validated_data.get('weight', instance.weight)
         instance.height = validated_data.get('height', instance.height)
-
         instance.save()
         return instance
 
 
 class CustomUserSerializer(UserSerializer):
-    """Сериализатор пользователей"""
-    gender = StringRelatedField(source='sex.gender')
+    params = ParamsSerializer()
 
     class Meta:
         model = User
@@ -206,74 +229,88 @@ class CustomUserSerializer(UserSerializer):
             'email',
             'first_name',
             'last_name',
-            'middle_name',
             'password',
             'phone_number',
             'dob',
             'gender',
             'params',
             'capture',
-            'is_staff',
-            'is_superuser',
-            'is_specialist',
-            'specialist',
-            'is_active',
+            # 'weight',
+            # 'height',
         )
 
+    def create(self, validated_data):
+        params_data = validated_data.pop('params')
+        user = User.objects.create(**validated_data)
+        Params.objects.create(user=user, **params_data)
+        return user
+
     def update(self, instance, validated_data):
-        # Обновляем поля из validated_data для модели User
-        instance.first_name = validated_data.get(
-            'first_name', instance.first_name)
-        instance.last_name = validated_data.get(
-            'last_name', instance.last_name)
-        instance.email = validated_data.get('email', instance.email)
-        instance.phone_number = validated_data.get(
-            'phone_number', instance.phone_number)
-        instance.dob = validated_data.get('dob', instance.dob)
-        instance.gender = validated_data.get('gender', instance.gender)
-        instance.password = validated_data.get('password', instance.password)
-
-        # Обновляем поля из validated_data для модели Specialists
-        specialist_data = validated_data.get('spec')
-        if specialist_data:
-            specialist, created = Specialists.objects.get_or_create(
-                user=instance)
-            specialist.about = specialist_data.get('about', specialist.about)
-            specialist.some_field = specialist_data.get(
-                'some_field', specialist.some_field)
-            specialist.save()
-
-        if 'password' in validated_data:
-            instance.set_password(validated_data['password'])
-        instance.save()
-        return instance
-
-    def get_diet_program(self, obj):
-        user = self.context.get('request').user
-        if user.is_authenticated:
-            return DietPlan.objects.filter(user=user, author=obj).exists()
-        return False
+        params_data = validated_data.pop('params')
+        params_serializer = self.fields['params']
+        params_serializer.update(instance.params, params_data)
+        return super().update(instance, validated_data)
 
 
 class SpecialistSerializer(ModelSerializer):
-    id = StringRelatedField(source='user.id')
-    first_name = StringRelatedField(source='user.first_name')
-    last_name = StringRelatedField(source='user.last_name')
-    dob = StringRelatedField(source='user.dob')
-    gender = StringRelatedField(source='sex.gender')
-    about = StringRelatedField(source='users.about')
-    email = StringRelatedField(source='users.email')
-    phone_number = StringRelatedField(source='users.phone_number')
-    password = StringRelatedField(source='users.password')
+    education = EducationSerializer(many=True)
 
     class Meta:
         model = Specialists
-        fields = ('id',
-                  'first_name',
-                  'last_name',
-                  'phone_number',
-                  'dob',
-                  'gender',
-                  'about',
-                  'email',
-                  'password',)
+        fields = (
+            'experience',
+            'education',
+            'contacts',
+            'about',
+        )
+
+    def create(self, validated_data):
+        user_data = validated_data.pop('user')
+        user = User.objects.create(**user_data)
+        return Specialists.objects.create(user=user, **validated_data)
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user')
+        user = instance.user
+        for attr, value in user_data.items():
+            setattr(user, attr, value)
+        user.save()
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
+
+class ClientSerializer(ModelSerializer):
+    params = ParamsSerializer()
+    # weight = serializers.FloatField(read_only=True)
+    # height = serializers.FloatField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'email',
+            'first_name',
+            'last_name',
+            'params',
+            'phone_number',
+            # 'weight',
+            # 'height',
+        )
+
+    def create(self, validated_data):
+        params_data = validated_data.pop('params')
+        params = Params.objects.create(**params_data)
+        return User.objects.create(params=params, **validated_data)
+
+    def update(self, instance, validated_data):
+        params_data = validated_data.pop('params')
+        params = instance.params
+        for attr, value in params_data.items():
+            setattr(params, attr, value)
+        params.save()
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
