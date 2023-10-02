@@ -265,15 +265,11 @@ class TrainingPlan(models.Model):
         verbose_name='План тренировки не удален специалистом',
     )
     create_dt = models.DateTimeField(
-        blank=True,
-        null=True,
         auto_now_add=True,
         verbose_name='Дата создания плана тренировки',
         help_text='Введите дату создания плана тренировки'
     )
     edit_dt = models.DateTimeField(
-        blank=True,
-        null=True,
         auto_now=True,
         verbose_name='Дата редактирования плана тренировки',
         help_text='Введите дату редактирования плана тренировки'
