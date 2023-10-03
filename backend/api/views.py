@@ -16,7 +16,7 @@ from diets.models import DietPlan
 from .permissions import ClientOrAdmin, SpecialistOrAdmin
 from .serializers import (ClientListSerializer, DietListSerializer,
                           DietPlanLinkSerializer, DietPlanSerializer,
-                          TrainingPlanSerializer, WorkoutListSerializer, )
+                          TrainingPlanSerializer, WorkoutListSerializer,)
 
 User = get_user_model()
 
