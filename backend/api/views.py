@@ -14,9 +14,9 @@ from workouts.models import TrainingPlan
 from diets.models import DietPlan
 
 from .permissions import ClientOrAdmin, SpecialistOrAdmin
-from .serializers import (ClientListSerializer, DietListSerializer, 
-                          DietPlanSerializer, TrainingPlanSerializer,
-                          WorkoutListSerializer, DietPlanLinkSerializer,)
+from .serializers import (ClientListSerializer, DietListSerializer,
+                          DietPlanLinkSerializer, DietPlanSerializer,
+                          TrainingPlanSerializer, WorkoutListSerializer, )
 
 User = get_user_model()
 
@@ -47,9 +47,8 @@ class DietPlanViewSet(viewsets.ModelViewSet):
                                                   'link': link})
         if serializer.is_valid():
             return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors,
+                        status=status.HTTP_400_BAD_REQUEST)
 
 
 class CustomUserViewSet(UserViewSet):
