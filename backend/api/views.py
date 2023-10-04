@@ -16,7 +16,9 @@ from diets.models import DietPlan
 from .permissions import ClientOrAdmin, SpecialistOrAdmin
 from .serializers import (ClientListSerializer, DietListSerializer,
                           DietPlanLinkSerializer, DietPlanSerializer,
-                          TrainingPlanSerializer, WorkoutListSerializer,)
+                          TrainingPlanSerializer, WorkoutListSerializer,
+                          SpecialistAddClientSerializer,
+                          SpecialistClientReadSerializer,)
 
 User = get_user_model()
 
@@ -118,3 +120,17 @@ class ActivateUser(UserViewSet):
     def activation(self, request, uid, token, *args, **kwargs):
         super().activation(request, *args, **kwargs)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class SpecialistClientsViewSet(viewsets.ModelViewSet):
+    serializer_class = SpecialistAddClientSerializer
+    queryset = SpecialistClient.objects.all()
+    permission_classes = (SpecialistOrAdmin,)
+
+    def perform_create(self, serializer):
+        return serializer.save(specialist=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action in ['list']:
+            return SpecialistClientReadSerializer
+        return SpecialistAddClientSerializer
