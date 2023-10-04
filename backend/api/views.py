@@ -80,7 +80,6 @@ class CustomUserViewSet(UserViewSet):
             profile_data = serializer.data
             return Response(profile_data, status=status.HTTP_200_OK)
 
-
     def destroy(self, request, *args, **kwargs):
         """Вместо удаления меняется флаг is_active"""
         instance = self.get_object()
@@ -135,6 +134,7 @@ class CustomUserViewSet(UserViewSet):
 
 class ActivateUser(UserViewSet):
     """Активация пользователя по ссылке в письме"""
+
     def get_serializer(self, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         kwargs.setdefault('context', self.get_serializer_context())
@@ -147,7 +147,21 @@ class ActivateUser(UserViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class SpecialistClientsViewSet(viewsets.ModelViewSet):
+# class SpecialistClientsViewSet(viewsets.ModelViewSet):
+#     serializer_class = SpecialistAddClientSerializer
+#     queryset = SpecialistClient.objects.all()
+#     permission_classes = (SpecialistOrAdmin,)
+
+#     def perform_create(self, serializer):
+#         return serializer.save(specialist=self.request.user)
+
+#     def get_serializer_class(self):
+#         if self.action in ['list']:
+#             return SpecialistClientReadSerializer
+#         return SpecialistAddClientSerializer
+
+
+class SpecialistClientsViewSet(CustomUserViewSet, viewsets.ModelViewSet):
     serializer_class = SpecialistAddClientSerializer
     queryset = SpecialistClient.objects.all()
     permission_classes = (SpecialistOrAdmin,)
@@ -156,6 +170,6 @@ class SpecialistClientsViewSet(viewsets.ModelViewSet):
         return serializer.save(specialist=self.request.user)
 
     def get_serializer_class(self):
-        if self.action in ['list']:
+        if self.action == 'list':
             return SpecialistClientReadSerializer
         return SpecialistAddClientSerializer

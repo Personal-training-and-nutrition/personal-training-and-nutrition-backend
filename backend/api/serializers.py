@@ -319,33 +319,21 @@ class SpecialistAddClientSerializer(ModelSerializer):
         )
         return specialist_client
 
-    # def update(self, instance, validated_data):
-    #     instance.diseases = validated_data.get(
-    #         'diseases', instance.diseases)
-    #     instance.exp_diets = validated_data.get(
-    #         'exp_diets', instance.exp_diets)
-    #     instance.notes = validated_data.get(
-    #         'notes', instance.notes)
-    #     instance.diseases = validated_data.get(
-    #         'exp_trainings', instance.exp_trainings)
-    #     instance.diseases = validated_data.get(
-    #         'bad_habits', instance.bad_habits)
-    #     instance.diseases = validated_data.get(
-    #         'food_preferences', instance.food_preferences)
-    #     instance.save()
-    #     return instance
-
 
 class SpecialistSerializer(ModelSerializer):
-    education = EducationSerializer(many=True)
+    # education = EducationSerializer(many=True)
+    first_name = ReadOnlyField(source='user.first_name')
+    last_name = ReadOnlyField(source='user.last_name')
 
     class Meta:
         model = Specialists
         fields = (
-            'experience',
-            'education',
-            'contacts',
+            'first_name',
+            'last_name',
             'about',
+            'experience',
+            # 'education',
+            'contacts',
         )
 
     def create(self, validated_data):

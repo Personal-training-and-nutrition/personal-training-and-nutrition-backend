@@ -394,6 +394,9 @@ class SpecialistClient(Model):
         blank=True,
         null=True,
     )
+    is_specialist = BooleanField(
+        default=True,
+    )
     created_at = DateTimeField(
         auto_now_add=True,
         verbose_name='Дата создания',
