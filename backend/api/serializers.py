@@ -9,7 +9,8 @@ from rest_framework.serializers import (CharField, ChoiceField, DateField,
 import datetime
 
 from djoser.serializers import UserSerializer
-from users.models import GENDER_CHOICES, Gender, Params, SpecialistClient
+from users.models import (GENDER_CHOICES, Gender, Params, SpecialistClient,
+                          Education, Specialists)
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
@@ -173,6 +174,38 @@ class DietListSerializer(ModelSerializer):
         return DietPlan.objects.filter(user=obj.user).exists()
 
 
+class GenderSerializer(ModelSerializer):
+    class Meta:
+        model = Gender
+        fields = 'gender'
+
+
+class EducationSerializer(ModelSerializer):
+    class Meta:
+        model = Education
+        fields = ('institution',
+                  'graduate',
+                  'completion_date',
+                  'number',
+                  'capture',
+                  'created_at',
+                  'updated_at',)
+
+    def create(self, validated_data):
+        return Education.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.institution = validated_data.get(
+            'institution', instance.institution)
+        instance.graduate = validated_data.get('graduate', instance.graduate)
+        instance.completion_date = validated_data.get(
+            'completion_date', instance.completion_date)
+        instance.number = validated_data.get('number', instance.number)
+        instance.capture = validated_data.get('capture', instance.capture)
+        instance.save()
+        return instance
+
+
 class ParamsSerializer(ModelSerializer):
     weight = FloatField(required=False)
     height = IntegerField(required=False)
@@ -301,3 +334,65 @@ class SpecialistAddClientSerializer(ModelSerializer):
     #         'food_preferences', instance.food_preferences)
     #     instance.save()
     #     return instance
+
+
+class SpecialistSerializer(ModelSerializer):
+    education = EducationSerializer(many=True)
+
+    class Meta:
+        model = Specialists
+        fields = (
+            'experience',
+            'education',
+            'contacts',
+            'about',
+        )
+
+    def create(self, validated_data):
+        user_data = validated_data.pop('user')
+        user = User.objects.create(**user_data)
+        return Specialists.objects.create(user=user, **validated_data)
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user')
+        user = instance.user
+        for attr, value in user_data.items():
+            setattr(user, attr, value)
+        user.save()
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
+
+class ClientSerializer(ModelSerializer):
+    params = ParamsSerializer()
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'email',
+            'first_name',
+            'last_name',
+            'params',
+            'phone_number',
+            # 'weight',
+            # 'height',
+        )
+
+    def create(self, validated_data):
+        params_data = validated_data.pop('params')
+        params = Params.objects.create(**params_data)
+        return User.objects.create(params=params, **validated_data)
+
+    def update(self, instance, validated_data):
+        params_data = validated_data.pop('params')
+        params = instance.params
+        for attr, value in params_data.items():
+            setattr(params, attr, value)
+        params.save()
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
