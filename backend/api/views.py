@@ -78,7 +78,6 @@ class CustomUserViewSet(UserViewSet):
                             status=status.HTTP_200_OK)
         return Response("Неверный пароль", status=status.HTTP_400_BAD_REQUEST)
 
-
     @action(["post"], detail=False)
     def set_password(self, request, *args, **kwargs):
         """Кастомная смена пароля"""
