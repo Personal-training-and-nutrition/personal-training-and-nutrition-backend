@@ -4,16 +4,18 @@ from rest_framework import serializers
 from rest_framework.serializers import (CharField, ChoiceField, DateField,
                                         DateTimeField, FloatField,
                                         IntegerField, ModelSerializer,
-                                        ReadOnlyField, SerializerMethodField,)
+                                        PrimaryKeyRelatedField, ReadOnlyField,
+                                        SerializerMethodField, EmailField)
 
 import datetime
 
 from djoser.serializers import UserSerializer
-from users.models import (GENDER_CHOICES, Gender, Params, SpecialistClient,
-                          Education, Specialists)
+from users.models import (GENDER_CHOICES, Education, Gender, Params,
+                          SpecialistClient, Specialists,)
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
+from django.contrib.auth.models import User
 
 User = get_user_model()
 
@@ -246,8 +248,7 @@ class SpecialistClientReadSerializer(ModelSerializer):
 
     def get_age(self, obj):
         today = datetime.date.today()
-        age = (today.year - obj.user.dob.year)
-        return age
+        return (today.year - obj.user.dob.year)
 
 
 class UserInfoSerializer(ModelSerializer):
@@ -267,8 +268,7 @@ class UserInfoSerializer(ModelSerializer):
 
     def get_age(self, obj):
         today = datetime.date.today()
-        age = (today.year - obj.dob.year)
-        return age
+        return (today.year - obj.dob.year)
 
 
 class SpecialistAddClientSerializer(ModelSerializer):
@@ -307,7 +307,7 @@ class SpecialistAddClientSerializer(ModelSerializer):
         exp_trainings = data.pop('exp_trainings')
         bad_habits = data.pop('bad_habits')
         food_preferences = data.pop('food_preferences')
-        specialist_client = SpecialistClient.objects.create(
+        return SpecialistClient.objects.create(
             user=client,
             specialist=specialist,
             diseases=diseases,
@@ -317,70 +317,99 @@ class SpecialistAddClientSerializer(ModelSerializer):
             bad_habits=bad_habits,
             food_preferences=food_preferences
         )
-        return specialist_client
 
 
-class SpecialistSerializer(ModelSerializer):
-    # education = EducationSerializer(many=True)
-    first_name = ReadOnlyField(source='user.first_name')
-    last_name = ReadOnlyField(source='user.last_name')
+class SpecialistSerializer(serializers.ModelSerializer):
+    last_name = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True)
+    first_name = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True)
+    dob = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True)
+    gender = serializers.ChoiceField(required=False, choices=GENDER_CHOICES)
+    email = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True)
+    phone_number = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True)
+    password = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True)
 
     class Meta:
         model = Specialists
         fields = (
-            'first_name',
+            'id',
             'last_name',
+            'first_name',
+            'dob',
+            'gender',
             'about',
-            'experience',
-            # 'education',
-            'contacts',
+            'email',
+            'phone_number',
+            'password',
         )
 
     def create(self, validated_data):
-        user_data = validated_data.pop('user')
+        user_data = {
+            'last_name': validated_data.pop('last_name'),
+            'first_name': validated_data.pop('first_name'),
+            'dob': validated_data.pop('dob'),
+            'email': validated_data.pop('email'),
+            'phone_number': validated_data.pop('phone_number'),
+            'password': validated_data.pop('password'),
+        }
         user = User.objects.create(**user_data)
         return Specialists.objects.create(user=user, **validated_data)
 
     def update(self, instance, validated_data):
-        user_data = validated_data.pop('user')
+        user_data = {
+            'last_name': validated_data.pop('last_name', instance.user.last_name),
+            'first_name': validated_data.pop('first_name', instance.user.first_name),
+            'dob': validated_data.pop('dob', instance.user.dob),
+            'email': validated_data.pop('email', instance.user.email),
+            'phone_number': validated_data.pop('phone_number', instance.user.phone_number),
+            'password': validated_data.pop('password', instance.user.password),
+        }
+
         user = instance.user
-        for attr, value in user_data.items():
-            setattr(user, attr, value)
+        for key, value in user_data.items():
+            setattr(user, key, value)
         user.save()
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
+
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
         instance.save()
+
         return instance
 
 
 class ClientSerializer(ModelSerializer):
     params = ParamsSerializer()
+    gender = serializers.ChoiceField(required=False, choices=GENDER_CHOICES)
 
     class Meta:
         model = User
         fields = (
             'id',
-            'email',
-            'first_name',
             'last_name',
+            'first_name',
+            'dob',
+            'gender',
             'params',
+            'email',
             'phone_number',
-            # 'weight',
-            # 'height',
+            'password',
         )
 
     def create(self, validated_data):
         params_data = validated_data.pop('params')
-        params = Params.objects.create(**params_data)
-        return User.objects.create(params=params, **validated_data)
+        user = User.objects.create(**validated_data)
+        Params.objects.create(user=user, **params_data)
+        return user
 
     def update(self, instance, validated_data):
         params_data = validated_data.pop('params')
-        params = instance.params
-        for attr, value in params_data.items():
-            setattr(params, attr, value)
+        user = instance
+        for key, value in validated_data.items():
+            setattr(user, key, value)
+        user.save()
+
+        params = user.params
+        for key, value in params_data.items():
+            setattr(params, key, value)
         params.save()
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-        return instance
+
+        return user
