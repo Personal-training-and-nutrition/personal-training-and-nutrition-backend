@@ -1,8 +1,8 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model, update_session_auth_hash
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import status, viewsets
 
-# from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from djoser import utils
 from djoser.conf import settings
 from djoser.views import UserViewSet
-from users.models import SpecialistClient, Specialists
+from users.models import SpecialistClient
 from workouts.models import TrainingPlan
 
 from diets.models import DietPlan
@@ -62,52 +62,25 @@ class CustomUserViewSet(UserViewSet):
     serializer_class = CustomUserSerializer
     lookup_field = 'pk'
 
-    # @action(detail=True, methods=['get', 'put'])
-    # def client_profile(self, request, pk=None):
-    #     client = get_object_or_404(User, pk=pk)
-    #     if request.method == 'GET':
-    #         serializer = ClientSerializer(client)
-    #         return Response(serializer.data)
-    #     if request.method == 'PUT':
-    #         serializer = ClientSerializer(client, data=request.data)
-    #         if serializer.is_valid():
-    #             client.save()
-    #             return Response(serializer.data)
-    #         return Response(serializer.errors, status=400)
-
-    # @action(detail=True, methods=['get', 'put'])
-    # def specialist_profile(self, request, pk=None):
-    #     specialist = get_object_or_404(Specialists, pk=pk)
-    #     if request.method == 'GET':
-    #         serializer = SpecialistSerializer(specialist)
-    #         return Response(serializer.data)
-    #     if request.method == 'PUT':
-    #         serializer = SpecialistSerializer(specialist, data=request.data)
-    #         if serializer.is_valid():
-    #             serializer.save()
-    #             return Response(serializer.data)
-    #         else:
-    #             return Response(serializer.errors, status=400)
-
     @action(detail=True, methods=['get', 'put'])
     def profile(self, request, pk=None):
+        """Профиль клиента и специалиста"""
 
-        user = self.get_object()
+        try:
+            user = self.get_object()
 
-        if user.is_specialist:
-            try:
+            if user.is_specialist:
                 specialist_profile = user.specialist
                 serializer = SpecialistSerializer(specialist_profile)
-                profile_data = serializer.data
-                return Response(profile_data, status=status.HTTP_200_OK)
-            except Specialists.DoesNotExist:
-                return Response(status=status.HTTP_404_NOT_FOUND)
+            else:
+                client_profile = user.specialist_client_user.first()
+                serializer = ClientSerializer(client_profile)
 
-        else:
-            client_profile = user.specialist_client_user.first()
-            serializer = ClientSerializer(client_profile)
             profile_data = serializer.data
             return Response(profile_data, status=status.HTTP_200_OK)
+
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
     def destroy(self, request, *args, **kwargs):
         """Вместо удаления меняется флаг is_active"""
@@ -176,20 +149,6 @@ class ActivateUser(UserViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-# class SpecialistClientsViewSet(viewsets.ModelViewSet):
-#     serializer_class = SpecialistAddClientSerializer
-#     queryset = SpecialistClient.objects.all()
-#     permission_classes = (SpecialistOrAdmin,)
-
-#     def perform_create(self, serializer):
-#         return serializer.save(specialist=self.request.user)
-
-#     def get_serializer_class(self):
-#         if self.action in ['list']:
-#             return SpecialistClientReadSerializer
-#         return SpecialistAddClientSerializer
-
-
 class SpecialistClientsViewSet(viewsets.ModelViewSet):
     serializer_class = SpecialistAddClientSerializer
     queryset = SpecialistClient.objects.all()
@@ -202,24 +161,3 @@ class SpecialistClientsViewSet(viewsets.ModelViewSet):
         if self.action in ['list']:
             return SpecialistClientReadSerializer
         return SpecialistAddClientSerializer
-
-
-# class CustomSpecialistViewSet(viewsets.ModelViewSet):
-#     permission_classes = settings.PERMISSIONS.user
-#     queryset = User.objects.all()
-#     serializer_class = CustomUserSerializer
-#     lookup_field = 'pk'
-
-#     @action(detail=True, methods=['get', 'put'])
-#     def specialist_profile(self, request, pk=None):
-#         specialist = get_object_or_404(Specialists, pk=pk)
-#         if request.method == 'GET':
-#             serializer = SpecialistSerializer(specialist)
-#             return Response(serializer.data)
-#         if request.method == 'PUT':
-#             serializer = SpecialistSerializer(specialist, data=request.data)
-#             if serializer.is_valid():
-#                 serializer.save()
-#                 return Response(serializer.data)
-#             else:
-#                 return Response(serializer.errors, status=400)
