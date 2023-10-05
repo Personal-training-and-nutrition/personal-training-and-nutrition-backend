@@ -1,11 +1,11 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework.serializers import (CharField, ChoiceField, DateField,
                                         DateTimeField, FloatField,
                                         IntegerField, ModelSerializer,
-                                        PrimaryKeyRelatedField, ReadOnlyField,
-                                        SerializerMethodField, EmailField)
+                                        ReadOnlyField, SerializerMethodField,)
 
 import datetime
 
@@ -15,7 +15,6 @@ from users.models import (GENDER_CHOICES, Education, Gender, Params,
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
-from django.contrib.auth.models import User
 
 User = get_user_model()
 
@@ -320,13 +319,20 @@ class SpecialistAddClientSerializer(ModelSerializer):
 
 
 class SpecialistSerializer(serializers.ModelSerializer):
-    last_name = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True)
-    first_name = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True)
-    dob = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True)
-    gender = serializers.ChoiceField(required=False, choices=GENDER_CHOICES)
-    email = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True)
-    phone_number = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True)
-    password = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), write_only=True)
+    last_name = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), write_only=True)
+    first_name = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), write_only=True)
+    dob = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), write_only=True)
+    gender = serializers.ChoiceField(
+        required=False, choices=GENDER_CHOICES)
+    email = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), write_only=True)
+    phone_number = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), write_only=True)
+    password = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), write_only=True)
 
     class Meta:
         model = Specialists
@@ -356,12 +362,18 @@ class SpecialistSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         user_data = {
-            'last_name': validated_data.pop('last_name', instance.user.last_name),
-            'first_name': validated_data.pop('first_name', instance.user.first_name),
-            'dob': validated_data.pop('dob', instance.user.dob),
-            'email': validated_data.pop('email', instance.user.email),
-            'phone_number': validated_data.pop('phone_number', instance.user.phone_number),
-            'password': validated_data.pop('password', instance.user.password),
+            'last_name': validated_data.pop(
+                'last_name', instance.user.last_name),
+            'first_name': validated_data.pop(
+                'first_name', instance.user.first_name),
+            'dob': validated_data.pop(
+                'dob', instance.user.dob),
+            'email': validated_data.pop(
+                'email', instance.user.email),
+            'phone_number': validated_data.pop(
+                'phone_number', instance.user.phone_number),
+            'password': validated_data.pop(
+                'password', instance.user.password),
         }
 
         user = instance.user
