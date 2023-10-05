@@ -6,7 +6,8 @@ from django.core.validators import MinLengthValidator, RegexValidator
 from django.db.models import (PROTECT, BooleanField, CharField, DateField,
                               DateTimeField, EmailField, FloatField,
                               ForeignKey, ImageField, IntegerField, Model,
-                              TextField,)
+                              TextField, Manager, )
+from django.utils import timezone
 
 SPECIALIST_ROLE_CHOICES = (
     ('CL', 'Client'),
@@ -195,6 +196,29 @@ class Specialists(Model):
         return self.contacts
 
 
+class SoftDeleteManager(Manager):
+
+    def get_queryset(self):
+        return super().get_queryset().filter(deleted_at__isnull=True)
+
+
+class SoftDeleteModel(Model):
+    deleted_at = DateTimeField(null=True, default=None)
+    objects = SoftDeleteManager()
+    all_objects = Manager()
+
+    def soft_delete(self):
+        self.deleted_at = timezone.now()
+        self.save()
+
+    def restore(self):
+        self.deleted_at = None
+        self.save()
+
+    class Meta:
+        abstract = True
+
+
 class UserManager(BaseUserManager):
     """Менеджер для создания пользователей
     """
@@ -229,7 +253,7 @@ class UserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 
-class User(PermissionsMixin, AbstractBaseUser):
+class User(PermissionsMixin, AbstractBaseUser, SoftDeleteModel):
     email = EmailField(
         max_length=settings.EMAIL_MAX_LENGTH,
         db_index=True,

@@ -2,10 +2,10 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model, update_session_auth_hash
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from djoser import utils
 from djoser.conf import settings
 from djoser.views import UserViewSet
 from users.models import SpecialistClient
@@ -59,12 +59,23 @@ class CustomUserViewSet(UserViewSet):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
-        if instance == request.user:
-            utils.logout_user(self.request)
-        request.user.is_active = False
-        request.user.save()
+        # if instance == request.user:
+        #     utils.logout_user(self.request)
+        # request.user.is_active = False
+        # request.user.save()
+        request.user.soft_delete()
         messages.success(request, 'Профиль отключён')
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(["post"], detail=False)
+    def user_restore(self, request, *args, **kwargs):
+        user = get_object_or_404(User, email=request.user.email,
+                                 password=request.user.password)
+        serializer = self.get_serializer(user, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        request.user.restore()
+        messages.success(request, 'Профиль восстановлен')
+        return Response(status=status.HTTP_200_OK)
 
     @action(["post"], detail=False)
     def set_password(self, request, *args, **kwargs):
