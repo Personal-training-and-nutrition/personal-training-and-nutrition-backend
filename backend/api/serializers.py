@@ -125,7 +125,7 @@ class DietPlanSerializer(ModelSerializer):
         return self.add_diets(diets, instance)
 
 
-class DietPlanLinkSerializer(serializers.Serializer):
+class DietPlanLinkSerializer(ModelSerializer):
     diet_plan_id = serializers.IntegerField()
     link = serializers.CharField()
 
@@ -318,79 +318,9 @@ class SpecialistAddClientSerializer(ModelSerializer):
         )
 
 
-class SpecialistSerializer(serializers.ModelSerializer):
-    last_name = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), write_only=True)
-    first_name = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), write_only=True)
-    dob = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), write_only=True)
-    gender = serializers.ChoiceField(
-        required=False, choices=GENDER_CHOICES)
-    email = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), write_only=True)
-    phone_number = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), write_only=True)
-    password = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), write_only=True)
-
-    class Meta:
-        model = Specialists
-        fields = (
-            'id',
-            'last_name',
-            'first_name',
-            'dob',
-            'gender',
-            'about',
-            'email',
-            'phone_number',
-            'password',
-        )
-
-    def create(self, validated_data):
-        user_data = {
-            'last_name': validated_data.pop('last_name'),
-            'first_name': validated_data.pop('first_name'),
-            'dob': validated_data.pop('dob'),
-            'email': validated_data.pop('email'),
-            'phone_number': validated_data.pop('phone_number'),
-            'password': validated_data.pop('password'),
-        }
-        user = User.objects.create(**user_data)
-        return Specialists.objects.create(user=user, **validated_data)
-
-    def update(self, instance, validated_data):
-        user_data = {
-            'last_name': validated_data.pop(
-                'last_name', instance.user.last_name),
-            'first_name': validated_data.pop(
-                'first_name', instance.user.first_name),
-            'dob': validated_data.pop(
-                'dob', instance.user.dob),
-            'email': validated_data.pop(
-                'email', instance.user.email),
-            'phone_number': validated_data.pop(
-                'phone_number', instance.user.phone_number),
-            'password': validated_data.pop(
-                'password', instance.user.password),
-        }
-
-        user = instance.user
-        for key, value in user_data.items():
-            setattr(user, key, value)
-        user.save()
-
-        for key, value in validated_data.items():
-            setattr(instance, key, value)
-        instance.save()
-
-        return instance
-
-
 class ClientSerializer(ModelSerializer):
     params = ParamsSerializer()
-    gender = serializers.ChoiceField(required=False, choices=GENDER_CHOICES)
+    gender = ChoiceField(required=False, choices=GENDER_CHOICES)
 
     class Meta:
         model = User
@@ -425,3 +355,28 @@ class ClientSerializer(ModelSerializer):
         params.save()
 
         return user
+
+
+class SpecialistSerializer(serializers.ModelSerializer):
+    user = ClientSerializer()
+
+    class Meta:
+        model = Specialists
+        fields = (
+            'id',
+            'user',
+            'about',
+        )
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user')
+        user = instance.user
+        for key, value in user_data.items():
+            setattr(user, key, value)
+        user.save()
+
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
+        instance.save()
+
+        return instance
