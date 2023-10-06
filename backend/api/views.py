@@ -101,12 +101,6 @@ class ClientsViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         return serializer.save(specialist=self.request.user)
 
-    def perform_update(self, serializer):
-        serializer.save(specialist=self.request.user)
-
-    def perform_destroy(self, instance):
-        instance.delete()
-
     def get_serializer_class(self):
         if self.action == 'list':
             return ClientListSerializer

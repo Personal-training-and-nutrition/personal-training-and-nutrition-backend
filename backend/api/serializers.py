@@ -289,24 +289,3 @@ class ClientAddSerializer(ModelSerializer):
             bad_habits=bad_habits,
             food_preferences=food_preferences,
         )
-
-    @transaction.atomic
-    def update(self, instance, validated_data):
-        # params = instance.user_params
-        # client = instance.client
-        # specialist_client = instance.specialist_client
-
-        instance.diseases = validated_data.get(
-            'diseases', instance.diseases)
-        instance.exp_diets = validated_data.get(
-            'exp_diets', instance.exp_diets)
-        instance.notes = validated_data.get(
-            'notes', instance.notes)
-        instance.exp_trainings = validated_data.get(
-            'exp_trainings', instance.exp_trainings)
-        instance.bad_habits = validated_data.get(
-            'bad_habits', instance.bad_habits)
-        instance.food_preferences = validated_data.get(
-            'food_preferences', instance.food_preferences)
-        instance.save()
-        return instance
