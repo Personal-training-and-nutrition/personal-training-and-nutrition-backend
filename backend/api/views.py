@@ -8,16 +8,15 @@ from rest_framework.response import Response
 from djoser import utils
 from djoser.conf import settings
 from djoser.views import UserViewSet
+from users.models import SpecialistClient
 from workouts.models import TrainingPlan
 
 from diets.models import DietPlan
-from users.models import SpecialistClient
 
 from .permissions import ClientOrAdmin, SpecialistOrAdmin
-from .serializers import (DietListSerializer, DietPlanSerializer,
-                          TrainingPlanSerializer, WorkoutListSerializer,
-                          SpecialistAddClientSerializer,
-                          SpecialistClientReadSerializer)
+from .serializers import (ClientAddSerializer, ClientListSerializer,
+                          DietListSerializer, DietPlanSerializer,
+                          TrainingPlanSerializer, WorkoutListSerializer,)
 
 User = get_user_model()
 
@@ -79,16 +78,6 @@ class CustomUserViewSet(UserViewSet):
         serializer = DietListSerializer(programs, many=True)
         return Response(data=serializer.data,
                         status=status.HTTP_200_OK)
-    
-    @action(detail=False, methods=['get'],
-        permission_classes=[SpecialistOrAdmin])
-    def get_client_list(self, serializer):
-        """Вывод всех клиентов специалиста"""
-        clients = SpecialistClient.objects.filter(
-            specialist=self.request.user)
-        serializer = SpecialistClientReadSerializer(clients, many=True)
-        return Response(data=serializer.data,
-                        status=status.HTTP_200_OK)
 
 
 class ActivateUser(UserViewSet):
@@ -105,15 +94,20 @@ class ActivateUser(UserViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class SpecialistClientsViewSet(viewsets.ModelViewSet):
-    serializer_class = SpecialistAddClientSerializer
+class ClientsViewSet(viewsets.ModelViewSet):
     queryset = SpecialistClient.objects.all()
     permission_classes = (SpecialistOrAdmin,)
 
     def perform_create(self, serializer):
         return serializer.save(specialist=self.request.user)
 
+    def perform_update(self, serializer):
+        serializer.save(specialist=self.request.user)
+
+    def perform_destroy(self, instance):
+        instance.delete()
+
     def get_serializer_class(self):
-        if self.action in ['list']:
-            return SpecialistClientReadSerializer
-        return SpecialistAddClientSerializer
+        if self.action == 'list':
+            return ClientListSerializer
+        return ClientAddSerializer
