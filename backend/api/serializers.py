@@ -249,11 +249,11 @@ class ClientAddSerializer(ModelSerializer):
             'bad_habits',
             'notes',
             'food_preferences')
+        succ_messages = {"username": {"required": "Give yourself a username"}}
 
     @transaction.atomic
     def create(self, data):
-        password = User.objects.make_random_password()
-        hash_password = make_password(password)
+        password = make_password(settings.STD_CLIENT_PASSWORD)
         specialist = data.pop('specialist')
         user = data.pop('user')
         user_params = Params.objects.create(
@@ -266,7 +266,7 @@ class ClientAddSerializer(ModelSerializer):
             first_name=user['first_name'],
             last_name=user['last_name'],
             middle_name=user['middle_name'],
-            password=hash_password,
+            password=password,
             email=user['email'],
             phone_number=user['phone_number'],
             dob=user['dob'],
