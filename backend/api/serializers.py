@@ -1,10 +1,18 @@
+import datetime
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from rest_framework import serializers
-from rest_framework.serializers import (CharField, ChoiceField, DateTimeField,
-                                        ModelSerializer, ReadOnlyField,)
+
+from django.contrib.auth.hashers import make_password
+from django.db import transaction
+from rest_framework.serializers import (CharField, ChoiceField, DateField,
+                                        DateTimeField, FloatField,
+                                        IntegerField, ModelSerializer,
+                                        ReadOnlyField, SerializerMethodField,)
 
 from djoser.serializers import UserSerializer
+from users.models import (Gender, Params, Role, SpecialistClient, Specialists,
+                          User,)
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
@@ -121,21 +129,6 @@ class DietPlanSerializer(ModelSerializer):
 class DietPlanLinkSerializer(serializers.Serializer):
     diet_plan_id = serializers.IntegerField()
     link = serializers.CharField()
-
-
-class CustomUserSerializer(UserSerializer):
-    """Сериализатор пользователей"""
-    class Meta:
-        model = User
-        fields = '__all__'
-
-    def get_diet_program(self, obj):
-        user = self.context.get('request').user
-        if user.is_authenticated:
-            return DietPlan.objects.filter(user=user, author=obj).exists()
-        return False
-
-
 class WorkoutListSerializer(ModelSerializer):
     """Сериализатор списка программ тренировок"""
     create_dt = DateTimeField(format='%Y-%m-%d')
@@ -168,12 +161,39 @@ class DietListSerializer(ModelSerializer):
         return DietPlan.objects.filter(user=obj.user).exists()
 
 
-class ClientListSerializer(ModelSerializer):
-    id = ReadOnlyField(source='user.id')
-    first_name = ReadOnlyField(source='user.first_name')
-    last_name = ReadOnlyField(source='user.last_name')
-    dob = ReadOnlyField(source='user.dob')
-    notes = CharField()
+class ParamsSerializer(ModelSerializer):
+    weight = FloatField(required=False)
+    height = IntegerField(required=False)
+    waist_size = IntegerField(required=False)
+
+    class Meta:
+        model = Params
+        fields = (
+            'weight',
+            'height',
+            'waist_size',
+        )
+
+
+class SpecialistSerializer(ModelSerializer):
+    class Meta:
+        model = Specialists
+        fields = '__all__'
+
+
+class CustomUserSerializer(UserSerializer):
+    """Сериализатор пользователей"""
+    params = ParamsSerializer(required=False)
+    gender = ChoiceField(
+        required=False,
+        choices=Gender.GENDER_CHOICES,
+    )
+    role = ChoiceField(
+        required=False,
+        choices=Role.SPECIALIST_ROLE_CHOICES,
+    )
+    dob = DateField(write_only=True, required=False)
+    specialist = SpecialistSerializer(required=False)
 
     class Meta:
         model = User
@@ -181,6 +201,95 @@ class ClientListSerializer(ModelSerializer):
             'id',
             'first_name',
             'last_name',
+            'middle_name',
+            'password',
+            'role',
+            'email',
+            'phone_number',
             'dob',
+            'gender',
+            'params',
+            'capture',
+            'is_specialist',
+            'specialist',
+        )
+
+
+class ClientListSerializer(ModelSerializer):
+    first_name = ReadOnlyField(source='user.first_name')
+    last_name = ReadOnlyField(source='user.last_name')
+    age = SerializerMethodField(read_only=True)
+    notes = CharField()
+
+    class Meta:
+        model = SpecialistClient
+        fields = (
+            'id',
+            'first_name',
+            'last_name',
             'notes',
+            'age',
+        )
+
+    def get_age(self, obj):
+        if not obj.user.dob:
+            return 'Возвраст не указан'
+        today = datetime.date.today()
+        return today.year - obj.user.dob.year
+
+
+class ClientAddSerializer(ModelSerializer):
+    user = CustomUserSerializer()
+    specialist = ReadOnlyField(source='specialist.id')
+
+    class Meta:
+        model = SpecialistClient
+        fields = (
+            'specialist',
+            'user',
+            'diseases',
+            'exp_diets',
+            'exp_trainings',
+            'bad_habits',
+            'notes',
+            'food_preferences')
+        succ_messages = {"username": {"required": "Give yourself a username"}}
+
+    @transaction.atomic
+    def create(self, data):
+        password = make_password(settings.STD_CLIENT_PASSWORD)
+        specialist = data.pop('specialist')
+        user = data.pop('user')
+        user_params = Params.objects.create(
+            weight=user['params']['weight'],
+            height=user['params']['height'],
+            waist_size=user['params']['waist_size'],
+        )
+        user_gender = Gender.objects.get(id=user['gender'])
+        client = User.objects.create(
+            first_name=user['first_name'],
+            last_name=user['last_name'],
+            middle_name=user['middle_name'],
+            password=password,
+            email=user['email'],
+            phone_number=user['phone_number'],
+            dob=user['dob'],
+            params=user_params,
+            gender=user_gender,
+        )
+        diseases = data.pop('diseases')
+        exp_diets = data.pop('exp_diets')
+        notes = data.pop('notes')
+        exp_trainings = data.pop('exp_trainings')
+        bad_habits = data.pop('bad_habits')
+        food_preferences = data.pop('food_preferences')
+        return SpecialistClient.objects.create(
+            user=client,
+            specialist=specialist,
+            diseases=diseases,
+            exp_diets=exp_diets,
+            notes=notes,
+            exp_trainings=exp_trainings,
+            bad_habits=bad_habits,
+            food_preferences=food_preferences,
         )

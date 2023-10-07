@@ -178,6 +178,8 @@ EMAIL_ADMIN = EMAIL_HOST_USER
 ##################################
 AUTH_USER_MODEL = 'users.User'
 
+STD_CLIENT_PASSWORD = os.getenv('STD_CLIENT_PASSWORD')
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',

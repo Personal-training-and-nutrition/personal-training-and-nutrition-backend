@@ -8,21 +8,19 @@ from django.db.models import (PROTECT, BooleanField, CharField, DateField,
                               ForeignKey, ImageField, IntegerField, Model,
                               TextField,)
 
-SPECIALIST_ROLE_CHOICES = (
-    ('CL', 'Client'),
-    ('TR', 'Trainer'),
-    ('NU', 'Nutritionist'))
-
-GENDER_CHOICES = (
-    ('M', 'Male'),
-    ('F', 'Female'))
-
 
 class Gender(Model):
+
+    GENDER_CHOICES = (
+        ('0', 'Absent'),
+        ('1', 'Female'),
+        ('2', 'Male'),
+    )
+    id = IntegerField(primary_key=True)
     gender = CharField(
         max_length=1,
         choices=GENDER_CHOICES,
-        default='F',
+        default='0',
         verbose_name='Гендер пользователя',
     )
 
@@ -35,6 +33,13 @@ class Gender(Model):
 
 
 class Role(Model):
+
+    SPECIALIST_ROLE_CHOICES = (
+        ('CL', 'Client'),
+        ('TR', 'Trainer'),
+        ('NU', 'Nutritionist'),
+    )
+
     role = CharField(
         max_length=2,
         default='TR',
@@ -263,6 +268,8 @@ class User(PermissionsMixin, AbstractBaseUser):
         'Пароль',
         max_length=settings.PASSWORD_MAX_LENGTH,
         validators=[MinLengthValidator(settings.PASSWORD_MIN_LENGTH)],
+        null=True,
+        blank=True,
         help_text='Введите пароль',
     )
     role = ForeignKey(

@@ -14,9 +14,10 @@ from workouts.models import TrainingPlan
 from diets.models import DietPlan
 
 from .permissions import ClientOrAdmin, SpecialistOrAdmin
-from .serializers import (ClientListSerializer, DietListSerializer,
-                          DietPlanLinkSerializer, DietPlanSerializer,
-                          TrainingPlanSerializer, WorkoutListSerializer,)
+from .serializers import (ClientAddSerializer, ClientListSerializer,
+                          DietListSerializer, DietPlanLinkSerializer, 
+                          DietPlanSerializer, TrainingPlanSerializer,
+                          WorkoutListSerializer,)
 
 User = get_user_model()
 
@@ -95,16 +96,6 @@ class CustomUserViewSet(UserViewSet):
         return Response(data=serializer.data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'],
-            permission_classes=[SpecialistOrAdmin])
-    def get_client_list(self, serializer):
-        """Вывод всех клиентов специалиста"""
-        clients = SpecialistClient.objects.filter(
-            specialist=self.request.user)
-        serializer = ClientListSerializer(clients, many=True)
-        return Response(data=serializer.data,
-                        status=status.HTTP_200_OK)
-
 
 class ActivateUser(UserViewSet):
     """Активация пользователя по ссылке в письме"""
@@ -118,3 +109,16 @@ class ActivateUser(UserViewSet):
     def activation(self, request, uid, token, *args, **kwargs):
         super().activation(request, *args, **kwargs)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ClientsViewSet(viewsets.ModelViewSet):
+    queryset = SpecialistClient.objects.all()
+    permission_classes = (SpecialistOrAdmin,)
+
+    def perform_create(self, serializer):
+        return serializer.save(specialist=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ClientListSerializer
+        return ClientAddSerializer
