@@ -122,7 +122,7 @@ class ActivateUser(UserViewSet):
 
 
 class ClientsViewSet(viewsets.ModelViewSet):
-    """Список клиентов специалиста и создание нового клиента"""
+    """Функции для работы с клиентами"""
     queryset = SpecialistClient.objects.all()
     permission_classes = (SpecialistOrAdmin,)
 
@@ -130,6 +130,7 @@ class ClientsViewSet(viewsets.ModelViewSet):
         return serializer.save(specialist=self.request.user)
 
     def get_serializer_class(self):
+        """Список клиентов специалиста и создание нового клиента"""
         if self.action == 'list':
             return ClientListSerializer
         return ClientAddSerializer
