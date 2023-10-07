@@ -204,7 +204,7 @@ SIMPLE_JWT = {
 
 JWT_AUTH = {
     'JWT_RESPONSE_PAYLOAD_HANDLER':
-    #'rest_framework_jwt.utils.jwt_response_payload_handler',
+    # 'rest_framework_jwt.utils.jwt_response_payload_handler',
     'users.utils.jwt_response_payload_handler',
 }
 
