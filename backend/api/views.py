@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model, update_session_auth_hash
+from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -14,10 +15,16 @@ from workouts.models import TrainingPlan
 from diets.models import DietPlan
 
 from .permissions import ClientOrAdmin, SpecialistOrAdmin
-from .serializers import (ClientAddSerializer, ClientListSerializer,
-                          DietListSerializer, DietPlanLinkSerializer,
-                          DietPlanSerializer, TrainingPlanSerializer,
-                          WorkoutListSerializer,)
+from .serializers import (
+    ClientAddSerializer,
+    ClientListSerializer,
+    ClientProfileSerializer,
+    DietListSerializer,
+    DietPlanLinkSerializer,
+    DietPlanSerializer,
+    TrainingPlanSerializer,
+    WorkoutListSerializer,
+    )
 
 User = get_user_model()
 
@@ -122,3 +129,10 @@ class ClientsViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             return ClientListSerializer
         return ClientAddSerializer
+
+    @action(detail=True, methods=['get'])
+    def client_profile(self, request, pk=None):
+        user = get_object_or_404(SpecialistClient, user=pk, specialist=request.user.id)
+        serializer = ClientProfileSerializer(user)
+        profile_data = serializer.data
+        return Response(profile_data, status=status.HTTP_200_OK)
