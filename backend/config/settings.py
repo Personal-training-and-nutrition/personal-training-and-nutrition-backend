@@ -202,6 +202,12 @@ SIMPLE_JWT = {
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
 }
 
+JWT_AUTH = {
+    'JWT_RESPONSE_PAYLOAD_HANDLER':
+    #'rest_framework_jwt.utils.jwt_response_payload_handler',
+    'users.utils.jwt_response_payload_handler',
+}
+
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'HIDE_USERS': False,
