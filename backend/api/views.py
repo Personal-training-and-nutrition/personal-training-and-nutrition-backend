@@ -122,6 +122,7 @@ class ActivateUser(UserViewSet):
 
 
 class ClientsViewSet(viewsets.ModelViewSet):
+    """Список клиентов специалиста и создание нового клиента"""
     queryset = SpecialistClient.objects.all()
     permission_classes = (SpecialistOrAdmin,)
 
