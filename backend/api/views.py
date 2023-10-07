@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model, update_session_auth_hash
+from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -16,8 +17,8 @@ from diets.models import DietPlan
 from .permissions import ClientOrAdmin, SpecialistOrAdmin
 from .serializers import (ClientAddSerializer, ClientListSerializer,
                           DietListSerializer, DietPlanLinkSerializer,
-                          DietPlanSerializer, TrainingPlanSerializer,
-                          WorkoutListSerializer,)
+                          DietPlanSerializer, ProfileSerializer,
+                          TrainingPlanSerializer, WorkoutListSerializer,)
 
 User = get_user_model()
 
@@ -54,6 +55,15 @@ class DietPlanViewSet(viewsets.ModelViewSet):
 
 class CustomUserViewSet(UserViewSet):
     permission_classes = settings.PERMISSIONS.user
+
+    @action(detail=True, methods=['get', 'put'],
+            permission_classes=[IsAuthenticated])
+    def profile(self, request, id=None):
+        """Профиль клиента и специалиста"""
+        user = get_object_or_404(User, id=id)
+        serializer = ProfileSerializer(user)
+        profile_data = serializer.data
+        return Response(profile_data, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
         """Вместо удаления меняется флаг is_active"""

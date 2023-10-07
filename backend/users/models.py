@@ -167,6 +167,8 @@ class Specialists(Model):
     education = ForeignKey(
         Education,
         on_delete=PROTECT,
+        null=True,
+        blank=True,
         related_name='specialists_educations',
     )
     contacts = TextField(

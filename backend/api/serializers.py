@@ -278,6 +278,7 @@ class ClientAddSerializer(ModelSerializer):
             dob=user['dob'],
             params=user_params,
             gender=user_gender,
+            is_specialist=False,
         )
         diseases = data.pop('diseases')
         exp_diets = data.pop('exp_diets')
@@ -295,3 +296,42 @@ class ClientAddSerializer(ModelSerializer):
             bad_habits=bad_habits,
             food_preferences=food_preferences,
         )
+
+
+class ProfileSerializer(ModelSerializer):
+    specialist = SpecialistSerializer(required=False)
+    params = ParamsSerializer(required=False)
+
+    class Meta:
+        model = User
+        fields = (
+            'first_name',
+            'last_name',
+            'dob',
+            'params',
+            'gender',
+            'specialist',
+            'email',
+            'phone_number',
+            'password',
+        )
+
+    def create(self, validated_data):
+        params_data = validated_data.pop('params')
+        spec_data = validated_data.pop('specialist')
+        user = User.objects.create(**validated_data)
+        Specialists.objects.create(id=user.specialist, **spec_data)
+        Params.objects.create(user=user, **params_data)
+        return user
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user')
+        user = instance.user
+        for key, value in user_data.items():
+            setattr(user, key, value)
+        user.save()
+
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
+        instance.save()
+        return instance
