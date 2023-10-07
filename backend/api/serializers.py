@@ -301,6 +301,7 @@ class ClientAddSerializer(ModelSerializer):
 class ProfileSerializer(ModelSerializer):
     specialist = SpecialistSerializer(required=False)
     params = ParamsSerializer(required=False)
+    email = ReadOnlyField()
 
     class Meta:
         model = User
@@ -316,22 +317,16 @@ class ProfileSerializer(ModelSerializer):
             'password',
         )
 
-    def create(self, validated_data):
-        params_data = validated_data.pop('params')
-        spec_data = validated_data.pop('specialist')
-        user = User.objects.create(**validated_data)
-        Specialists.objects.create(id=user.specialist, **spec_data)
-        Params.objects.create(user=user, **params_data)
-        return user
-
+    @transaction.atomic
     def update(self, instance, validated_data):
         user_data = validated_data.pop('user')
+        params_data = validated_data.pop('params')
+        specialist_data = validated_data.pop('specialist')
         user = instance.user
         for key, value in user_data.items():
             setattr(user, key, value)
-        user.save()
-
-        for key, value in validated_data.items():
-            setattr(instance, key, value)
-        instance.save()
-        return instance
+        for key, value in params_data.items():
+            setattr(user, key, value)
+        for key, value in specialist_data.items():
+            setattr(user, key, value)
+        return super().update(instance, validated_data)

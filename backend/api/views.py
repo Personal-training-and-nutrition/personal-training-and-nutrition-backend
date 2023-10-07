@@ -56,6 +56,9 @@ class DietPlanViewSet(viewsets.ModelViewSet):
 class CustomUserViewSet(UserViewSet):
     permission_classes = settings.PERMISSIONS.user
 
+    def perform_update(self, serializer):
+        serializer.save(author=self.request.user)
+
     @action(detail=True, methods=['get', 'put'],
             permission_classes=[IsAuthenticated])
     def profile(self, request, id=None):
