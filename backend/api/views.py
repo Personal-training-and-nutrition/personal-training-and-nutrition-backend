@@ -15,7 +15,7 @@ from diets.models import DietPlan
 
 from .permissions import ClientOrAdmin, SpecialistOrAdmin
 from .serializers import (ClientAddSerializer, ClientListSerializer,
-                          DietListSerializer, DietPlanLinkSerializer, 
+                          DietListSerializer, DietPlanLinkSerializer,
                           DietPlanSerializer, TrainingPlanSerializer,
                           WorkoutListSerializer,)
 

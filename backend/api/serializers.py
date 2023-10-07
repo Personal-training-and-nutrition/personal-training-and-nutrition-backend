@@ -1,14 +1,14 @@
-import datetime
-
 from django.conf import settings
 from django.contrib.auth import get_user_model
-
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
 from rest_framework.serializers import (CharField, ChoiceField, DateField,
                                         DateTimeField, FloatField,
                                         IntegerField, ModelSerializer,
-                                        ReadOnlyField, SerializerMethodField,)
+                                        ReadOnlyField, Serializer,
+                                        SerializerMethodField,)
+
+import datetime
 
 from djoser.serializers import UserSerializer
 from users.models import (Gender, Params, Role, SpecialistClient, Specialists,
@@ -126,9 +126,11 @@ class DietPlanSerializer(ModelSerializer):
         return self.add_diets(diets, instance)
 
 
-class DietPlanLinkSerializer(serializers.Serializer):
-    diet_plan_id = serializers.IntegerField()
-    link = serializers.CharField()
+class DietPlanLinkSerializer(Serializer):
+    diet_plan_id = IntegerField()
+    link = CharField()
+
+
 class WorkoutListSerializer(ModelSerializer):
     """Сериализатор списка программ тренировок"""
     create_dt = DateTimeField(format='%Y-%m-%d')
