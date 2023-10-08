@@ -35,14 +35,14 @@ class Gender(Model):
 class Role(Model):
 
     SPECIALIST_ROLE_CHOICES = (
-        ('CL', 'Client'),
-        ('TR', 'Trainer'),
-        ('NU', 'Nutritionist'),
+        ('0', 'Client'),
+        ('1', 'Trainer'),
+        ('2', 'Nutritionist'),
     )
 
     role = CharField(
         max_length=2,
-        default='TR',
+        default='1',
         choices=SPECIALIST_ROLE_CHOICES,
         verbose_name='Роль пользователя',
     )

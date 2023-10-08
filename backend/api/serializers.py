@@ -6,7 +6,7 @@ from rest_framework.serializers import (CharField, ChoiceField, DateField,
                                         DateTimeField, FloatField,
                                         IntegerField, ModelSerializer,
                                         ReadOnlyField, Serializer,
-                                        SerializerMethodField,)
+                                        SerializerMethodField)
 
 import datetime
 
@@ -176,31 +176,55 @@ class ParamsSerializer(ModelSerializer):
             'waist_size',
         )
 
+    def update(self, instance, validated_data):
+        instance.weight = validated_data.get('weight', instance.weight)
+        instance.height = validated_data.get('height', instance.height)
+        instance.waist_size = validated_data.get('waist_size', instance.waist_size)
+        instance.save()
+
 
 class SpecialistSerializer(ModelSerializer):
+    experience = CharField(required=False)
+    education = CharField(required=False)
+    contacts = CharField(required=False)
+    about = CharField(required=False)
+
     class Meta:
         model = Specialists
-        fields = '__all__'
+        fields = (
+            'experience',
+            'education',
+            'contacts',
+            'about',
+        )
+
+    def update(self, instance, validated_data):
+        instance.experience = validated_data.get('experience', instance.experience)
+        instance.education = validated_data.get('education', instance.education)
+        instance.contacts = validated_data.get('contacts', instance.contacts)
+        instance.about = validated_data.get('about', instance.about)
+        instance.save()
 
 
 class CustomUserSerializer(UserSerializer):
     """Сериализатор пользователей"""
     params = ParamsSerializer(required=False)
     gender = ChoiceField(
+        read_only=True,
         required=False,
         choices=Gender.GENDER_CHOICES,
     )
     role = ChoiceField(
         required=False,
+        read_only=True,
         choices=Role.SPECIALIST_ROLE_CHOICES,
     )
-    dob = DateField(write_only=True, required=False)
+    dob = DateField(required=False)
     specialist = SpecialistSerializer(required=False)
 
     class Meta:
         model = User
         fields = (
-            'id',
             'first_name',
             'last_name',
             'middle_name',
@@ -215,6 +239,45 @@ class CustomUserSerializer(UserSerializer):
             'is_specialist',
             'specialist',
         )
+        read_only_fields = ('email',)
+
+    @transaction.atomic
+    def create(self, validated_data):
+        params_data = validated_data.pop('params')
+        specialist_data = validated_data.pop('specialist')
+        user = User.objects.create(**validated_data)
+        for data in params_data:
+            Params.objects.create(user=user, **data)
+        for data in specialist_data:
+            Specialists.objects.create(id=id, **data)
+        return user
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        instance.first_name = validated_data.get(
+            'first_name', instance.first_name)
+        instance.last_name = validated_data.get(
+            'last_name', instance.last_name)
+        instance.middle_name = validated_data.get(
+            'middle_name', instance.middle_name)
+        instance.password = validated_data.get(
+            'password', instance.password)
+        instance.phone_number = validated_data.get(
+            'phone_number', instance.phone_number)
+        instance.dob = validated_data.get('dob', instance.dob)
+
+        params_data = validated_data.pop('params')
+        super(self.__class__, self).update(instance, validated_data)
+        super(ParamsSerializer, ParamsSerializer()).update(
+            instance.params, params_data)
+        
+        # spec_data = validated_data.pop('specialist')
+        # super(self.__class__, self).update(instance, validated_data)
+        # super(SpecialistSerializer, SpecialistSerializer()).update(
+        #     instance.specialist, spec_data)
+
+        instance.save()
+        return instance
 
 
 class ClientListSerializer(ModelSerializer):
@@ -296,37 +359,3 @@ class ClientAddSerializer(ModelSerializer):
             bad_habits=bad_habits,
             food_preferences=food_preferences,
         )
-
-
-class ProfileSerializer(ModelSerializer):
-    specialist = SpecialistSerializer(required=False)
-    params = ParamsSerializer(required=False)
-    email = ReadOnlyField()
-
-    class Meta:
-        model = User
-        fields = (
-            'first_name',
-            'last_name',
-            'dob',
-            'params',
-            'gender',
-            'specialist',
-            'email',
-            'phone_number',
-            'password',
-        )
-
-    @transaction.atomic
-    def update(self, instance, validated_data):
-        user_data = validated_data.pop('user')
-        params_data = validated_data.pop('params')
-        specialist_data = validated_data.pop('specialist')
-        user = instance.user
-        for key, value in user_data.items():
-            setattr(user, key, value)
-        for key, value in params_data.items():
-            setattr(user, key, value)
-        for key, value in specialist_data.items():
-            setattr(user, key, value)
-        return super().update(instance, validated_data)

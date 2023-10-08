@@ -17,7 +17,7 @@ from diets.models import DietPlan
 from .permissions import ClientOrAdmin, SpecialistOrAdmin
 from .serializers import (ClientAddSerializer, ClientListSerializer,
                           DietListSerializer, DietPlanLinkSerializer,
-                          DietPlanSerializer, ProfileSerializer,
+                          DietPlanSerializer,
                           TrainingPlanSerializer, WorkoutListSerializer,)
 
 User = get_user_model()
@@ -58,15 +58,6 @@ class CustomUserViewSet(UserViewSet):
 
     def perform_update(self, serializer):
         serializer.save(author=self.request.user)
-
-    @action(detail=True, methods=['get', 'put'],
-            permission_classes=[IsAuthenticated])
-    def profile(self, request, id=None):
-        """Профиль клиента и специалиста"""
-        user = get_object_or_404(User, id=id)
-        serializer = ProfileSerializer(user)
-        profile_data = serializer.data
-        return Response(profile_data, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
         """Вместо удаления меняется флаг is_active"""
