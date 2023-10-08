@@ -6,7 +6,7 @@ from rest_framework.serializers import (CharField, ChoiceField, DateField,
                                         DateTimeField, FloatField,
                                         IntegerField, ModelSerializer,
                                         ReadOnlyField, Serializer,
-                                        SerializerMethodField)
+                                        SerializerMethodField,)
 
 import datetime
 
@@ -179,7 +179,8 @@ class ParamsSerializer(ModelSerializer):
     def update(self, instance, validated_data):
         instance.weight = validated_data.get('weight', instance.weight)
         instance.height = validated_data.get('height', instance.height)
-        instance.waist_size = validated_data.get('waist_size', instance.waist_size)
+        instance.waist_size = validated_data.get('waist_size',
+                                                 instance.waist_size)
         instance.save()
 
 
@@ -199,8 +200,10 @@ class SpecialistSerializer(ModelSerializer):
         )
 
     def update(self, instance, validated_data):
-        instance.experience = validated_data.get('experience', instance.experience)
-        instance.education = validated_data.get('education', instance.education)
+        instance.experience = validated_data.get('experience',
+                                                 instance.experience)
+        instance.education = validated_data.get('education',
+                                                instance.education)
         instance.contacts = validated_data.get('contacts', instance.contacts)
         instance.about = validated_data.get('about', instance.about)
         instance.save()
@@ -270,7 +273,6 @@ class CustomUserSerializer(UserSerializer):
         super(self.__class__, self).update(instance, validated_data)
         super(ParamsSerializer, ParamsSerializer()).update(
             instance.params, params_data)
-        
         # spec_data = validated_data.pop('specialist')
         # super(self.__class__, self).update(instance, validated_data)
         # super(SpecialistSerializer, SpecialistSerializer()).update(

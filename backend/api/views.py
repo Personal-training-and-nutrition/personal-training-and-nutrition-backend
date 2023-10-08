@@ -1,6 +1,5 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model, update_session_auth_hash
-from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -17,8 +16,8 @@ from diets.models import DietPlan
 from .permissions import ClientOrAdmin, SpecialistOrAdmin
 from .serializers import (ClientAddSerializer, ClientListSerializer,
                           DietListSerializer, DietPlanLinkSerializer,
-                          DietPlanSerializer,
-                          TrainingPlanSerializer, WorkoutListSerializer,)
+                          DietPlanSerializer, TrainingPlanSerializer,
+                          WorkoutListSerializer,)
 
 User = get_user_model()
 
