@@ -253,7 +253,6 @@ class CustomUserSerializer(UserSerializer):
         instance.save()
         return instance
 
-
     # def update(self, instance, validated_data):
     #     # instance.params.clear()
     #     params = validated_data.pop('params')
@@ -271,7 +270,6 @@ class CustomUserSerializer(UserSerializer):
     #         Specialists.objects.create(id=id, **data)
     #     return user
     # #
-
 
     @transaction.atomic
     def update(self, instance, validated_data):
@@ -292,7 +290,6 @@ class CustomUserSerializer(UserSerializer):
         # if instance.params:
         #     instance.params.delete()
         # instance(params=params_data)
-
 
     #     # super(ParamsSerializer, ParamsSerializer()).update(
     #     #       instance.params, params_data)
@@ -467,5 +464,3 @@ class NewUserSerializer(serializers.ModelSerializer):
         instance = super().update(instance, validated_data)
         instance.save()
         return instance
-
-
