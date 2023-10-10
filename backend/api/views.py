@@ -17,9 +17,8 @@ from .permissions import ClientOrAdmin, SpecialistOrAdmin
 from .serializers import (ClientAddSerializer, ClientListSerializer,
                           DietListSerializer, DietPlanLinkSerializer,
                           DietPlanSerializer, ParamsSerializer,
-                          SpecialistsSerializer,
-                          TrainingPlanSerializer, UserSerializer,
-                          WorkoutListSerializer,)
+                          SpecialistsSerializer, TrainingPlanSerializer,
+                          UserSerializer, WorkoutListSerializer,)
 
 User = get_user_model()
 
