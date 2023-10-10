@@ -17,7 +17,7 @@ from .permissions import ClientOrAdmin, SpecialistOrAdmin
 from .serializers import (ClientAddSerializer, ClientListSerializer,
                           DietListSerializer, DietPlanLinkSerializer,
                           DietPlanSerializer, ParamsSerializer,
-                          SpecialistSerializer, SpecialistsSerializer,
+                          SpecialistsSerializer,
                           TrainingPlanSerializer, UserSerializer,
                           WorkoutListSerializer,)
 
