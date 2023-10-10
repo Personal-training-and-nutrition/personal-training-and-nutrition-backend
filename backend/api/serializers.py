@@ -162,31 +162,6 @@ class DietListSerializer(ModelSerializer):
         return DietPlan.objects.filter(user=obj.user).exists()
 
 
-class SpecialistSerializer(ModelSerializer):
-    experience = CharField(required=False)
-    education = CharField(required=False)
-    contacts = CharField(required=False)
-    about = CharField(required=False)
-
-    class Meta:
-        model = Specialists
-        fields = (
-            'experience',
-            'education',
-            'contacts',
-            'about',
-        )
-
-    # def update(self, instance, validated_data):
-    #     instance.experience = validated_data.get('experience',
-    #                                              instance.experience)
-    #     instance.education = validated_data.get('education',
-    #                                             instance.education)
-    #     instance.contacts = validated_data.get('contacts', instance.contacts)
-    #     instance.about = validated_data.get('about', instance.about)
-    #     instance.save()
-
-
 class ClientListSerializer(ModelSerializer):
     first_name = ReadOnlyField(source='user.first_name')
     last_name = ReadOnlyField(source='user.last_name')
@@ -218,12 +193,18 @@ class ParamsSerializer(serializers.ModelSerializer):
 
 class SpecialistsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Params
-        fields = ['id', 'experience', 'height', 'waist_size']
+        model = Specialists
+        fields = (
+            'id',
+            'experience',
+            'contacts',
+            'about',
+        )
 
 
 class UserSerializer(serializers.ModelSerializer):
     params = ParamsSerializer(many=True, read_only=True)
+    specialist = SpecialistsSerializer(many=True, read_only=True)
     gender = ChoiceField(
         read_only=True,
         required=False,
@@ -252,7 +233,7 @@ class UserSerializer(serializers.ModelSerializer):
             'params',
             'capture',
             'is_specialist',
-            # 'specialist',
+            'specialist',
         )
         read_only_fields = ('email',)
 

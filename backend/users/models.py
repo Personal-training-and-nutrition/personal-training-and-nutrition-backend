@@ -58,76 +58,6 @@ class Role(Model):
         return self.role
 
 
-class Education(Model):
-    institution = ForeignKey(
-        'Institution',
-        on_delete=PROTECT,
-        verbose_name='Учебное заведение',
-        related_name='education_institution',
-        null=True,
-        blank=True,
-    )
-    graduate = TextField(
-        verbose_name='Текст диплома',
-        null=True,
-        blank=True,
-    )
-    completion_date = DateField(
-        verbose_name='Дата окончания',
-        null=True,
-        blank=True,
-    )
-    number = CharField(
-        max_length=settings.NAME_MAX_LENGTH,
-        verbose_name='Номер диплома',
-        null=True,
-        blank=True,
-    )
-    capture = ImageField(
-        verbose_name='Скан диплома',
-        null=True,
-        blank=True,
-    )
-    created_at = DateTimeField(
-        auto_now_add=True,
-        verbose_name='Дата создания',
-    )
-    updated_at = DateTimeField(
-        auto_now=True,
-        verbose_name='Дата обновления',
-    )
-
-    class Meta:
-        verbose_name = 'Образование'
-        verbose_name_plural = 'Образования'
-
-    def __str__(self):
-        return self.number
-
-
-class Institution(Model):
-    name = CharField(
-        max_length=settings.OTHER_MAX_LENGTH,
-        primary_key=True,
-        verbose_name='Название учебного заведения',
-    )
-    created_at = DateTimeField(
-        auto_now_add=True,
-        verbose_name='Дата создания',
-    )
-    updated_at = DateTimeField(
-        auto_now=True,
-        verbose_name='Дата обновления',
-    )
-
-    class Meta:
-        verbose_name = 'Учебное заведение'
-        verbose_name_plural = 'Учебные заведения'
-
-    def __str__(self):
-        return self.name
-
-
 class UserManager(BaseUserManager):
     """Менеджер для создания пользователей
     """
@@ -326,13 +256,13 @@ class Specialists(Model):
         null=True,
         blank=True,
     )
-    education = ForeignKey(
-        Education,
-        on_delete=PROTECT,
-        null=True,
-        blank=True,
-        related_name='specialists_educations',
-    )
+    # education = ForeignKey(
+    #     Education,
+    #     on_delete=PROTECT,
+    #     null=True,
+    #     blank=True,
+    #     related_name='specialists_educations',
+    # )
     contacts = TextField(
         'Контакты специалиста',
         null=True,
@@ -369,6 +299,90 @@ class Specialists(Model):
 
     def __str__(self):
         return self.contacts
+
+
+class Education(Model):
+    # institution = ForeignKey(
+    #     'Institution',
+    #     on_delete=PROTECT,
+    #     verbose_name='Учебное заведение',
+    #     related_name='education_institution',
+    #     null=True,
+    #     blank=True,
+    # )
+    graduate = TextField(
+        verbose_name='Текст диплома',
+        null=True,
+        blank=True,
+    )
+    completion_date = DateField(
+        verbose_name='Дата окончания',
+        null=True,
+        blank=True,
+    )
+    number = CharField(
+        max_length=settings.NAME_MAX_LENGTH,
+        verbose_name='Номер диплома',
+        null=True,
+        blank=True,
+    )
+    capture = ImageField(
+        verbose_name='Скан диплома',
+        null=True,
+        blank=True,
+    )
+    specialist = ForeignKey(
+        Specialists,
+        on_delete=PROTECT,
+        blank=True,
+        null=True,
+        related_name='education'
+    )
+    created_at = DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата создания',
+    )
+    updated_at = DateTimeField(
+        auto_now=True,
+        verbose_name='Дата обновления',
+    )
+
+    class Meta:
+        verbose_name = 'Образование'
+        verbose_name_plural = 'Образования'
+
+    def __str__(self):
+        return self.number
+
+
+class Institution(Model):
+    name = CharField(
+        max_length=settings.OTHER_MAX_LENGTH,
+        primary_key=True,
+        verbose_name='Название учебного заведения',
+    )
+    education = ForeignKey(
+        Education,
+        on_delete=PROTECT,
+        blank=True,
+        null=True,
+        related_name='institution'
+    )
+    created_at = DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата создания',
+    )
+    updated_at = DateTimeField(
+        auto_now=True,
+        verbose_name='Дата обновления',
+    )
+
+    class Meta:
+        verbose_name = 'Учебное заведение'
+        verbose_name_plural = 'Учебные заведения'
+
+    def __str__(self):
+        return self.name
 
 
 class SpecialistClient(Model):
