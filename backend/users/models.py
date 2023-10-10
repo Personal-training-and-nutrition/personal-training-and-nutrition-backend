@@ -128,50 +128,6 @@ class Institution(Model):
         return self.name
 
 
-class Specialists(Model):
-    experience = TextField(
-        verbose_name='Опыт работы специалиста',
-        null=True,
-        blank=True,
-    )
-    education = ForeignKey(
-        Education,
-        on_delete=PROTECT,
-        null=True,
-        blank=True,
-        related_name='specialists_educations',
-    )
-    contacts = TextField(
-        'Контакты специалиста',
-        null=True,
-        blank=True,
-    )
-    about = TextField(
-        'О специалисте',
-        null=True,
-        blank=True,
-    )
-    is_active = BooleanField(
-        'Флаг активный специалист',
-        default='True',
-    )
-    created_at = DateTimeField(
-        auto_now_add=True,
-        verbose_name='Дата создания',
-    )
-    updated_at = DateTimeField(
-        auto_now=True,
-        verbose_name='Дата обновления',
-    )
-
-    class Meta:
-        verbose_name = 'Специалист'
-        verbose_name_plural = 'Специалисты'
-
-    def __str__(self):
-        return self.contacts
-
-
 class UserManager(BaseUserManager):
     """Менеджер для создания пользователей
     """
@@ -290,13 +246,13 @@ class User(PermissionsMixin, AbstractBaseUser):
     is_specialist = BooleanField(
         default=True,
     )
-    specialist = ForeignKey(
-        Specialists,
-        on_delete=PROTECT,
-        null=True,
-        blank=True,
-        related_name='user_specialists',
-    )
+    # specialist = ForeignKey(
+    #     Specialists,
+    #     on_delete=PROTECT,
+    #     null=True,
+    #     blank=True,
+    #     related_name='user_specialists',
+    # )
     is_active = BooleanField(
         default=True,
         null=True,
@@ -361,6 +317,58 @@ class Params(Model):
 
     def __str__(self):
         return f'{self.weight} kg, {self.height} cm'
+
+
+class Specialists(Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    experience = TextField(
+        verbose_name='Опыт работы специалиста',
+        null=True,
+        blank=True,
+    )
+    education = ForeignKey(
+        Education,
+        on_delete=PROTECT,
+        null=True,
+        blank=True,
+        related_name='specialists_educations',
+    )
+    contacts = TextField(
+        'Контакты специалиста',
+        null=True,
+        blank=True,
+    )
+    about = TextField(
+        'О специалисте',
+        null=True,
+        blank=True,
+    )
+    is_active = BooleanField(
+        'Флаг активный специалист',
+        default='True',
+    )
+    user = ForeignKey(
+        User,
+        on_delete=PROTECT,
+        blank=True,
+        null=True,
+        related_name='specialists'
+    )
+    created_at = DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата создания',
+    )
+    updated_at = DateTimeField(
+        auto_now=True,
+        verbose_name='Дата обновления',
+    )
+
+    class Meta:
+        verbose_name = 'Специалист'
+        verbose_name_plural = 'Специалисты'
+
+    def __str__(self):
+        return self.contacts
 
 
 class SpecialistClient(Model):

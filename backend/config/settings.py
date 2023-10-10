@@ -217,8 +217,8 @@ DJOSER = {
         'http://localhost:8000/complete/vk-oauth2/',
     ],
     'SERIALIZERS': {
-        'user': 'api.serializers.CustomUserSerializer',
-        'user_delete': 'api.serializers.CustomUserSerializer',
+        'user': 'api.serializers.UserSerializer',
+        'user_delete': 'api.serializers.UserSerializer',
     },
     'PERMISSIONS': {
         'user': ('rest_framework.permissions.IsAuthenticated',),

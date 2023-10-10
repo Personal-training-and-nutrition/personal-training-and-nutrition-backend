@@ -16,9 +16,10 @@ from diets.models import DietPlan
 from .permissions import ClientOrAdmin, SpecialistOrAdmin
 from .serializers import (ClientAddSerializer, ClientListSerializer,
                           DietListSerializer, DietPlanLinkSerializer,
-                          DietPlanSerializer, NewUserSerializer,
-                          ParamsSerializer, SpecialistSerializer,
-                          TrainingPlanSerializer, WorkoutListSerializer,)
+                          DietPlanSerializer, ParamsSerializer,
+                          SpecialistSerializer, SpecialistsSerializer,
+                          TrainingPlanSerializer, UserSerializer,
+                          WorkoutListSerializer,)
 
 User = get_user_model()
 
@@ -130,9 +131,9 @@ class ClientsViewSet(viewsets.ModelViewSet):
         return ClientAddSerializer
 
 
-class SpecialistViewSet(viewsets.ModelViewSet):
+class SpecialistsListView(generics.ListAPIView):
     queryset = Specialists.objects.all()
-    serializer_class = SpecialistSerializer
+    serializer_class = SpecialistsSerializer
 
 
 class ParamsListView(generics.ListAPIView):
@@ -140,14 +141,14 @@ class ParamsListView(generics.ListAPIView):
     queryset = Params.objects.all()
 
 
-class NewUserListCreateView(generics.ListCreateAPIView):
-    serializer_class = NewUserSerializer
+class UserListCreateView(generics.ListCreateAPIView):
+    serializer_class = UserSerializer
     permission_classes = settings.PERMISSIONS.user
     queryset = User.objects.all()
 
 
-class NewUserRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = NewUserSerializer
+class UserRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = UserSerializer
     permission_classes = settings.PERMISSIONS.user
 
     def get_queryset(self):
