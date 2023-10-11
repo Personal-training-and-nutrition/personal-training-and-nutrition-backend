@@ -282,7 +282,7 @@ class Specialists(Model):
         on_delete=PROTECT,
         blank=True,
         null=True,
-        related_name='specialists'
+        related_name='specialist'
     )
     created_at = DateTimeField(
         auto_now_add=True,

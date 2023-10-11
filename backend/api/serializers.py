@@ -240,6 +240,7 @@ class UserSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data):
         params_data = self.initial_data.get('params')
+        specialist_data = self.initial_data.get('specialist')
         instance = super().create(validated_data)
         if params_data:
             Params.objects.bulk_create([
@@ -250,12 +251,23 @@ class UserSerializer(serializers.ModelSerializer):
                     user_id=instance.id
                 ) for params in params_data if params.get('name')
             ])
+        if specialist_data:
+            Specialists.objects.bulk_create([
+                Specialists(
+                    experience=specialist['experience'],
+                    contacts=specialist['contacts'],
+                    about=specialist['about'],
+                    user_id=instance.id
+                ) for specialist in specialist_data if specialist.get(
+                    'experience')
+            ])
         instance.save()
         return instance
 
     @transaction.atomic
     def update(self, instance, validated_data):
         params_data = self.initial_data.get('params')
+        specialist_data = self.initial_data.get('specialist')
         if params_data:
             instance.params.clear()
             for params in params_data:
@@ -274,7 +286,24 @@ class UserSerializer(serializers.ModelSerializer):
                         waist_size=params['waist_size'],
                         user_id=instance.id
                     )
-
+        if specialist_data:
+            instance.specialist.clear()
+            for specialist in specialist_data:
+                specialist_id = specialist.get("id")
+                if specialist_id:
+                    specialist_obj = Specialists.objects.get(id=specialist_id)
+                    specialist_obj.experience = specialist.get("experience")
+                    specialist_obj.contacts = specialist.get("contacts")
+                    specialist_obj.about = specialist.get("about")
+                    specialist_obj.save()
+                    instance.specialist.add(specialist_obj)
+                else:
+                    Specialists.objects.create(
+                        experience=specialist['experience'],
+                        contacts=specialist['contacts'],
+                        about=specialist['about'],
+                        user_id=instance.id
+                    )
         instance = super().update(instance, validated_data)
         instance.save()
         return instance
