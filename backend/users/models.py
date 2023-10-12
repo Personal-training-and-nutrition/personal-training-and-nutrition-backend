@@ -5,8 +5,8 @@ from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.db.models import (PROTECT, BooleanField, CharField, DateField,
                               DateTimeField, EmailField, FloatField,
-                              ForeignKey, ImageField, IntegerField,
-                              Model, TextField,)
+                              ForeignKey, ImageField, IntegerField, Model,
+                              TextField,)
 
 SPECIALIST_ROLE_CHOICES = (
     ('CL', 'Client'),
