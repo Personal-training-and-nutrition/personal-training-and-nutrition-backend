@@ -1,11 +1,10 @@
-from django.contrib import messages
 from django.contrib.auth import get_user_model, update_session_auth_hash
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from djoser import utils
 from djoser.conf import settings
 from djoser.views import UserViewSet
 from users.models import SpecialistClient
@@ -59,13 +58,23 @@ class CustomUserViewSet(UserViewSet):
         """Вместо удаления меняется флаг is_active"""
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        if instance == request.user:
-            utils.logout_user(self.request)
+        serializer.is_valid(raise_exception=False)
+        # if instance == request.user:
+        #     utils.logout_user(self.request)
         request.user.is_active = False
         request.user.save()
-        messages.success(request, 'Профиль отключён')
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(f'Пользователь {request.data["email"]}удалён.',
+                        status=status.HTTP_200_OK)
+
+    @action(["post"], detail=False, permission_classes=(AllowAny,))
+    def user_restore(self, request, *args, **kwargs):
+        user = get_object_or_404(User, email=request.data["email"])
+        if user.check_password(request.data["password"]):
+            User.objects.activate_user(user)
+            return Response(f'Пользователь {request.data["email"]} '
+                            f'восстановлен.',
+                            status=status.HTTP_200_OK)
+        return Response("Неверный пароль", status=status.HTTP_400_BAD_REQUEST)
 
     @action(["post"], detail=False)
     def set_password(self, request, *args, **kwargs):
