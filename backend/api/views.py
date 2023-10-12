@@ -66,7 +66,7 @@ class CustomUserViewSet(UserViewSet):
         request.user.is_active = False
         request.user.save()
         messages.success(request, 'Профиль отключён')
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_200_OK)
 
     @action(["post"], detail=False)
     def set_password(self, request, *args, **kwargs):
@@ -77,7 +77,7 @@ class CustomUserViewSet(UserViewSet):
         self.request.user.save()
         if settings.CREATE_SESSION_ON_LOGIN:
             update_session_auth_hash(self.request, self.request.user)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'],
             permission_classes=[ClientOrAdmin])
@@ -109,7 +109,7 @@ class ActivateUser(UserViewSet):
 
     def activation(self, request, uid, token, *args, **kwargs):
         super().activation(request, *args, **kwargs)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_200_OK)
 
 
 class ClientsViewSet(viewsets.ModelViewSet):
