@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model, update_session_auth_hash
+from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -14,9 +15,9 @@ from diets.models import DietPlan
 
 from .permissions import ClientOrAdmin, SpecialistOrAdmin
 from .serializers import (ClientAddSerializer, ClientListSerializer,
-                          DietListSerializer, DietPlanLinkSerializer,
-                          DietPlanSerializer, TrainingPlanSerializer,
-                          WorkoutListSerializer,)
+                          ClientProfileSerializer, DietListSerializer,
+                          DietPlanLinkSerializer, DietPlanSerializer,
+                          TrainingPlanSerializer, WorkoutListSerializer,)
 
 User = get_user_model()
 
@@ -85,7 +86,7 @@ class CustomUserViewSet(UserViewSet):
         self.request.user.save()
         if settings.CREATE_SESSION_ON_LOGIN:
             update_session_auth_hash(self.request, self.request.user)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'],
             permission_classes=[ClientOrAdmin])
@@ -117,10 +118,11 @@ class ActivateUser(UserViewSet):
 
     def activation(self, request, uid, token, *args, **kwargs):
         super().activation(request, *args, **kwargs)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_200_OK)
 
 
 class ClientsViewSet(viewsets.ModelViewSet):
+    """Получение данных о клиентах специалиста"""
     queryset = SpecialistClient.objects.all()
     permission_classes = (SpecialistOrAdmin,)
 
@@ -131,3 +133,12 @@ class ClientsViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             return ClientListSerializer
         return ClientAddSerializer
+
+    @action(detail=True, methods=['get'])
+    def client_profile(self, request, pk=None):
+        """Получения карточки клиента"""
+        user = get_object_or_404(SpecialistClient, user=pk,
+                                 specialist=request.user.id)
+        serializer = ClientProfileSerializer(user)
+        profile_data = serializer.data
+        return Response(profile_data, status=status.HTTP_200_OK)
