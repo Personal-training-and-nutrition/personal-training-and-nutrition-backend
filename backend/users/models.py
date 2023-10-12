@@ -196,33 +196,15 @@ class Specialists(Model):
         return self.contacts
 
 
-class SoftDeleteManager(Manager):
-
-    def get_queryset(self):
-        return super().get_queryset().filter(deleted_at__isnull=True)
-
-
-class SoftDeleteModel(Model):
-    deleted_at = DateTimeField(null=True, default=None)
-    objects = SoftDeleteManager()
-    all_objects = Manager()
-
-    def soft_delete(self):
-        self.deleted_at = timezone.now()
-        self.save()
-
-    def restore(self):
-        self.deleted_at = None
-        self.save()
-
-    class Meta:
-        abstract = True
-
-
 class UserManager(BaseUserManager):
     """Менеджер для создания пользователей
     """
     use_in_migrations = True
+
+    def activate_user(self, user):
+        user.is_active = True
+        user.save()
+        return user
 
     def _create_user(self, email, password, **extra_fields):
         if not email:
@@ -253,7 +235,7 @@ class UserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 
-class User(PermissionsMixin, AbstractBaseUser, SoftDeleteModel):
+class User(PermissionsMixin, AbstractBaseUser):
     email = EmailField(
         max_length=settings.EMAIL_MAX_LENGTH,
         db_index=True,

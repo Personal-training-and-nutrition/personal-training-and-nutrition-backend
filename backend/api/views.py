@@ -61,18 +61,16 @@ class CustomUserViewSet(UserViewSet):
         serializer.is_valid(raise_exception=False)
         # if instance == request.user:
         #     utils.logout_user(self.request)
-        # request.user.is_active = False
-        request.user.soft_delete()
+        request.user.is_active = False
         request.user.save()
-        messages.success(request, 'Профиль отключён')
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(f'Пользователь {request.data["email"]}удалён.',
+                        status=status.HTTP_200_OK)
 
     @action(["post"], detail=False, permission_classes=(AllowAny,))
     def user_restore(self, request, *args, **kwargs):
         user = get_object_or_404(User, email=request.data["email"])
         if user.check_password(request.data["password"]):
-            request.user.restore()
-            request.user.is_active = True
+            User.objects.activate_user(user)
             return Response(f'Пользователь {request.data["email"]} '
                             f'восстановлен.',
                             status=status.HTTP_200_OK)
