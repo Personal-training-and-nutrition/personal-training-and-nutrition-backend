@@ -323,8 +323,8 @@ class ClientProfileSerializer(ModelSerializer):
     phone_number = ReadOnlyField(source='user.phone_number')
     email = ReadOnlyField(source='user.email')
     params = ParamsSerializer(source='user.params')
-    training_plan = TrainingPlanSerializer(many=True, required=False)
-    diet_plan = DietPlanSerializer(many=True, required=False)
+    trainings = SerializerMethodField(required=False)
+    diets = SerializerMethodField(required=False)
 
     class Meta:
         model = SpecialistClient
@@ -341,8 +341,8 @@ class ClientProfileSerializer(ModelSerializer):
             'bad_habits',
             'food_preferences',
             'notes',
-            'training_plan',
-            'diet_plan',
+            'trainings',
+            'diets',
         )
 
     def get_age(self, obj):
@@ -350,3 +350,11 @@ class ClientProfileSerializer(ModelSerializer):
             return 'Возвраст не указан'
         today = datetime.date.today()
         return today.year - obj.user.dob.year
+    
+    def get_trainings(self, obj):
+        queryset = obj.user.user_training_plan.all()
+        return TrainingPlanSerializer(queryset, many=True).data
+
+    def get_diets(self, obj):
+        queryset = obj.user.diet_plan_user.all()
+        return DietPlanSerializer(queryset, many=True).data

@@ -113,6 +113,7 @@ class ActivateUser(UserViewSet):
 
 
 class ClientsViewSet(viewsets.ModelViewSet):
+    """Получение данных о клиентах специалиста"""
     queryset = SpecialistClient.objects.all()
     permission_classes = (SpecialistOrAdmin,)
 
@@ -126,6 +127,7 @@ class ClientsViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def client_profile(self, request, pk=None):
+        """Получения карточки клиента"""
         user = get_object_or_404(SpecialistClient, user=pk,
                                  specialist=request.user.id)
         serializer = ClientProfileSerializer(user)
