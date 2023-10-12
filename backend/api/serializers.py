@@ -350,7 +350,7 @@ class ClientProfileSerializer(ModelSerializer):
             return 'Возвраст не указан'
         today = datetime.date.today()
         return today.year - obj.user.dob.year
-    
+
     def get_trainings(self, obj):
         queryset = obj.user.user_training_plan.all()
         return TrainingPlanSerializer(queryset, many=True).data
