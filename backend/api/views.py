@@ -24,6 +24,7 @@ User = get_user_model()
 
 
 class TrainingPlanViewSet(viewsets.ModelViewSet):
+    """Функции для работы с планами тренировок"""
     serializer_class = TrainingPlanSerializer
     queryset = TrainingPlan.objects.all()
     permission_classes = (IsAuthenticated,)
@@ -31,6 +32,7 @@ class TrainingPlanViewSet(viewsets.ModelViewSet):
 
 
 class DietPlanViewSet(viewsets.ModelViewSet):
+    """Функции для работы с планами питания"""
     serializer_class = DietPlanSerializer
     queryset = DietPlan.objects.all()
     permission_classes = (IsAuthenticated,)
@@ -38,9 +40,7 @@ class DietPlanViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def send_link(self, request, pk=None):
-        """
-        Генерация ссылки и отправка плана питания.
-        """
+        """Генерация ссылки и отправка плана питания."""
         diet_plan = self.get_object()
         link = "http://127.0.0.1:8000/api/diet-plans/{0}".format(diet_plan.pk)
         # В этой части нужно реализовать логику отправки, например,
@@ -54,6 +54,7 @@ class DietPlanViewSet(viewsets.ModelViewSet):
 
 
 class CustomUserViewSet(UserViewSet):
+    """Функции для работы с пользователями"""
     serializer_class = CustomUserSerializer
     permission_classes = settings.PERMISSIONS.user
 
@@ -74,6 +75,7 @@ class CustomUserViewSet(UserViewSet):
 
     @action(["post"], detail=False, permission_classes=(AllowAny,))
     def user_restore(self, request, *args, **kwargs):
+        """Восстановление пользователя (меняется флаг is_active)"""
         user = get_object_or_404(User, email=request.data["email"])
         if user.check_password(request.data["password"]):
             User.objects.activate_user(user)
