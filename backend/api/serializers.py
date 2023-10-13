@@ -178,8 +178,8 @@ class ParamsSerializer(ModelSerializer):
 
 
 class EducationSerializer(ModelSerializer):
-     
-     class Meta:
+
+    class Meta:
         model = Education
         fields = (
             'id',
