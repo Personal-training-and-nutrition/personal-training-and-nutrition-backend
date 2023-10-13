@@ -127,6 +127,7 @@ class DietPlanSerializer(ModelSerializer):
 
 
 class DietPlanLinkSerializer(Serializer):
+    """Сериализатор для создания ссылки на план питания"""
     diet_plan_id = IntegerField()
     link = CharField()
 
@@ -164,6 +165,7 @@ class DietListSerializer(ModelSerializer):
 
 
 class ParamsSerializer(ModelSerializer):
+    """Сериализатор параметров"""
     weight = FloatField(required=False)
     height = IntegerField(required=False)
     waist_size = IntegerField(required=False)
@@ -202,6 +204,22 @@ class SpecialistSerializer(ModelSerializer):
             'education',
             'contacts',
             'about',
+        )
+
+
+class SpecialistClientSerializer(ModelSerializer):
+    """Сериализатор для сущности SpecialistClient"""
+    class Meta:
+        model = SpecialistClient
+        fields = (
+            'specialist',
+            'user',
+            'diseases',
+            'exp_diets',
+            'exp_trainings',
+            'bad_habits',
+            'notes',
+            'food_preferences',
         )
 
 
@@ -313,10 +331,10 @@ class CustomUserSerializer(UserSerializer):
 
 
 class ClientListSerializer(ModelSerializer):
+    """Сериализатор вывода списка клиентов специалиста"""
     first_name = ReadOnlyField(source='user.first_name')
     last_name = ReadOnlyField(source='user.last_name')
     age = SerializerMethodField(read_only=True)
-    notes = CharField()
 
     class Meta:
         model = SpecialistClient
@@ -336,6 +354,7 @@ class ClientListSerializer(ModelSerializer):
 
 
 class ClientAddSerializer(ModelSerializer):
+    """Сериализатор для добавления нового клиента специалистом"""
     user = CustomUserSerializer()
     specialist = ReadOnlyField(source='specialist.id')
 
@@ -350,7 +369,6 @@ class ClientAddSerializer(ModelSerializer):
             'bad_habits',
             'notes',
             'food_preferences')
-        succ_messages = {"username": {"required": "Give yourself a username"}}
 
     @transaction.atomic
     def create(self, data):
@@ -391,3 +409,48 @@ class ClientAddSerializer(ModelSerializer):
             bad_habits=bad_habits,
             food_preferences=food_preferences,
         )
+
+
+class ClientProfileSerializer(ModelSerializer):
+    """Сериализатор для карточки клиента"""
+    first_name = ReadOnlyField(source='user.first_name')
+    last_name = ReadOnlyField(source='user.last_name')
+    age = SerializerMethodField()
+    phone_number = ReadOnlyField(source='user.phone_number')
+    email = ReadOnlyField(source='user.email')
+    params = ParamsSerializer(source='user.params')
+    trainings = SerializerMethodField(required=False)
+    diets = SerializerMethodField(required=False)
+
+    class Meta:
+        model = SpecialistClient
+        fields = (
+            'first_name',
+            'last_name',
+            'phone_number',
+            'email',
+            'age',
+            'params',
+            'diseases',
+            'exp_diets',
+            'exp_trainings',
+            'bad_habits',
+            'food_preferences',
+            'notes',
+            'trainings',
+            'diets',
+        )
+
+    def get_age(self, obj):
+        if not obj.user.dob:
+            return 'Возвраст не указан'
+        today = datetime.date.today()
+        return today.year - obj.user.dob.year
+
+    def get_trainings(self, obj):
+        queryset = obj.user.user_training_plan.all()
+        return TrainingPlanSerializer(queryset, many=True).data
+
+    def get_diets(self, obj):
+        queryset = obj.user.diet_plan_user.all()
+        return DietPlanSerializer(queryset, many=True).data

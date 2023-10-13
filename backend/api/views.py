@@ -1,8 +1,9 @@
-from django.contrib import messages
 from django.contrib.auth import get_user_model, update_session_auth_hash
+from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from djoser.conf import settings
@@ -14,9 +15,10 @@ from diets.models import DietPlan
 
 from .permissions import ClientOrAdmin, SpecialistOrAdmin
 from .serializers import (ClientAddSerializer, ClientListSerializer,
-                          CustomUserSerializer, DietListSerializer,
-                          DietPlanLinkSerializer, DietPlanSerializer,
-                          TrainingPlanSerializer, WorkoutListSerializer,)
+                          ClientProfileSerializer, CustomUserSerializer,
+                          DietListSerializer, DietPlanLinkSerializer,
+                          DietPlanSerializer, TrainingPlanSerializer,
+                          WorkoutListSerializer,)
 
 User = get_user_model()
 
@@ -62,13 +64,23 @@ class CustomUserViewSet(UserViewSet):
         """Вместо удаления меняется флаг is_active"""
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data)
-        serializer.is_valid(raise_exception=True)
+        serializer.is_valid(raise_exception=False)
         # if instance == request.user:
         #     utils.logout_user(self.request)
         request.user.is_active = False
         request.user.save()
-        messages.success(request, 'Профиль отключён')
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(f'Пользователь {request.data["email"]}удалён.',
+                        status=status.HTTP_200_OK)
+
+    @action(["post"], detail=False, permission_classes=(AllowAny,))
+    def user_restore(self, request, *args, **kwargs):
+        user = get_object_or_404(User, email=request.data["email"])
+        if user.check_password(request.data["password"]):
+            User.objects.activate_user(user)
+            return Response(f'Пользователь {request.data["email"]} '
+                            f'восстановлен.',
+                            status=status.HTTP_200_OK)
+        return Response("Неверный пароль", status=status.HTTP_400_BAD_REQUEST)
 
     @action(["post"], detail=False)
     def set_password(self, request, *args, **kwargs):
@@ -79,7 +91,7 @@ class CustomUserViewSet(UserViewSet):
         self.request.user.save()
         if settings.CREATE_SESSION_ON_LOGIN:
             update_session_auth_hash(self.request, self.request.user)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'],
             permission_classes=[ClientOrAdmin])
@@ -111,7 +123,7 @@ class ActivateUser(UserViewSet):
 
     def activation(self, request, uid, token, *args, **kwargs):
         super().activation(request, *args, **kwargs)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_200_OK)
 
 
 class ClientsViewSet(viewsets.ModelViewSet):
@@ -127,3 +139,12 @@ class ClientsViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             return ClientListSerializer
         return ClientAddSerializer
+
+    @action(detail=True, methods=['get'])
+    def client_profile(self, request, pk=None):
+        """Получения карточки клиента"""
+        user = get_object_or_404(SpecialistClient, user=pk,
+                                 specialist=request.user.id)
+        serializer = ClientProfileSerializer(user)
+        profile_data = serializer.data
+        return Response(profile_data, status=status.HTTP_200_OK)

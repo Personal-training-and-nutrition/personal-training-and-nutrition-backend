@@ -207,6 +207,11 @@ class UserManager(BaseUserManager):
     """
     use_in_migrations = True
 
+    def activate_user(self, user):
+        user.is_active = True
+        user.save()
+        return user
+
     def _create_user(self, email, password, **extra_fields):
         if not email:
             raise ValueError('The given email must be set')
