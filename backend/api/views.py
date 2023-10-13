@@ -15,9 +15,10 @@ from diets.models import DietPlan
 
 from .permissions import ClientOrAdmin, SpecialistOrAdmin
 from .serializers import (ClientAddSerializer, ClientListSerializer,
-                          ClientProfileSerializer, DietListSerializer,
-                          DietPlanLinkSerializer, DietPlanSerializer,
-                          TrainingPlanSerializer, WorkoutListSerializer,)
+                          ClientProfileSerializer, CustomUserSerializer,
+                          DietListSerializer, DietPlanLinkSerializer,
+                          DietPlanSerializer, TrainingPlanSerializer,
+                          WorkoutListSerializer,)
 
 User = get_user_model()
 
@@ -53,7 +54,11 @@ class DietPlanViewSet(viewsets.ModelViewSet):
 
 
 class CustomUserViewSet(UserViewSet):
+    serializer_class = CustomUserSerializer
     permission_classes = settings.PERMISSIONS.user
+
+    def get_queryset(self):
+        return User.objects.all()
 
     def destroy(self, request, *args, **kwargs):
         """Вместо удаления меняется флаг is_active"""
@@ -122,7 +127,7 @@ class ActivateUser(UserViewSet):
 
 
 class ClientsViewSet(viewsets.ModelViewSet):
-    """Получение данных о клиентах специалиста"""
+    """Функции для работы с клиентами"""
     queryset = SpecialistClient.objects.all()
     permission_classes = (SpecialistOrAdmin,)
 
@@ -130,6 +135,7 @@ class ClientsViewSet(viewsets.ModelViewSet):
         return serializer.save(specialist=self.request.user)
 
     def get_serializer_class(self):
+        """Список клиентов специалиста и создание нового клиента"""
         if self.action == 'list':
             return ClientListSerializer
         return ClientAddSerializer

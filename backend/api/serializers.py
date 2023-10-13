@@ -11,8 +11,8 @@ from rest_framework.serializers import (CharField, ChoiceField, DateField,
 import datetime
 
 from djoser.serializers import UserSerializer
-from users.models import (Gender, Params, Role, SpecialistClient, Specialists,
-                          User,)
+from users.models import (Education, Gender, Params, Role, SpecialistClient,
+                          Specialists, User,)
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
@@ -179,10 +179,32 @@ class ParamsSerializer(ModelSerializer):
         )
 
 
+class EducationSerializer(ModelSerializer):
+
+    class Meta:
+        model = Education
+        fields = (
+            'id',
+            'institution',
+            'graduate',
+            'completion_date',
+            'number',
+            'capture',
+        )
+
+
 class SpecialistSerializer(ModelSerializer):
+    education = EducationSerializer(many=True, required=False)
+
     class Meta:
         model = Specialists
-        fields = '__all__'
+        fields = (
+            'id',
+            'experience',
+            'education',
+            'contacts',
+            'about',
+        )
 
 
 class SpecialistClientSerializer(ModelSerializer):
@@ -205,20 +227,21 @@ class CustomUserSerializer(UserSerializer):
     """Сериализатор пользователей"""
     params = ParamsSerializer(required=False)
     gender = ChoiceField(
+        read_only=True,
         required=False,
         choices=Gender.GENDER_CHOICES,
     )
     role = ChoiceField(
         required=False,
+        read_only=True,
         choices=Role.SPECIALIST_ROLE_CHOICES,
     )
-    dob = DateField(write_only=True, required=False)
+    dob = DateField(required=False)
     specialist = SpecialistSerializer(required=False)
 
     class Meta:
         model = User
         fields = (
-            'id',
             'first_name',
             'last_name',
             'middle_name',
@@ -233,6 +256,78 @@ class CustomUserSerializer(UserSerializer):
             'is_specialist',
             'specialist',
         )
+        read_only_fields = ('email',)
+
+    @transaction.atomic
+    def create(self, validated_data):
+        params_data = self.initial_data.get('params')
+        specialist_data = self.initial_data.get('specialist')
+        instance = super().create(validated_data)
+        if params_data:
+            Params.objects.bulk_create([
+                Params(
+                    weight=params['weight'],
+                    height=params['height'],
+                    waist_size=params['waist_size'],
+                    user_id=instance.id
+                ) for params in params_data if params.get('name')
+            ])
+        if specialist_data:
+            Specialists.objects.bulk_create([
+                Specialists(
+                    experience=specialist['experience'],
+                    contacts=specialist['contacts'],
+                    about=specialist['about'],
+                    user_id=instance.id
+                ) for specialist in specialist_data if specialist.get(
+                    'experience')
+            ])
+        instance.save()
+        return instance
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        params_data = self.initial_data.get('params')
+        specialist_data = self.initial_data.get('specialist')
+        if params_data:
+            instance.params.clear()
+            for params in params_data:
+                params_id = params.get("id")
+                if params_id:
+                    params_obj = Params.objects.get(id=params_id)
+                    params_obj.weight = params.get("weight")
+                    params_obj.height = params.get("height")
+                    params_obj.waist_size = params.get("waist_size")
+                    params_obj.save()
+                    instance.params.add(params_obj)
+                else:
+                    Params.objects.create(
+                        weight=params['weight'],
+                        height=params['height'],
+                        waist_size=params['waist_size'],
+                        user_id=instance.id
+                    )
+        if specialist_data:
+            instance.specialist.clear()
+            for specialist in specialist_data:
+                specialist_id = specialist.get("id")
+                if specialist_id:
+                    specialist_obj = Specialists.objects.get(id=specialist_id)
+                    specialist_obj.experience = specialist.get("experience")
+                    specialist_obj.contacts = specialist.get("contacts")
+                    specialist_obj.about = specialist.get("about")
+                    specialist_obj.save()
+                    instance.specialist.add(specialist_obj)
+                else:
+                    Specialists.objects.create(
+                        experience=specialist['experience'],
+                        contacts=specialist['contacts'],
+                        about=specialist['about'],
+                        user_id=instance.id
+                    )
+        instance = super().update(instance, validated_data)
+        instance.save()
+        return instance
 
 
 class ClientListSerializer(ModelSerializer):
@@ -296,6 +391,7 @@ class ClientAddSerializer(ModelSerializer):
             dob=user['dob'],
             params=user_params,
             gender=user_gender,
+            is_specialist=False,
         )
         diseases = data.pop('diseases')
         exp_diets = data.pop('exp_diets')
