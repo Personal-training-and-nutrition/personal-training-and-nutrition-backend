@@ -11,8 +11,8 @@ from rest_framework.serializers import (CharField, ChoiceField, DateField,
 import datetime
 
 from djoser.serializers import UserSerializer
-from users.models import (Gender, Params, Role, SpecialistClient, Specialists,
-                          User,)
+from users.models import (Education, Gender, Params, Role, SpecialistClient,
+                          Specialists, User,)
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
@@ -176,37 +176,33 @@ class ParamsSerializer(ModelSerializer):
             'waist_size',
         )
 
-    def update(self, instance, validated_data):
-        instance.weight = validated_data.get('weight', instance.weight)
-        instance.height = validated_data.get('height', instance.height)
-        instance.waist_size = validated_data.get('waist_size',
-                                                 instance.waist_size)
-        instance.save()
+
+class EducationSerializer(ModelSerializer):
+     
+     class Meta:
+        model = Education
+        fields = (
+            'id',
+            'institution',
+            'graduate',
+            'completion_date',
+            'number',
+            'capture',
+        )
 
 
 class SpecialistSerializer(ModelSerializer):
-    experience = CharField(required=False)
-    education = CharField(required=False)
-    contacts = CharField(required=False)
-    about = CharField(required=False)
+    education = EducationSerializer(many=True, required=False)
 
     class Meta:
         model = Specialists
         fields = (
+            'id',
             'experience',
             'education',
             'contacts',
             'about',
         )
-
-    def update(self, instance, validated_data):
-        instance.experience = validated_data.get('experience',
-                                                 instance.experience)
-        instance.education = validated_data.get('education',
-                                                instance.education)
-        instance.contacts = validated_data.get('contacts', instance.contacts)
-        instance.about = validated_data.get('about', instance.about)
-        instance.save()
 
 
 class CustomUserSerializer(UserSerializer):
@@ -246,38 +242,72 @@ class CustomUserSerializer(UserSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        params_data = validated_data.pop('params')
-        specialist_data = validated_data.pop('specialist')
-        user = User.objects.create(**validated_data)
-        for data in params_data:
-            Params.objects.create(user=user, **data)
-        for data in specialist_data:
-            Specialists.objects.create(id=id, **data)
-        return user
+        params_data = self.initial_data.get('params')
+        specialist_data = self.initial_data.get('specialist')
+        instance = super().create(validated_data)
+        if params_data:
+            Params.objects.bulk_create([
+                Params(
+                    weight=params['weight'],
+                    height=params['height'],
+                    waist_size=params['waist_size'],
+                    user_id=instance.id
+                ) for params in params_data if params.get('name')
+            ])
+        if specialist_data:
+            Specialists.objects.bulk_create([
+                Specialists(
+                    experience=specialist['experience'],
+                    contacts=specialist['contacts'],
+                    about=specialist['about'],
+                    user_id=instance.id
+                ) for specialist in specialist_data if specialist.get(
+                    'experience')
+            ])
+        instance.save()
+        return instance
 
     @transaction.atomic
     def update(self, instance, validated_data):
-        instance.first_name = validated_data.get(
-            'first_name', instance.first_name)
-        instance.last_name = validated_data.get(
-            'last_name', instance.last_name)
-        instance.middle_name = validated_data.get(
-            'middle_name', instance.middle_name)
-        instance.password = validated_data.get(
-            'password', instance.password)
-        instance.phone_number = validated_data.get(
-            'phone_number', instance.phone_number)
-        instance.dob = validated_data.get('dob', instance.dob)
-
-        params_data = validated_data.pop('params')
-        super(self.__class__, self).update(instance, validated_data)
-        super(ParamsSerializer, ParamsSerializer()).update(
-            instance.params, params_data)
-        # spec_data = validated_data.pop('specialist')
-        # super(self.__class__, self).update(instance, validated_data)
-        # super(SpecialistSerializer, SpecialistSerializer()).update(
-        #     instance.specialist, spec_data)
-
+        params_data = self.initial_data.get('params')
+        specialist_data = self.initial_data.get('specialist')
+        if params_data:
+            instance.params.clear()
+            for params in params_data:
+                params_id = params.get("id")
+                if params_id:
+                    params_obj = Params.objects.get(id=params_id)
+                    params_obj.weight = params.get("weight")
+                    params_obj.height = params.get("height")
+                    params_obj.waist_size = params.get("waist_size")
+                    params_obj.save()
+                    instance.params.add(params_obj)
+                else:
+                    Params.objects.create(
+                        weight=params['weight'],
+                        height=params['height'],
+                        waist_size=params['waist_size'],
+                        user_id=instance.id
+                    )
+        if specialist_data:
+            instance.specialist.clear()
+            for specialist in specialist_data:
+                specialist_id = specialist.get("id")
+                if specialist_id:
+                    specialist_obj = Specialists.objects.get(id=specialist_id)
+                    specialist_obj.experience = specialist.get("experience")
+                    specialist_obj.contacts = specialist.get("contacts")
+                    specialist_obj.about = specialist.get("about")
+                    specialist_obj.save()
+                    instance.specialist.add(specialist_obj)
+                else:
+                    Specialists.objects.create(
+                        experience=specialist['experience'],
+                        contacts=specialist['contacts'],
+                        about=specialist['about'],
+                        user_id=instance.id
+                    )
+        instance = super().update(instance, validated_data)
         instance.save()
         return instance
 

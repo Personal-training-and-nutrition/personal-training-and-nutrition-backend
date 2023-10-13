@@ -5,7 +5,6 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from djoser import utils
 from djoser.conf import settings
 from djoser.views import UserViewSet
 from users.models import SpecialistClient
@@ -15,9 +14,9 @@ from diets.models import DietPlan
 
 from .permissions import ClientOrAdmin, SpecialistOrAdmin
 from .serializers import (ClientAddSerializer, ClientListSerializer,
-                          DietListSerializer, DietPlanLinkSerializer,
-                          DietPlanSerializer, TrainingPlanSerializer,
-                          WorkoutListSerializer,)
+                          CustomUserSerializer, DietListSerializer,
+                          DietPlanLinkSerializer, DietPlanSerializer,
+                          TrainingPlanSerializer, WorkoutListSerializer,)
 
 User = get_user_model()
 
@@ -53,18 +52,19 @@ class DietPlanViewSet(viewsets.ModelViewSet):
 
 
 class CustomUserViewSet(UserViewSet):
+    serializer_class = CustomUserSerializer
     permission_classes = settings.PERMISSIONS.user
 
-    def perform_update(self, serializer):
-        serializer.save(author=self.request.user)
+    def get_queryset(self):
+        return User.objects.all()
 
     def destroy(self, request, *args, **kwargs):
         """Вместо удаления меняется флаг is_active"""
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
-        if instance == request.user:
-            utils.logout_user(self.request)
+        # if instance == request.user:
+        #     utils.logout_user(self.request)
         request.user.is_active = False
         request.user.save()
         messages.success(request, 'Профиль отключён')
