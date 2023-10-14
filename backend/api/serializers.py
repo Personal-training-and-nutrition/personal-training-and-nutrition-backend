@@ -7,11 +7,12 @@ from rest_framework.serializers import (CharField, ChoiceField, DateField,
                                         IntegerField, ModelSerializer,
                                         ReadOnlyField, Serializer,
                                         SerializerMethodField,)
-from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import extend_schema_field
+
 import datetime
 
 from djoser.serializers import UserSerializer
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from users.models import (Education, Gender, Params, Role, SpecialistClient,
                           Specialists, User,)
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
