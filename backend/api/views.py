@@ -5,9 +5,12 @@ from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.serializers import CharField
 
 from djoser.conf import settings
 from djoser.views import UserViewSet
+from drf_spectacular.utils import (OpenApiExample, extend_schema,
+                                   inline_serializer,)
 from users.models import SpecialistClient
 from workouts.models import TrainingPlan
 
@@ -24,13 +27,40 @@ User = get_user_model()
 
 
 class TrainingPlanViewSet(viewsets.ModelViewSet):
+    """Функции для работы с планами тренировок"""
     serializer_class = TrainingPlanSerializer
     queryset = TrainingPlan.objects.all()
     permission_classes = (IsAuthenticated,)
     http_method_names = ['get', 'post', 'put', 'delete']
 
 
+@extend_schema(
+    responses={
+        200: DietPlanSerializer,
+        400: inline_serializer(
+            name="Error_400",
+            fields={
+                "detail": CharField(),
+            },
+        ),
+    },
+    examples=[
+        OpenApiExample(
+            "Bad request",
+            value={
+                "kkal": [
+                    "Убедитесь, что это значение меньше либо равно 10000."
+                ],
+                "protein": ["Введите правильное число."],
+                "fat": ["Введите правильное число."]
+            },
+            status_codes=["400"],
+            response_only=True,
+        ),
+    ]
+)
 class DietPlanViewSet(viewsets.ModelViewSet):
+    """Функции для работы с планами питания"""
     serializer_class = DietPlanSerializer
     queryset = DietPlan.objects.all()
     permission_classes = (IsAuthenticated,)
@@ -38,9 +68,7 @@ class DietPlanViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def send_link(self, request, pk=None):
-        """
-        Генерация ссылки и отправка плана питания.
-        """
+        """Генерация ссылки и отправка плана питания."""
         diet_plan = self.get_object()
         link = "http://127.0.0.1:8000/api/diet-plans/{0}".format(diet_plan.pk)
         # В этой части нужно реализовать логику отправки, например,
@@ -54,6 +82,7 @@ class DietPlanViewSet(viewsets.ModelViewSet):
 
 
 class CustomUserViewSet(UserViewSet):
+    """Функции для работы с пользователями"""
     serializer_class = CustomUserSerializer
     permission_classes = settings.PERMISSIONS.user
 
@@ -72,8 +101,30 @@ class CustomUserViewSet(UserViewSet):
         return Response(f'Пользователь {request.data["email"]}удалён.',
                         status=status.HTTP_200_OK)
 
+    @extend_schema(
+        responses={
+            200: CustomUserSerializer,
+            400: inline_serializer(
+                name="Error_400",
+                fields={
+                    "detail": CharField(),
+                },
+            ),
+        },
+        examples=[
+            OpenApiExample(
+                "Bad request",
+                value={
+                    "password": "Неверный пароль",
+                },
+                status_codes=["400"],
+                response_only=True,
+            ),
+        ]
+    )
     @action(["post"], detail=False, permission_classes=(AllowAny,))
     def user_restore(self, request, *args, **kwargs):
+        """Восстановление пользователя (меняется флаг is_active)"""
         user = get_object_or_404(User, email=request.data["email"])
         if user.check_password(request.data["password"]):
             User.objects.activate_user(user)
@@ -140,8 +191,7 @@ class ClientsViewSet(viewsets.ModelViewSet):
             return ClientListSerializer
         return ClientAddSerializer
 
-    @action(detail=True, methods=['get'])
-    def client_profile(self, request, pk=None):
+    def retrieve(self, request, pk=None):
         """Получения карточки клиента"""
         user = get_object_or_404(SpecialistClient, user=pk,
                                  specialist=request.user.id)
