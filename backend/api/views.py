@@ -140,8 +140,7 @@ class ClientsViewSet(viewsets.ModelViewSet):
             return ClientListSerializer
         return ClientAddSerializer
 
-    @action(detail=True, methods=['get'])
-    def client_profile(self, request, pk=None):
+    def retrieve(self, request, pk=None):
         """Получения карточки клиента"""
         user = get_object_or_404(SpecialistClient, user=pk,
                                  specialist=request.user.id)
