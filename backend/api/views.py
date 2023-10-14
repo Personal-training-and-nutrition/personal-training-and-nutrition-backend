@@ -1,10 +1,5 @@
 from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import (
-    extend_schema,
-    OpenApiExample,
-    inline_serializer
-)
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -14,6 +9,8 @@ from rest_framework.serializers import CharField
 
 from djoser.conf import settings
 from djoser.views import UserViewSet
+from drf_spectacular.utils import (OpenApiExample, extend_schema,
+                                   inline_serializer,)
 from users.models import SpecialistClient
 from workouts.models import TrainingPlan
 
