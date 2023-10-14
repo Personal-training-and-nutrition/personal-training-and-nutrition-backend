@@ -3,11 +3,12 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
 from rest_framework.serializers import (CharField, ChoiceField, DateField,
-                                        DateTimeField, FloatField,
+                                        DateTimeField, EmailField, FloatField,
                                         IntegerField, ModelSerializer,
                                         ReadOnlyField, Serializer,
                                         SerializerMethodField,)
-
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 import datetime
 
 from djoser.serializers import UserSerializer
@@ -227,15 +228,14 @@ class CustomUserSerializer(UserSerializer):
     """Сериализатор пользователей"""
     params = ParamsSerializer(required=False)
     gender = ChoiceField(
-        read_only=True,
         required=False,
         choices=Gender.GENDER_CHOICES,
     )
     role = ChoiceField(
         required=False,
-        read_only=True,
         choices=Role.SPECIALIST_ROLE_CHOICES,
     )
+    email = EmailField()
     dob = DateField(required=False)
     specialist = SpecialistSerializer(required=False)
 
@@ -346,6 +346,7 @@ class ClientListSerializer(ModelSerializer):
             'age',
         )
 
+    @extend_schema_field(OpenApiTypes.INT)
     def get_age(self, obj):
         if not obj.user.dob:
             return 'Возвраст не указан'
@@ -441,6 +442,7 @@ class ClientProfileSerializer(ModelSerializer):
             'diets',
         )
 
+    @extend_schema_field(OpenApiTypes.INT)
     def get_age(self, obj):
         if not obj.user.dob:
             return 'Возвраст не указан'
