@@ -50,7 +50,9 @@ class TrainingPlanViewSet(viewsets.ModelViewSet):
         OpenApiExample(
             "Bad request",
             value={
-                "kkal": ["Убедитесь, что это значение меньше либо равно 10000."],
+                "kkal": [
+                    "Убедитесь, что это значение меньше либо равно 10000."
+                ],
                 "protein": ["Введите правильное число."],
                 "fat": ["Введите правильное число."]
             },
