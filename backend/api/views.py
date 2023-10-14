@@ -1,10 +1,16 @@
 from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import (
+    extend_schema,
+    OpenApiExample,
+    inline_serializer
+)
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.serializers import CharField
 
 from djoser.conf import settings
 from djoser.views import UserViewSet
@@ -30,6 +36,29 @@ class TrainingPlanViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'delete']
 
 
+@extend_schema(
+    responses={
+        200: DietPlanSerializer,
+        400: inline_serializer(
+            name="Error_400",
+            fields={
+                "detail": CharField(),
+            },
+        ),
+    },
+    examples=[
+        OpenApiExample(
+            "Bad request",
+            value={
+                "kkal": ["Убедитесь, что это значение меньше либо равно 10000."],
+                "protein": ["Введите правильное число."],
+                "fat": ["Введите правильное число."]
+            },
+            status_codes=["400"],
+            response_only=True,
+        ),
+    ]
+)
 class DietPlanViewSet(viewsets.ModelViewSet):
     serializer_class = DietPlanSerializer
     queryset = DietPlan.objects.all()
@@ -72,6 +101,27 @@ class CustomUserViewSet(UserViewSet):
         return Response(f'Пользователь {request.data["email"]}удалён.',
                         status=status.HTTP_200_OK)
 
+    @extend_schema(
+        responses={
+            200: CustomUserSerializer,
+            400: inline_serializer(
+                name="Error_400",
+                fields={
+                    "detail": CharField(),
+                },
+            ),
+        },
+        examples=[
+            OpenApiExample(
+                "Bad request",
+                value={
+                    "detail": "Неверный пароль",
+                },
+                status_codes=["400"],
+                response_only=True,
+            ),
+        ]
+    )
     @action(["post"], detail=False, permission_classes=(AllowAny,))
     def user_restore(self, request, *args, **kwargs):
         user = get_object_or_404(User, email=request.data["email"])
