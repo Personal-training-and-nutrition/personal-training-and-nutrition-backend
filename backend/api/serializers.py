@@ -182,7 +182,7 @@ class ParamsSerializer(ModelSerializer):
 
 
 class EducationSerializer(ModelSerializer):
-
+    """Сериализатор образования"""
     class Meta:
         model = Education
         fields = (
@@ -196,6 +196,7 @@ class EducationSerializer(ModelSerializer):
 
 
 class SpecialistSerializer(ModelSerializer):
+    """Сериализатор информации о специалисте"""
     education = EducationSerializer(many=True, required=False)
 
     class Meta:
