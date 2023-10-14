@@ -115,7 +115,7 @@ class CustomUserViewSet(UserViewSet):
             OpenApiExample(
                 "Bad request",
                 value={
-                    "detail": "Неверный пароль",
+                    "password": "Неверный пароль",
                 },
                 status_codes=["400"],
                 response_only=True,
