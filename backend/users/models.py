@@ -125,34 +125,7 @@ class Institution(Model):
         return self.name
 
 
-class Params(Model):
-    weight = FloatField(
-        verbose_name='Вес',
-        blank=True,
-        null=True,
-    )
-    height = IntegerField(
-        verbose_name='Рост',
-        blank=True,
-        null=True,
-    )
-    waist_size = IntegerField(
-        verbose_name='Размер талии',
-        blank=True,
-        null=True,
-    )
-    created_at = DateTimeField(
-        auto_now_add=True,
-        verbose_name='Дата создания',
-    )
-    updated_at = DateTimeField(
-        auto_now=True,
-        verbose_name='Дата обновления',
-    )
 
-    class Meta:
-        verbose_name = 'Параметр'
-        verbose_name_plural = 'Параметры'
 
     def __str__(self):
         return f'{self.weight} kg, {self.height} cm'
@@ -308,13 +281,13 @@ class User(PermissionsMixin, AbstractBaseUser):
         blank=True,
         related_name='user_gender',
     )
-    params = ForeignKey(
-        Params,
-        on_delete=PROTECT,
-        related_name='user_params',
-        blank=True,
-        null=True,
-    )
+    # params = ForeignKey(
+    #     Params,
+    #     on_delete=PROTECT,
+    #     related_name='user_params',
+    #     blank=True,
+    #     null=True,
+    # )
     capture = ImageField(
         'Аватар',
         null=True,
@@ -361,6 +334,36 @@ class User(PermissionsMixin, AbstractBaseUser):
 
     def __str__(self):
         return f'User: {self.email}'
+
+
+class Params(Model):
+    weight = FloatField(
+        verbose_name='Вес',
+        blank=True,
+        null=True,
+    )
+    height = IntegerField(
+        verbose_name='Рост',
+        blank=True,
+        null=True,
+    )
+    waist_size = IntegerField(
+        verbose_name='Размер талии',
+        blank=True,
+        null=True,
+    )
+    created_at = DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата создания',
+    )
+    updated_at = DateTimeField(
+        auto_now=True,
+        verbose_name='Дата обновления',
+    )
+
+    class Meta:
+        verbose_name = 'Параметр'
+        verbose_name_plural = 'Параметры'
 
 
 class SpecialistClient(Model):
