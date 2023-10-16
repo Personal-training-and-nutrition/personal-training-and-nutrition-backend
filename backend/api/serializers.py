@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
+from drf_extra_fields.fields import Base64ImageField
 from rest_framework.serializers import (CharField, ChoiceField, DateField,
                                         DateTimeField, EmailField, FloatField,
                                         IntegerField, ModelSerializer,
@@ -11,7 +12,6 @@ from rest_framework.serializers import (CharField, ChoiceField, DateField,
 import datetime
 
 from djoser.serializers import UserSerializer
-from drf_extra_fields.fields import Base64ImageField
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from users.models import (Education, Gender, Institution, Params, Role,
@@ -437,12 +437,12 @@ class ClientAddSerializer(ModelSerializer):
         password = make_password(settings.STD_CLIENT_PASSWORD)
         specialist = data.pop('specialist')
         params = data.get('params')
-        first_name=data.get('first_name')
-        last_name=data.get('last_name')
-        middle_name=data.get('middle_name')
-        email=data.get('email')
-        phone_number=data.get('phone_number')
-        dob=data.get('dob')
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
+        middle_name = data.get('middle_name')
+        email = data.get('email')
+        phone_number = data.get('phone_number')
+        dob = data.get('dob')
         if params:
             user_params = Params.objects.create(**params)
         else:
@@ -477,6 +477,7 @@ class ClientAddSerializer(ModelSerializer):
             bad_habits=bad_habits,
             food_preferences=food_preferences,
         )
+
 
 class ClientProfileSerializer(ModelSerializer):
     """Сериализатор для карточки клиента"""
@@ -514,7 +515,7 @@ class ClientProfileSerializer(ModelSerializer):
             return 'Возвраст не указан'
         today = datetime.date.today()
         return today.year - obj.user.dob.year
-    
+
     def get_trainings(self, obj):
         queryset = obj.user.user_training_plan.all()
         return TrainingPlanSerializer(queryset, many=True).data
