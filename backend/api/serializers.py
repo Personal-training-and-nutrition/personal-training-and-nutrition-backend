@@ -376,7 +376,6 @@ class ClientListSerializer(ModelSerializer):
             'age',
         )
 
-    @staticmethod
     @extend_schema_field(OpenApiTypes.INT)
     def get_age(self, obj):
         if not obj.user.dob:
@@ -386,7 +385,12 @@ class ClientListSerializer(ModelSerializer):
 
 
 class ClientAddSerializer(ModelSerializer):
-    """Сериализатор для добавления нового клиента специалистом"""
+    """
+    Сериализатор для добавления нового клиента специалистом.
+
+    Для фронтенда нужно было исключить необходимость передачи
+    null для незаполненных полей.
+    """
     specialist = ReadOnlyField(source='specialist.id')
     first_name = CharField(required=False, allow_blank=True)
     last_name = CharField(required=False, allow_blank=True)
@@ -403,7 +407,7 @@ class ClientAddSerializer(ModelSerializer):
         choices=Role.SPECIALIST_ROLE_CHOICES,
         default='0',
     )
-    email = EmailField()
+    email = EmailField(required=False)
     dob = DateField(required=False)
     capture = Base64ImageField(required=False, default=None)
 
@@ -440,7 +444,7 @@ class ClientAddSerializer(ModelSerializer):
         phone_number=data.get('phone_number')
         dob=data.get('dob')
         if params:
-            user_params = Params.objects.create(*params)
+            user_params = Params.objects.create(**params)
         else:
             user_params = None
         user_gender = Gender.objects.get(id=data.get('gender'))
@@ -504,7 +508,6 @@ class ClientProfileSerializer(ModelSerializer):
             'diets',
         )
 
-    @staticmethod
     @extend_schema_field(OpenApiTypes.INT)
     def get_age(self, obj):
         if not obj.user.dob:
@@ -512,12 +515,10 @@ class ClientProfileSerializer(ModelSerializer):
         today = datetime.date.today()
         return today.year - obj.user.dob.year
     
-    @staticmethod
     def get_trainings(self, obj):
         queryset = obj.user.user_training_plan.all()
         return TrainingPlanSerializer(queryset, many=True).data
 
-    @staticmethod
     def get_diets(self, obj):
         queryset = obj.user.diet_plan_user.all()
         return DietPlanSerializer(queryset, many=True).data
