@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
+from drf_extra_fields.fields import Base64ImageField
 from rest_framework.serializers import (CharField, ChoiceField, DateField,
                                         DateTimeField, EmailField, FloatField,
                                         IntegerField, ModelSerializer,
@@ -13,8 +14,8 @@ import datetime
 from djoser.serializers import UserSerializer
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
-from users.models import (Education, Gender, Params, Role, SpecialistClient,
-                          Specialists, User,)
+from users.models import (Education, Gender, Institution, Params, Role,
+                          SpecialistClient, Specialists, User,)
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
@@ -168,9 +169,9 @@ class DietListSerializer(ModelSerializer):
 
 class ParamsSerializer(ModelSerializer):
     """Сериализатор параметров"""
-    weight = FloatField(required=False)
-    height = IntegerField(required=False)
-    waist_size = IntegerField(required=False)
+    weight = FloatField(default=None)
+    height = IntegerField(default=None)
+    waist_size = IntegerField(default=None)
 
     class Meta:
         model = Params
@@ -181,8 +182,22 @@ class ParamsSerializer(ModelSerializer):
         )
 
 
+class InstitutionSerializer(ModelSerializer):
+
+    class Meta:
+        model = Institution
+        fields = ('name',)
+
+
 class EducationSerializer(ModelSerializer):
     """Сериализатор образования"""
+    institution = InstitutionSerializer(required=False,
+                                        many=True, default=None)
+    graduate = CharField(required=False, allow_blank=True)
+    completion_date = CharField(required=False, allow_blank=True)
+    number = CharField(required=False, allow_blank=True)
+    capture = Base64ImageField(required=False, default=None)
+
     class Meta:
         model = Education
         fields = (
@@ -197,7 +212,10 @@ class EducationSerializer(ModelSerializer):
 
 class SpecialistSerializer(ModelSerializer):
     """Сериализатор информации о специалисте"""
-    education = EducationSerializer(many=True, required=False)
+    education = EducationSerializer(many=True, required=False, default=None)
+    experience = CharField(required=False, allow_blank=True)
+    contacts = CharField(required=False, allow_blank=True)
+    about = CharField(required=False, allow_blank=True)
 
     class Meta:
         model = Specialists
@@ -212,6 +230,13 @@ class SpecialistSerializer(ModelSerializer):
 
 class SpecialistClientSerializer(ModelSerializer):
     """Сериализатор для сущности SpecialistClient"""
+    diseases = CharField(required=False, allow_blank=True)
+    exp_diets = CharField(required=False, allow_blank=True)
+    exp_trainings = CharField(required=False, allow_blank=True)
+    bad_habits = CharField(required=False, allow_blank=True)
+    notes = CharField(required=False, allow_blank=True)
+    food_preferences = CharField(required=False, allow_blank=True)
+
     class Meta:
         model = SpecialistClient
         fields = (
@@ -228,18 +253,21 @@ class SpecialistClientSerializer(ModelSerializer):
 
 class CustomUserSerializer(UserSerializer):
     """Сериализатор пользователей"""
-    params = ParamsSerializer(required=False)
+    params = ParamsSerializer(required=False, default=None)
     gender = ChoiceField(
         required=False,
         choices=Gender.GENDER_CHOICES,
+        default='0',
     )
     role = ChoiceField(
         required=False,
         choices=Role.SPECIALIST_ROLE_CHOICES,
+        default='0',
     )
     email = EmailField()
-    dob = DateField(required=False)
+    dob = DateField(required=False, default=None)
     specialist = SpecialistSerializer(required=False)
+    capture = Base64ImageField(required=False, default=None)
 
     class Meta:
         model = User
@@ -357,15 +385,46 @@ class ClientListSerializer(ModelSerializer):
 
 
 class ClientAddSerializer(ModelSerializer):
-    """Сериализатор для добавления нового клиента специалистом"""
-    user = CustomUserSerializer()
+    """
+    Сериализатор для добавления нового клиента специалистом.
+
+    Для фронтенда нужно было исключить необходимость передачи
+    null для незаполненных полей.
+    """
     specialist = ReadOnlyField(source='specialist.id')
+    first_name = CharField(required=False, allow_blank=True)
+    last_name = CharField(required=False, allow_blank=True)
+    middle_name = CharField(required=False, allow_blank=True)
+    params = ParamsSerializer(required=False, default=None)
+    phone_number = CharField(required=False, allow_blank=True)
+    gender = ChoiceField(
+        required=False,
+        choices=Gender.GENDER_CHOICES,
+        default='0',
+    )
+    role = ChoiceField(
+        required=False,
+        choices=Role.SPECIALIST_ROLE_CHOICES,
+        default='0',
+    )
+    email = EmailField(required=False)
+    dob = DateField(required=False)
+    capture = Base64ImageField(required=False, default=None)
 
     class Meta:
         model = SpecialistClient
         fields = (
+            'first_name',
+            'last_name',
+            'middle_name',
+            'role',
+            'email',
+            'phone_number',
+            'dob',
+            'gender',
+            'params',
+            'capture',
             'specialist',
-            'user',
             'diseases',
             'exp_diets',
             'exp_trainings',
@@ -377,31 +436,37 @@ class ClientAddSerializer(ModelSerializer):
     def create(self, data):
         password = make_password(settings.STD_CLIENT_PASSWORD)
         specialist = data.pop('specialist')
-        user = data.pop('user')
-        user_params = Params.objects.create(
-            weight=user['params']['weight'],
-            height=user['params']['height'],
-            waist_size=user['params']['waist_size'],
-        )
-        user_gender = Gender.objects.get(id=user['gender'])
+        params = data.get('params')
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
+        middle_name = data.get('middle_name')
+        email = data.get('email')
+        phone_number = data.get('phone_number')
+        dob = data.get('dob')
+        if params:
+            user_params = Params.objects.create(**params)
+        else:
+            user_params = None
+        user_gender = Gender.objects.get(id=data.get('gender'))
         client = User.objects.create(
-            first_name=user['first_name'],
-            last_name=user['last_name'],
-            middle_name=user['middle_name'],
+            first_name=first_name,
+            last_name=last_name,
+            middle_name=middle_name,
             password=password,
-            email=user['email'],
-            phone_number=user['phone_number'],
-            dob=user['dob'],
+            email=email,
+            phone_number=phone_number,
+            dob=dob,
             params=user_params,
             gender=user_gender,
             is_specialist=False,
+            specialist=None,
         )
-        diseases = data.pop('diseases')
-        exp_diets = data.pop('exp_diets')
-        notes = data.pop('notes')
-        exp_trainings = data.pop('exp_trainings')
-        bad_habits = data.pop('bad_habits')
-        food_preferences = data.pop('food_preferences')
+        diseases = data.get('diseases')
+        exp_diets = data.get('exp_diets')
+        notes = data.get('notes')
+        exp_trainings = data.get('exp_trainings')
+        bad_habits = data.get('bad_habits')
+        food_preferences = data.get('food_preferences')
         return SpecialistClient.objects.create(
             user=client,
             specialist=specialist,
