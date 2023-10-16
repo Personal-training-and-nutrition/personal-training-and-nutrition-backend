@@ -176,6 +176,7 @@ class ParamsSerializer(ModelSerializer):
     class Meta:
         model = Params
         fields = (
+            'id',
             'weight',
             'height',
             'waist_size',
@@ -212,7 +213,6 @@ class EducationSerializer(ModelSerializer):
 
 class SpecialistSerializer(ModelSerializer):
     """Сериализатор информации о специалисте"""
-    education = EducationSerializer(many=True, required=False, default=None)
     experience = CharField(required=False, allow_blank=True)
     contacts = CharField(required=False, allow_blank=True)
     about = CharField(required=False, allow_blank=True)
@@ -222,7 +222,6 @@ class SpecialistSerializer(ModelSerializer):
         fields = (
             'id',
             'experience',
-            'education',
             'contacts',
             'about',
         )
@@ -253,7 +252,13 @@ class SpecialistClientSerializer(ModelSerializer):
 
 class CustomUserSerializer(UserSerializer):
     """Сериализатор пользователей"""
-    params = ParamsSerializer(required=False, default=None)
+    params = ParamsSerializer(
+        many=True,
+        required=False,
+        default=None,
+        read_only=True,
+        # partial=True
+    )
     gender = ChoiceField(
         required=False,
         choices=Gender.GENDER_CHOICES,
@@ -266,12 +271,16 @@ class CustomUserSerializer(UserSerializer):
     )
     email = EmailField()
     dob = DateField(required=False, default=None)
-    specialist = SpecialistSerializer(required=False)
+    specialist = SpecialistSerializer(
+        required=False,
+        many=True,
+        read_only=True)
     capture = Base64ImageField(required=False, default=None)
 
     class Meta:
         model = User
         fields = (
+            'id',
             'first_name',
             'last_name',
             'middle_name',
@@ -300,7 +309,7 @@ class CustomUserSerializer(UserSerializer):
                     height=params['height'],
                     waist_size=params['waist_size'],
                     user_id=instance.id
-                ) for params in params_data if params.get('name')
+                ) for params in params_data if params.get('weight')
             ])
         if specialist_data:
             Specialists.objects.bulk_create([
@@ -322,7 +331,7 @@ class CustomUserSerializer(UserSerializer):
         if params_data:
             instance.params.clear()
             for params in params_data:
-                params_id = params.get("id")
+                params_id = params.get('id')
                 if params_id:
                     params_obj = Params.objects.get(id=params_id)
                     params_obj.weight = params.get("weight")

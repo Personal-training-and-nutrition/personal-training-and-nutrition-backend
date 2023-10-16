@@ -6,7 +6,9 @@ from django.core.validators import MinLengthValidator, RegexValidator
 from django.db.models import (PROTECT, BooleanField, CharField, DateField,
                               DateTimeField, EmailField, FloatField,
                               ForeignKey, ImageField, IntegerField, Model,
-                              TextField,)
+                              TextField, UUIDField,)
+
+import uuid
 
 
 class Gender(Model):
@@ -125,56 +127,6 @@ class Institution(Model):
         return self.name
 
 
-
-
-    def __str__(self):
-        return f'{self.weight} kg, {self.height} cm'
-
-
-class Specialists(Model):
-    experience = TextField(
-        verbose_name='Опыт работы специалиста',
-        null=True,
-        blank=True,
-    )
-    education = ForeignKey(
-        Education,
-        on_delete=PROTECT,
-        null=True,
-        blank=True,
-        related_name='specialists_educations',
-    )
-    contacts = TextField(
-        'Контакты специалиста',
-        null=True,
-        blank=True,
-    )
-    about = TextField(
-        'О специалисте',
-        null=True,
-        blank=True,
-    )
-    is_active = BooleanField(
-        'Флаг активный специалист',
-        default='True',
-    )
-    created_at = DateTimeField(
-        auto_now_add=True,
-        verbose_name='Дата создания',
-    )
-    updated_at = DateTimeField(
-        auto_now=True,
-        verbose_name='Дата обновления',
-    )
-
-    class Meta:
-        verbose_name = 'Специалист'
-        verbose_name_plural = 'Специалисты'
-
-    def __str__(self):
-        return self.contacts
-
-
 class UserManager(BaseUserManager):
     """Менеджер для создания пользователей
     """
@@ -215,6 +167,7 @@ class UserManager(BaseUserManager):
 
 
 class User(PermissionsMixin, AbstractBaseUser):
+    id = UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = EmailField(
         max_length=settings.EMAIL_MAX_LENGTH,
         db_index=True,
@@ -281,13 +234,6 @@ class User(PermissionsMixin, AbstractBaseUser):
         blank=True,
         related_name='user_gender',
     )
-    # params = ForeignKey(
-    #     Params,
-    #     on_delete=PROTECT,
-    #     related_name='user_params',
-    #     blank=True,
-    #     null=True,
-    # )
     capture = ImageField(
         'Аватар',
         null=True,
@@ -303,13 +249,6 @@ class User(PermissionsMixin, AbstractBaseUser):
     )
     is_specialist = BooleanField(
         default=True,
-    )
-    specialist = ForeignKey(
-        Specialists,
-        on_delete=PROTECT,
-        null=True,
-        blank=True,
-        related_name='user_specialists',
     )
     is_active = BooleanField(
         default=True,
@@ -337,6 +276,7 @@ class User(PermissionsMixin, AbstractBaseUser):
 
 
 class Params(Model):
+    id = UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     weight = FloatField(
         verbose_name='Вес',
         blank=True,
@@ -346,6 +286,13 @@ class Params(Model):
         verbose_name='Рост',
         blank=True,
         null=True,
+    )
+    user = ForeignKey(
+        User,
+        on_delete=PROTECT,
+        blank=True,
+        null=True,
+        related_name='params'
     )
     waist_size = IntegerField(
         verbose_name='Размер талии',
@@ -364,6 +311,54 @@ class Params(Model):
     class Meta:
         verbose_name = 'Параметр'
         verbose_name_plural = 'Параметры'
+
+    def __str__(self):
+        return f'{self.weight} kg, {self.height} cm'
+
+
+class Specialists(Model):
+    id = UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    experience = TextField(
+        verbose_name='Опыт работы специалиста',
+        null=True,
+        blank=True,
+    )
+    contacts = TextField(
+        'Контакты специалиста',
+        null=True,
+        blank=True,
+    )
+    about = TextField(
+        'О специалисте',
+        null=True,
+        blank=True,
+    )
+    is_active = BooleanField(
+        'Флаг активный специалист',
+        default='True',
+    )
+    user = ForeignKey(
+        User,
+        on_delete=PROTECT,
+        blank=True,
+        null=True,
+        related_name='specialist'
+    )
+    created_at = DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата создания',
+    )
+    updated_at = DateTimeField(
+        auto_now=True,
+        verbose_name='Дата обновления',
+    )
+
+    class Meta:
+        verbose_name = 'Специалист'
+        verbose_name_plural = 'Специалисты'
+
+    def __str__(self):
+        return self.contacts
 
 
 class SpecialistClient(Model):
