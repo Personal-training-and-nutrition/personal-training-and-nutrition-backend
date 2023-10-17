@@ -399,6 +399,7 @@ class ShowUserSerializer(ModelSerializer):
 
 class ClientListSerializer(ModelSerializer):
     """Сериализатор вывода списка клиентов специалиста"""
+    id = ReadOnlyField(source='user.id')
     first_name = ReadOnlyField(source='user.first_name')
     last_name = ReadOnlyField(source='user.last_name')
     age = SerializerMethodField(read_only=True)
