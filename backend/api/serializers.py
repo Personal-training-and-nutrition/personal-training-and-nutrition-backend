@@ -272,6 +272,7 @@ class CustomUserSerializer(UserSerializer):
     class Meta:
         model = User
         fields = (
+            'id',
             'first_name',
             'last_name',
             'middle_name',
@@ -381,7 +382,7 @@ class ClientListSerializer(ModelSerializer):
         if not obj.user.dob:
             return 'Возвраст не указан'
         today = datetime.date.today()
-        return today.year - obj.user.dob.year
+        return (today - obj.user.dob).year
 
 
 class ClientAddSerializer(ModelSerializer):
@@ -514,7 +515,7 @@ class ClientProfileSerializer(ModelSerializer):
         if not obj.user.dob:
             return 'Возвраст не указан'
         today = datetime.date.today()
-        return today.year - obj.user.dob.year
+        return (today - obj.user.dob).year
 
     def get_trainings(self, obj):
         queryset = obj.user.user_training_plan.all()
