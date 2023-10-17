@@ -38,14 +38,35 @@ class ClientsViewSetTests(TestCase):
         cache.clear()
 
     def test_perform_create(self):
-        print("CLIENT USER: ", dir(ClientsViewSetTests.client_user),
-              ClientsViewSetTests.client_user,
-              ClientsViewSetTests.gender.__dict__
-              )
         response = self.client.post(
-            '/api/clients/', {'specialist': ClientsViewSetTests.specialist.id}
+            '/api/clients/',
+            {
+                'specialist': ClientsViewSetTests.specialist.id,
+                "user": {
+                    "first_name": "string",
+                    "last_name": "string",
+                    "middle_name": "string",
+                    "role": "0",
+                    "email": "user@example.com",
+                    "phone_number": "344+70564583",
+                    "dob": "2023-10-17",
+                    "gender": 0,
+                    "params": {
+                        "weight": 0,
+                        "height": 0,
+                        "waist_size": 0
+                    },
+                    "capture": "string"
+                },
+                "diseases": "string",
+                "exp_diets": "string",
+                "exp_trainings": "string",
+                "bad_habits": "string",
+                "notes": "string",
+                "food_preferences": "string"
+            }
         )
-
+        print(json.loads(response.content))
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         # Assuming there was one client already
         self.assertEqual(SpecialistClient.objects.count(), 2)
