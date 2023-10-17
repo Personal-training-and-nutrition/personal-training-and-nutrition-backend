@@ -192,11 +192,13 @@ class ClientsViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, request, pk=None):
         """Получения карточки клиента"""
-        user = get_object_or_404(SpecialistClient, user=pk, specialist=request.user)
+        user = get_object_or_404(SpecialistClient,
+                                 user=pk,
+                                 specialist=request.user)
         serializer = ClientProfileSerializer(user)
         profile_data = serializer.data
         return Response(profile_data, status=status.HTTP_200_OK)
-    
+
     def get_queryset(self):
         user = self.request.user
         return SpecialistClient.objects.filter(specialist=user)
