@@ -361,6 +361,33 @@ class CustomUserSerializer(UserSerializer):
         return instance
 
 
+class ShowUserSerializer(ModelSerializer):
+    """Сериализатор для вывода данных пользователя"""
+    params = ParamsSerializer(required=False, default=None)
+    role = ChoiceField(
+        required=False,
+        choices=Role.SPECIALIST_ROLE_CHOICES,
+        default='0',
+    )
+    capture = CharField(required=False, default=None)
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'first_name',
+            'last_name',
+            'middle_name',
+            'role',
+            'email',
+            'phone_number',
+            'dob',
+            'gender',
+            'params',
+            'capture',
+        )
+
+
 class ClientListSerializer(ModelSerializer):
     """Сериализатор вывода списка клиентов специалиста"""
     first_name = ReadOnlyField(source='user.first_name')
@@ -398,38 +425,12 @@ class ClientAddSerializer(ModelSerializer):
     null для незаполненных полей.
     """
     specialist = ReadOnlyField(source='specialist.id')
-    first_name = CharField(required=False, allow_blank=True)
-    last_name = CharField(required=False, allow_blank=True)
-    middle_name = CharField(required=False, allow_blank=True)
-    params = ParamsSerializer(required=False, default=None)
-    phone_number = CharField(required=False, allow_blank=True)
-    gender = ChoiceField(
-        required=False,
-        choices=Gender.GENDER_CHOICES,
-        default='0',
-    )
-    role = ChoiceField(
-        required=False,
-        choices=Role.SPECIALIST_ROLE_CHOICES,
-        default='0',
-    )
-    email = EmailField(required=False)
-    dob = DateField(required=False)
-    capture = Base64ImageField(required=False, default=None)
+    user = ShowUserSerializer()
 
     class Meta:
         model = SpecialistClient
         fields = (
-            'first_name',
-            'last_name',
-            'middle_name',
-            'role',
-            'email',
-            'phone_number',
-            'dob',
-            'gender',
-            'params',
-            'capture',
+            'user',
             'specialist',
             'diseases',
             'exp_diets',
@@ -441,19 +442,19 @@ class ClientAddSerializer(ModelSerializer):
     @transaction.atomic
     def create(self, data):
         password = make_password(settings.STD_CLIENT_PASSWORD)
-        specialist = data.pop('specialist')
-        params = data.get('params')
-        first_name = data.get('first_name')
-        last_name = data.get('last_name')
-        middle_name = data.get('middle_name')
-        email = data.get('email')
-        phone_number = data.get('phone_number')
-        dob = data.get('dob')
+        specialist = data.get('specialist')
+        params = data.get('user').get('params')
+        first_name = data.get('user').get('first_name')
+        last_name = data.get('user').get('last_name')
+        middle_name = data.get('user').get('middle_name')
+        email = data.get('user').get('email')
+        phone_number = data.get('user').get('phone_number')
+        dob = data.get('user').get('dob')
         if params:
             user_params = Params.objects.create(**params)
         else:
             user_params = None
-        user_gender = Gender.objects.get(id=data.get('gender'))
+        user_gender = data.get('user').get('gender')
         client = User.objects.create(
             first_name=first_name,
             last_name=last_name,
