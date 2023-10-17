@@ -148,3 +148,5 @@ backend/media/
 
 # personal file
 /logic
+.vscode/
+requests.http

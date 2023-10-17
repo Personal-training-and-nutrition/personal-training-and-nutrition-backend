@@ -143,8 +143,8 @@ REST_FRAMEWORK = {
 ###########################
 #  DRF Spectacular
 ###########################
-with open("../common_errors.md") as f:
-    description = f.read()
+# with open("../common_errors.md") as f:
+#     description = f.read()
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "WellCoach",
@@ -154,7 +154,7 @@ SPECTACULAR_SETTINGS = {
         "filter": True,
     },
     "COMPONENT_SPLIT_REQUEST": True,
-    "DESCRIPTION": description,
+    # "DESCRIPTION": description,
     "ENUM_NAME_OVERRIDES": {
         "ValidationErrorEnum": "drf_standardized_errors.openapi_serializers.ValidationErrorEnum.values",
         "ClientErrorEnum": "drf_standardized_errors.openapi_serializers.ClientErrorEnum.values",
