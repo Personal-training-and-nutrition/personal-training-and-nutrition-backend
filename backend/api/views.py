@@ -1,11 +1,11 @@
-from django.contrib import messages
 from django.contrib.auth import get_user_model, update_session_auth_hash
+from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from djoser import utils
 from djoser.conf import settings
 from djoser.views import UserViewSet
 from users.models import SpecialistClient
@@ -15,6 +15,7 @@ from diets.models import DietPlan
 
 from .permissions import ClientOrAdmin, SpecialistOrAdmin
 from .serializers import (ClientAddSerializer, ClientListSerializer,
+                          ClientProfileSerializer, CustomUserSerializer,
                           DietListSerializer, DietPlanLinkSerializer,
                           DietPlanSerializer, TrainingPlanSerializer,
                           WorkoutListSerializer,)
@@ -23,6 +24,7 @@ User = get_user_model()
 
 
 class TrainingPlanViewSet(viewsets.ModelViewSet):
+    """Функции для работы с планами тренировок"""
     serializer_class = TrainingPlanSerializer
     queryset = TrainingPlan.objects.all()
     permission_classes = (IsAuthenticated,)
@@ -30,6 +32,7 @@ class TrainingPlanViewSet(viewsets.ModelViewSet):
 
 
 class DietPlanViewSet(viewsets.ModelViewSet):
+    """Функции для работы с планами питания"""
     serializer_class = DietPlanSerializer
     queryset = DietPlan.objects.all()
     permission_classes = (IsAuthenticated,)
@@ -37,9 +40,7 @@ class DietPlanViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def send_link(self, request, pk=None):
-        """
-        Генерация ссылки и отправка плана питания.
-        """
+        """Генерация ссылки и отправка плана питания."""
         diet_plan = self.get_object()
         link = "http://127.0.0.1:8000/api/diet-plans/{0}".format(diet_plan.pk)
         # В этой части нужно реализовать логику отправки, например,
@@ -53,19 +54,35 @@ class DietPlanViewSet(viewsets.ModelViewSet):
 
 
 class CustomUserViewSet(UserViewSet):
+    """Функции для работы с пользователями"""
+    serializer_class = CustomUserSerializer
     permission_classes = settings.PERMISSIONS.user
+
+    def get_queryset(self):
+        return User.objects.all()
 
     def destroy(self, request, *args, **kwargs):
         """Вместо удаления меняется флаг is_active"""
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        if instance == request.user:
-            utils.logout_user(self.request)
+        serializer.is_valid(raise_exception=False)
+        # if instance == request.user:
+        #     utils.logout_user(self.request)
         request.user.is_active = False
         request.user.save()
-        messages.success(request, 'Профиль отключён')
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(f'Пользователь {request.data["email"]}удалён.',
+                        status=status.HTTP_200_OK)
+
+    @action(["post"], detail=False, permission_classes=(AllowAny,))
+    def user_restore(self, request, *args, **kwargs):
+        """Восстановление пользователя (меняется флаг is_active)"""
+        user = get_object_or_404(User, email=request.data["email"])
+        if user.check_password(request.data["password"]):
+            User.objects.activate_user(user)
+            return Response(f'Пользователь {request.data["email"]} '
+                            f'восстановлен.',
+                            status=status.HTTP_200_OK)
+        return Response("Неверный пароль", status=status.HTTP_400_BAD_REQUEST)
 
     @action(["post"], detail=False)
     def set_password(self, request, *args, **kwargs):
@@ -76,7 +93,7 @@ class CustomUserViewSet(UserViewSet):
         self.request.user.save()
         if settings.CREATE_SESSION_ON_LOGIN:
             update_session_auth_hash(self.request, self.request.user)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'],
             permission_classes=[ClientOrAdmin])
@@ -108,17 +125,31 @@ class ActivateUser(UserViewSet):
 
     def activation(self, request, uid, token, *args, **kwargs):
         super().activation(request, *args, **kwargs)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_200_OK)
 
 
 class ClientsViewSet(viewsets.ModelViewSet):
-    queryset = SpecialistClient.objects.all()
+    """Функции для работы с клиентами"""
     permission_classes = (SpecialistOrAdmin,)
 
     def perform_create(self, serializer):
         return serializer.save(specialist=self.request.user)
 
     def get_serializer_class(self):
+        """Список клиентов специалиста и создание нового клиента"""
         if self.action == 'list':
             return ClientListSerializer
         return ClientAddSerializer
+
+    def retrieve(self, request, pk=None):
+        """Получения карточки клиента"""
+        user = get_object_or_404(SpecialistClient,
+                                 user=pk,
+                                 specialist=request.user)
+        serializer = ClientProfileSerializer(user)
+        profile_data = serializer.data
+        return Response(profile_data, status=status.HTTP_200_OK)
+
+    def get_queryset(self):
+        user = self.request.user
+        return SpecialistClient.objects.filter(specialist=user)
