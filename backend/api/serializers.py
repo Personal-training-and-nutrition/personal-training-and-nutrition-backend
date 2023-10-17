@@ -379,10 +379,15 @@ class ClientListSerializer(ModelSerializer):
 
     @extend_schema_field(OpenApiTypes.INT)
     def get_age(self, obj):
-        if not obj.user.dob:
+        dob = obj.user.dob
+        if not dob:
             return 'Возвраст не указан'
         today = datetime.date.today()
-        return (today - obj.user.dob).year
+        if ((today.month < dob.month)
+            or (today.month == dob.month
+                and today.day < dob.day)):
+            return today.year - dob.year - 1
+        return today.year - dob.year
 
 
 class ClientAddSerializer(ModelSerializer):
@@ -512,10 +517,15 @@ class ClientProfileSerializer(ModelSerializer):
 
     @extend_schema_field(OpenApiTypes.INT)
     def get_age(self, obj):
-        if not obj.user.dob:
+        dob = obj.user.dob
+        if not dob:
             return 'Возвраст не указан'
         today = datetime.date.today()
-        return (today - obj.user.dob).year
+        if ((today.month < dob.month)
+            or (today.month == dob.month
+                and today.day < dob.day)):
+            return today.year - dob.year - 1
+        return today.year - dob.year
 
     def get_trainings(self, obj):
         queryset = obj.user.user_training_plan.all()
