@@ -381,7 +381,7 @@ class ClientListSerializer(ModelSerializer):
     def get_age(self, obj):
         dob = obj.user.dob
         if not dob:
-            return 'Возвраст не указан'
+            return 'Возраст не указан'
         today = datetime.date.today()
         if ((today.month < dob.month)
             or (today.month == dob.month
@@ -519,7 +519,7 @@ class ClientProfileSerializer(ModelSerializer):
     def get_age(self, obj):
         dob = obj.user.dob
         if not dob:
-            return 'Возвраст не указан'
+            return 'Возраст не указан'
         today = datetime.date.today()
         if ((today.month < dob.month)
             or (today.month == dob.month
