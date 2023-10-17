@@ -1,45 +1,49 @@
 import json
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.core.cache import cache
+from django.test import Client, TestCase
 from rest_framework import status
-from rest_framework.test import APIClient
 
 from api.serializers import ClientAddSerializer, ClientListSerializer
 from api.views import ClientsViewSet
-from users.models import SpecialistClient
+from users.models import Gender, SpecialistClient
 
 User = get_user_model()
 
 
 class ClientsViewSetTests(TestCase):
-    def setUp(self):
-        # Set up a test user and client data for testing
-        self.specialist = User.objects.create_user(
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.gender = Gender.objects.create()
+        cls.specialist = User.objects.create_user(
             email='specialist@test.com',
             password='testpassword'
         )
-        self.client_user = User.objects.create_user(
+        cls.client_user = User.objects.create_user(
             first_name="user_name",
             last_name="user_surname",
             email='client@test.com',
             password='testpassword'
         )
-        self.client_obj = SpecialistClient.objects.create(
-            specialist=self.specialist, user=self.client_user
+        cls.client_obj = SpecialistClient.objects.create(
+            specialist=ClientsViewSetTests.specialist,
+            user=ClientsViewSetTests.client_user
         )
 
-        # Set up an API client for making requests
-        self.client = APIClient()
+    def setUp(self):
+        self.client = Client()
+        self.client.force_login(ClientsViewSetTests.specialist)
+        cache.clear()
 
     def test_perform_create(self):
-        # Log in the specialist user
-        self.client.login(
-            email='specialist@test.com', password='testpassword'
-        )
-        print("CLIENT USER: ", dir(self.client_user), self.client_user)
+        print("CLIENT USER: ", dir(ClientsViewSetTests.client_user),
+              ClientsViewSetTests.client_user,
+              ClientsViewSetTests.gender.__dict__
+              )
         response = self.client.post(
-            '/api/clients/', {'user': self.client_user.id}
+            '/api/clients/', {'specialist': ClientsViewSetTests.specialist.id}
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -62,10 +66,6 @@ class ClientsViewSetTests(TestCase):
         self.assertEqual(serializer_class, ClientAddSerializer)
 
     def test_retrieve(self):
-        # Log in the specialist user
-        self.client.login(
-            email='specialist@test.com', password='testpassword'
-        )
         response = self.client.get(f'/api/clients/{self.client_user.id}/')
         serialized_response = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -82,15 +82,9 @@ class ClientsViewSetTests(TestCase):
             'email': self.client_user.email,
             'age': "Возраст не указан",
         }
-        print(serialized_response, expected_data)
         self.assertEqual(response_data, expected_data)
 
     def test_get_queryset(self):
-        # Log in the specialist user
-        self.client.login(
-            email='specialist@test.com', password='testpassword'
-        )
-
         response = self.client.get('/api/clients/')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
