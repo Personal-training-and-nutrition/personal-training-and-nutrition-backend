@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
 from drf_extra_fields.fields import Base64ImageField
+from rest_framework.fields import UUIDField
 from rest_framework.serializers import (CharField, ChoiceField, DateField,
                                         DateTimeField, EmailField, FloatField,
                                         IntegerField, ModelSerializer,
@@ -169,6 +170,7 @@ class DietListSerializer(ModelSerializer):
 
 class ParamsSerializer(ModelSerializer):
     """Сериализатор параметров"""
+    id = UUIDField()
     weight = FloatField(default=None)
     height = IntegerField(default=None)
     waist_size = IntegerField(default=None)
@@ -257,7 +259,7 @@ class CustomUserSerializer(UserSerializer):
         required=False,
         default=None,
         read_only=True,
-        # partial=True
+        partial=True
     )
     gender = ChoiceField(
         required=False,
@@ -272,9 +274,12 @@ class CustomUserSerializer(UserSerializer):
     email = EmailField()
     dob = DateField(required=False, default=None)
     specialist = SpecialistSerializer(
-        required=False,
         many=True,
-        read_only=True)
+        required=False,
+        default=None,
+        read_only=True,
+        partial=True
+    )
     capture = Base64ImageField(required=False, default=None)
 
     class Meta:
@@ -324,8 +329,7 @@ class CustomUserSerializer(UserSerializer):
         instance.save()
         return instance
 
-    @transaction.atomic
-    def update(self, instance, validated_data):
+    def update(self, instance, validated_data, partial=True):
         params_data = self.initial_data.get('params')
         specialist_data = self.initial_data.get('specialist')
         if params_data:
@@ -334,36 +338,41 @@ class CustomUserSerializer(UserSerializer):
                 params_id = params.get('id')
                 if params_id:
                     params_obj = Params.objects.get(id=params_id)
+                    params_obj.weight = params.get("weight", params_obj.weight)
+                    params_obj.height = params.get("height", params_obj.height)
+                    params_obj.waist_size = params.get("waist_size",
+                                                       params_obj.waist_size)
+                    params_obj.save()
+                    instance.params.add(params_obj)
+                else:
+                    params_obj = Params.objects.create(user_id=instance.id)
                     params_obj.weight = params.get("weight")
                     params_obj.height = params.get("height")
                     params_obj.waist_size = params.get("waist_size")
                     params_obj.save()
                     instance.params.add(params_obj)
-                else:
-                    Params.objects.create(
-                        weight=params['weight'],
-                        height=params['height'],
-                        waist_size=params['waist_size'],
-                        user_id=instance.id
-                    )
         if specialist_data:
             instance.specialist.clear()
             for specialist in specialist_data:
                 specialist_id = specialist.get("id")
                 if specialist_id:
                     specialist_obj = Specialists.objects.get(id=specialist_id)
+                    specialist_obj.experience = specialist.get(
+                        "experience", specialist_obj.experience)
+                    specialist_obj.contacts = specialist.get(
+                        "contacts", specialist_obj.contacts)
+                    specialist_obj.about = specialist.get(
+                        "about", specialist_obj.about)
+                    specialist_obj.save()
+                    instance.specialist.add(specialist_obj)
+                else:
+                    specialist_obj = Specialists.objects.create(
+                        user_id=instance.id)
                     specialist_obj.experience = specialist.get("experience")
                     specialist_obj.contacts = specialist.get("contacts")
                     specialist_obj.about = specialist.get("about")
                     specialist_obj.save()
                     instance.specialist.add(specialist_obj)
-                else:
-                    Specialists.objects.create(
-                        experience=specialist['experience'],
-                        contacts=specialist['contacts'],
-                        about=specialist['about'],
-                        user_id=instance.id
-                    )
         instance = super().update(instance, validated_data)
         instance.save()
         return instance

@@ -86,6 +86,16 @@ class CustomUserViewSet(UserViewSet):
     serializer_class = CustomUserSerializer
     permission_classes = settings.PERMISSIONS.user
 
+    # def get_serializer(self, instance=None, data=None, many=False,
+    #                    partial=False):
+    #     """If request is not PUT, allow partial updates."""
+    #     if self.request.method == 'PUT':
+    #         return UserSerializer(instance=instance, data=data, many=many,
+    #                               partial=True)
+    #     else:
+    #         return UserSerializer(instance=instance, data=data, many=many,
+    #                               partial=partial)
+
     def get_queryset(self):
         return User.objects.all()
 
