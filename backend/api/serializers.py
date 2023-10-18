@@ -463,11 +463,10 @@ class ClientAddSerializer(ModelSerializer):
         client, created = User.objects.get_or_create(
             **user_data,
             password=password,
-            params=user_params,
             role=role,
             is_specialist=False,
-            specialist=None,
         )
+        client.params.add(user_params)
         diseases = data.get('diseases')
         exp_diets = data.get('exp_diets')
         notes = data.get('notes')
