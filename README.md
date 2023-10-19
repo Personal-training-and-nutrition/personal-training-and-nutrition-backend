@@ -66,6 +66,7 @@
    SECRET_KEY=любой_секретный_ключ_на_ваш_выбор
    DEBUG=''
    ALLOWED_HOSTS='*' (или,ваши,хосты,через,запятые,без,пробелов)
+   DEVELOPMENT=True (если хотите работать на sqlite, иначе - False)
 
    POSTGRES_USER=
    POSTGRES_PASSWORD=
