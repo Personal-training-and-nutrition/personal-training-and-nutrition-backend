@@ -8,7 +8,7 @@ from rest_framework.test import force_authenticate
 
 import json
 
-from api.serializers import ClientAddSerializer, ClientListSerializer, Gender
+from api.serializers import ClientAddSerializer, ClientListSerializer, Gender, Role
 from api.views import ClientsViewSet, TrainingPlanViewSet, DietPlanViewSet
 from users.models import SpecialistClient
 from workouts.models import TrainingPlan
@@ -31,6 +31,7 @@ class ClientsViewSetTests(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.gender = Gender.objects.create(id=0)
+        cls.role = Role.objects.create(role=0)
         cls.specialist = User.objects.create_user(
             email="specialist@test.com",
             password="testpassword",
@@ -55,43 +56,40 @@ class ClientsViewSetTests(TestCase):
         self.factory = APIRequestFactory()
         cache.clear()
 
-    # def test_perform_create(self):
-    #     response = self.client.post(
-    #         "/api/clients/",
-    #         data={
-    #             "user": {
-    #                 "first_name": "string",
-    #                 "last_name": "string",
-    #                 "middle_name": "string",
-    #                 "role": "0",
-    #                 "email": "user@exa.com",
-    #                 "phone_number": ")74)51815(28+)+",
-    #                 "dob": "2023-10-18",
-    #                 "gender": 0,
-    #                 "params": {
-    #                     "weight": 0,
-    #                     "height": 0,
-    #                     "waist_size": 0
-    #                 },
-    #                 "capture": "string"
-    #             },
-    #             "diseases": "string",
-    #             "exp_diets": "string",
-    #             "exp_trainings": "string",
-    #             "bad_habits": "string",
-    #             "notes": "string",
-    #             "food_preferences": "string"
-    #         },
-    #         content_type="application/json",
-    #         # **self.payload
-    #     )
-    #     print(response.json())
-    #     print(response.headers)
-    #     print(response.request)
-    #     print(response.client)
-    #     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-    #     # Assuming there was one client already
-    #     self.assertEqual(SpecialistClient.objects.count(), 2)
+    def test_api_client_create(self):
+        request = self.factory.post(
+            "/api/clients/",
+            data={
+                "user": {
+                    "first_name": "string",
+                    "last_name": "string",
+                    "middle_name": "string",
+                    "role": "0",
+                    "email": "user@exa.com",
+                    "phone_number": ")74)51815(28+)+",
+                    "dob": "2023-10-18",
+                    "gender": 0,
+                    "params": {
+                        "weight": 0,
+                        "height": 0,
+                        "waist_size": 0
+                    },
+                    "capture": "string"
+                },
+                "diseases": "string",
+                "exp_diets": "string",
+                "exp_trainings": "string",
+                "bad_habits": "string",
+                "notes": "string",
+                "food_preferences": "string"
+            },
+            format='json'
+        )
+        view = ClientsViewSet.as_view({"get": "detail", "post": "create"})
+        force_authenticate(request, user=ClientsViewSetTests.specialist)
+        response = view(request)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(SpecialistClient.objects.count(), 2)
 
     def test_api_diet_plans_create(self):
         request = self.factory.post(
