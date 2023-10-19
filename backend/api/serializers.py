@@ -399,6 +399,7 @@ class ShowUserSerializer(ModelSerializer):
 
 class ClientListSerializer(ModelSerializer):
     """Сериализатор вывода списка клиентов специалиста"""
+    id = ReadOnlyField(source='user.id')
     first_name = ReadOnlyField(source='user.first_name')
     last_name = ReadOnlyField(source='user.last_name')
     age = SerializerMethodField(read_only=True)
@@ -462,11 +463,10 @@ class ClientAddSerializer(ModelSerializer):
         client, created = User.objects.get_or_create(
             **user_data,
             password=password,
-            params=user_params,
             role=role,
             is_specialist=False,
-            specialist=None,
         )
+        client.params.add(user_params)
         diseases = data.get('diseases')
         exp_diets = data.get('exp_diets')
         notes = data.get('notes')
@@ -483,6 +483,15 @@ class ClientAddSerializer(ModelSerializer):
             bad_habits=bad_habits,
             food_preferences=food_preferences,
         )
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        instance.diseases = validated_data.get('diseases')
+        instance.exp_diets = validated_data.get('exp_diets')
+        instance.notes = validated_data.get('notes')
+        instance.exp_trainings = validated_data.get('exp_trainings')
+        instance.bad_habits = validated_data.get('bad_habits')
+        instance.food_preferences = validated_data.get('food_preferences')
 
 
 class ClientProfileSerializer(ModelSerializer):
