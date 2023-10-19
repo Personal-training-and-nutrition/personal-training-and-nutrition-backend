@@ -484,6 +484,15 @@ class ClientAddSerializer(ModelSerializer):
             food_preferences=food_preferences,
         )
 
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        instance.diseases = validated_data.get('diseases')
+        instance.exp_diets = validated_data.get('exp_diets')
+        instance.notes = validated_data.get('notes')
+        instance.exp_trainings = validated_data.get('exp_trainings')
+        instance.bad_habits = validated_data.get('bad_habits')
+        instance.food_preferences = validated_data.get('food_preferences')
+
 
 class ClientProfileSerializer(ModelSerializer):
     """Сериализатор для карточки клиента"""
