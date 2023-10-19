@@ -1,7 +1,7 @@
 import os
 
 from datetime import timedelta
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 from pathlib import Path
 
 # Global constants
@@ -31,14 +31,14 @@ WEEKDAY_CHOICES = (
 )
 
 
-load_dotenv()
+load_dotenv(find_dotenv(raise_error_if_not_found=True))
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.environ['SECRET_KEY']
 
-DEBUG = os.getenv('DEBUG')
-print(os.getenv("ALLOWED_HOSTS"))
+DEBUG = os.environ['DEBUG']
+
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(' ')
 
 # base
