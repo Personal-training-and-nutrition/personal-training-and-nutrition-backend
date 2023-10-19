@@ -1,17 +1,18 @@
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.test import Client, TestCase
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
-from rest_framework.test import APIRequestFactory
-from rest_framework.test import force_authenticate
+from rest_framework.test import APIRequestFactory, force_authenticate
 
 import json
 
-from api.serializers import ClientAddSerializer, ClientListSerializer, Gender, Role
-from api.views import ClientsViewSet, TrainingPlanViewSet, DietPlanViewSet
+from api.serializers import (ClientAddSerializer, ClientListSerializer, Gender,
+                             Role,)
+from api.views import ClientsViewSet, DietPlanViewSet, TrainingPlanViewSet
+from rest_framework_simplejwt.tokens import RefreshToken
 from users.models import SpecialistClient
 from workouts.models import TrainingPlan
+
 from diets.models import DietPlan
 
 User = get_user_model()
