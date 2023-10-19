@@ -1,17 +1,22 @@
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.test import Client, TestCase
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
-from rest_framework.test import APIRequestFactory
-from rest_framework.test import force_authenticate
+from rest_framework.test import APIRequestFactory, force_authenticate
 
 import json
 
-from api.serializers import ClientAddSerializer, ClientListSerializer, Gender, Role
-from api.views import ClientsViewSet, TrainingPlanViewSet, DietPlanViewSet
+from api.serializers import (
+    ClientAddSerializer,
+    ClientListSerializer,
+    Gender,
+    Role,
+)
+from api.views import ClientsViewSet, DietPlanViewSet, TrainingPlanViewSet
+from rest_framework_simplejwt.tokens import RefreshToken
 from users.models import SpecialistClient
 from workouts.models import TrainingPlan
+
 from diets.models import DietPlan
 
 User = get_user_model()
@@ -21,8 +26,8 @@ def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
 
     return {
-        'refresh': str(refresh),
-        'access': str(refresh.access_token),
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
     }
 
 
@@ -37,7 +42,7 @@ class ClientsViewSetTests(TestCase):
             password="testpassword",
             is_superuser=True,
             is_specialist=True,
-            is_staff=True
+            is_staff=True,
         )
         cls.client_user = User.objects.create_user(
             first_name="user_name",
@@ -69,21 +74,17 @@ class ClientsViewSetTests(TestCase):
                     "phone_number": ")74)51815(28+)+",
                     "dob": "2023-10-18",
                     "gender": 0,
-                    "params": {
-                        "weight": 0,
-                        "height": 0,
-                        "waist_size": 0
-                    },
-                    "capture": "string"
+                    "params": {"weight": 0, "height": 0, "waist_size": 0},
+                    "capture": "string",
                 },
                 "diseases": "string",
                 "exp_diets": "string",
                 "exp_trainings": "string",
                 "bad_habits": "string",
                 "notes": "string",
-                "food_preferences": "string"
+                "food_preferences": "string",
             },
-            format='json'
+            format="json",
         )
         view = ClientsViewSet.as_view({"get": "detail", "post": "create"})
         force_authenticate(request, user=ClientsViewSetTests.specialist)
@@ -109,9 +110,9 @@ class ClientsViewSetTests(TestCase):
                         "spec_comment": "string",
                         "user_comment": "string"
                     }
-                ]
+                ],
             },
-            format='json'
+            format="json",
         )
         view = DietPlanViewSet.as_view({"get": "detail", "post": "create"})
         force_authenticate(request, user=ClientsViewSetTests.specialist)
@@ -133,9 +134,9 @@ class ClientsViewSetTests(TestCase):
                         "spec_comment": "string",
                         "user_comment": "string"
                     }
-                ]
+                ],
             },
-            format='json'
+            format="json",
         )
         view = TrainingPlanViewSet.as_view({"get": "detail", "post": "create"})
         force_authenticate(request, user=ClientsViewSetTests.specialist)
@@ -149,8 +150,8 @@ class ClientsViewSetTests(TestCase):
             {
                 "password": "stringwithsomerandoMneSs",
                 "email": "user@ex.com",
-                "re_password": "stringwithsomerandoMneSs"
-            }
+                "re_password": "stringwithsomerandoMneSs",
+            },
         )
         self.assertEqual(response.status_code, 201)
 
