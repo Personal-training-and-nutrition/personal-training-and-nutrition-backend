@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework.fields import UUIDField
 from rest_framework.serializers import (CharField, ChoiceField, DateField,
@@ -378,8 +379,36 @@ class CustomUserSerializer(UserSerializer):
         return instance
 
 
+class ShowUserSerializer(ModelSerializer):
+    """Сериализатор для вывода данных пользователя"""
+    params = ParamsSerializer(required=False, default=None)
+    role = ChoiceField(
+        required=False,
+        choices=Role.SPECIALIST_ROLE_CHOICES,
+        default='0',
+    )
+    capture = CharField(required=False, default=None)
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'first_name',
+            'last_name',
+            'middle_name',
+            'role',
+            'email',
+            'phone_number',
+            'dob',
+            'gender',
+            'params',
+            'capture',
+        )
+
+
 class ClientListSerializer(ModelSerializer):
     """Сериализатор вывода списка клиентов специалиста"""
+    id = ReadOnlyField(source='user.id')
     first_name = ReadOnlyField(source='user.first_name')
     last_name = ReadOnlyField(source='user.last_name')
     age = SerializerMethodField(read_only=True)
@@ -396,10 +425,15 @@ class ClientListSerializer(ModelSerializer):
 
     @extend_schema_field(OpenApiTypes.INT)
     def get_age(self, obj):
-        if not obj.user.dob:
-            return 'Возвраст не указан'
+        dob = obj.user.dob
+        if not dob:
+            return 'Возраст не указан'
         today = datetime.date.today()
-        return today.year - obj.user.dob.year
+        if ((today.month < dob.month)
+            or (today.month == dob.month
+                and today.day < dob.day)):
+            return today.year - dob.year - 1
+        return today.year - dob.year
 
 
 class ClientAddSerializer(ModelSerializer):
@@ -410,38 +444,12 @@ class ClientAddSerializer(ModelSerializer):
     null для незаполненных полей.
     """
     specialist = ReadOnlyField(source='specialist.id')
-    first_name = CharField(required=False, allow_blank=True)
-    last_name = CharField(required=False, allow_blank=True)
-    middle_name = CharField(required=False, allow_blank=True)
-    params = ParamsSerializer(required=False, default=None)
-    phone_number = CharField(required=False, allow_blank=True)
-    gender = ChoiceField(
-        required=False,
-        choices=Gender.GENDER_CHOICES,
-        default='0',
-    )
-    role = ChoiceField(
-        required=False,
-        choices=Role.SPECIALIST_ROLE_CHOICES,
-        default='0',
-    )
-    email = EmailField(required=False)
-    dob = DateField(required=False)
-    capture = Base64ImageField(required=False, default=None)
+    user = ShowUserSerializer()
 
     class Meta:
         model = SpecialistClient
         fields = (
-            'first_name',
-            'last_name',
-            'middle_name',
-            'role',
-            'email',
-            'phone_number',
-            'dob',
-            'gender',
-            'params',
-            'capture',
+            'user',
             'specialist',
             'diseases',
             'exp_diets',
@@ -453,32 +461,21 @@ class ClientAddSerializer(ModelSerializer):
     @transaction.atomic
     def create(self, data):
         password = make_password(settings.STD_CLIENT_PASSWORD)
-        specialist = data.pop('specialist')
-        params = data.get('params')
-        first_name = data.get('first_name')
-        last_name = data.get('last_name')
-        middle_name = data.get('middle_name')
-        email = data.get('email')
-        phone_number = data.get('phone_number')
-        dob = data.get('dob')
+        specialist = data.get('specialist')
+        user_data = data.get('user')
+        params = user_data.pop('params')
+        role = get_object_or_404(Role, role=user_data.pop('role'))
         if params:
             user_params = Params.objects.create(**params)
         else:
             user_params = None
-        user_gender = Gender.objects.get(id=data.get('gender'))
-        client = User.objects.create(
-            first_name=first_name,
-            last_name=last_name,
-            middle_name=middle_name,
+        client, created = User.objects.get_or_create(
+            **user_data,
             password=password,
-            email=email,
-            phone_number=phone_number,
-            dob=dob,
-            params=user_params,
-            gender=user_gender,
+            role=role,
             is_specialist=False,
-            specialist=None,
         )
+        client.params.add(user_params)
         diseases = data.get('diseases')
         exp_diets = data.get('exp_diets')
         notes = data.get('notes')
@@ -495,6 +492,15 @@ class ClientAddSerializer(ModelSerializer):
             bad_habits=bad_habits,
             food_preferences=food_preferences,
         )
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        instance.diseases = validated_data.get('diseases')
+        instance.exp_diets = validated_data.get('exp_diets')
+        instance.notes = validated_data.get('notes')
+        instance.exp_trainings = validated_data.get('exp_trainings')
+        instance.bad_habits = validated_data.get('bad_habits')
+        instance.food_preferences = validated_data.get('food_preferences')
 
 
 class ClientProfileSerializer(ModelSerializer):
@@ -529,10 +535,15 @@ class ClientProfileSerializer(ModelSerializer):
 
     @extend_schema_field(OpenApiTypes.INT)
     def get_age(self, obj):
-        if not obj.user.dob:
-            return 'Возвраст не указан'
+        dob = obj.user.dob
+        if not dob:
+            return 'Возраст не указан'
         today = datetime.date.today()
-        return today.year - obj.user.dob.year
+        if ((today.month < dob.month)
+            or (today.month == dob.month
+                and today.day < dob.day)):
+            return today.year - dob.year - 1
+        return today.year - dob.year
 
     def get_trainings(self, obj):
         queryset = obj.user.user_training_plan.all()

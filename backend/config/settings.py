@@ -14,7 +14,7 @@ PHONE_MIN_LENGTH = 9
 EMAIL_MAX_LENGTH = 50
 EMAIL_MIN_LENGTH = 5
 PASSWORD_MIN_LENGTH = 8
-PASSWORD_MAX_LENGTH = 25
+PASSWORD_MAX_LENGTH = 125
 KKAL_MAX_PER_DAY = 10000
 PROTEIN_MAX_PER_DAY = 500
 CARBO_MAX_PER_DAY = 1000
@@ -58,6 +58,7 @@ INSTALLED_APPS += [
     'rest_framework',
     'django_filters',
     'drf_spectacular',
+    "drf_standardized_errors",
     'djoser',
     'social_django',
     'corsheaders',
@@ -104,12 +105,25 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if os.getenv("DEVELOPMENT") == 'True':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': os.getenv(
+                'DB_ENGINE', default='django.db.backends.postgresql'),
+            'NAME': os.getenv('DB_NAME', default='postgres'),
+            'USER': os.getenv('POSTGRES_USER', default='postgres'),
+            'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='postgres'),
+            'HOST': os.getenv('DB_HOST', default='localhost'),
+            'PORT': os.getenv('DB_PORT', default='5432'),
+        },
+    }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -135,12 +149,16 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication'],
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend'],
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    "DEFAULT_SCHEMA_CLASS": "drf_standardized_errors.openapi.AutoSchema",
+    "EXCEPTION_HANDLER": "drf_standardized_errors.handler.exception_handler",
 }
 
 ###########################
 #  DRF Spectacular
 ###########################
+# with open("../common_errors.md") as f:
+#     description = f.read()
+
 SPECTACULAR_SETTINGS = {
     "TITLE": "WellCoach",
     "VERSION": "0.0.1",
@@ -148,9 +166,30 @@ SPECTACULAR_SETTINGS = {
     "SWAGGER_UI_SETTINGS": {
         "filter": True,
     },
-    "COMPONENT_SPLIT_REQUEST": True
+    "COMPONENT_SPLIT_REQUEST": True,
+    # "DESCRIPTION": description,
+    "ENUM_NAME_OVERRIDES": {
+        "ValidationErrorEnum": "drf_standardized_errors.openapi_serializers.ValidationErrorEnum.values",
+        "ClientErrorEnum": "drf_standardized_errors.openapi_serializers.ClientErrorEnum.values",
+        "ServerErrorEnum": "drf_standardized_errors.openapi_serializers.ServerErrorEnum.values",
+        "ErrorCode401Enum": "drf_standardized_errors.openapi_serializers.ErrorCode401Enum.values",
+        "ErrorCode403Enum": "drf_standardized_errors.openapi_serializers.ErrorCode403Enum.values",
+        "ErrorCode404Enum": "drf_standardized_errors.openapi_serializers.ErrorCode404Enum.values",
+        "ErrorCode405Enum": "drf_standardized_errors.openapi_serializers.ErrorCode405Enum.values",
+        "ErrorCode406Enum": "drf_standardized_errors.openapi_serializers.ErrorCode406Enum.values",
+        "ErrorCode415Enum": "drf_standardized_errors.openapi_serializers.ErrorCode415Enum.values",
+        "ErrorCode429Enum": "drf_standardized_errors.openapi_serializers.ErrorCode429Enum.values",
+        "ErrorCode500Enum": "drf_standardized_errors.openapi_serializers.ErrorCode500Enum.values",
+    },
+    "POSTPROCESSING_HOOKS": ["drf_standardized_errors.openapi_hooks.postprocess_schema_enums"]
 }
+###########################
+#  DRF Standardizer Errors
+###########################
 
+DRF_STANDARDIZED_ERRORS = {
+    "ALLOWED_ERROR_STATUS_CODES": ["400"]
+}
 ###########################
 #  STATIC AND MEDIA
 ###########################
@@ -158,7 +197,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'collected_static'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = '/media'
+MEDIA_ROOT = '/app/media'
 
 #########
 #  Email
