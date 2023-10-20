@@ -16,7 +16,7 @@ from djoser.serializers import UserSerializer
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from users.models import (Education, Institution, Params, SpecialistClient,
-                          Specialists, User,)
+                          Specialists)
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
@@ -446,27 +446,25 @@ class ClientAddSerializer(ModelSerializer):
         if "role" in user_data:
             role_link = user_data.pop("role")
             if (
-                not Role.objects.filter(
-                    role=role_link).exists()
+                sum(
+                    [1 for x, y in SPECIALIST_ROLE_CHOICES if x == role_link]
+                ) == 0
             ):
                 raise ValidationError(
-                    ("Пожалуйста, удостоверьтесь, что база данных содержит "
-                     "объект Роль с указанным кодом"),
+                    ("Пользователь может быть в роли с кодом из списка "
+                     "0, 1 или 2 и никак иначе."),
                     code=status.HTTP_400_BAD_REQUEST
                 )
-            role = Role.objects.get(role=role_link)
+            role = role_link
         if "gender" in user_data:
             gender_link = user_data.pop("gender")
-            if (
-                not Gender.objects.filter(
-                    gender=gender_link).exists()
-            ):
+            if sum([1 for x, y in GENDER_CHOICES if x == gender_link]) == 0:
                 raise ValidationError(
-                    ("Пожалуйста, удостоверьтесь, что база данных содержит "
-                     "объект Роль с указанным кодом"),
+                    ("Пользователь может быть мужчиной (2), женщиной (1) "
+                     "или его пол может быть не указан (0)."),
                     code=status.HTTP_400_BAD_REQUEST
                 )
-            gender = Gender.objects.get(gender=gender_link)
+            gender = gender_link
         if params:
             user_params = Params.objects.create(**params)
         else:
