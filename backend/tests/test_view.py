@@ -13,7 +13,6 @@ from users.models import SpecialistClient
 from workouts.models import TrainingPlan
 
 from diets.models import DietPlan
-from config.settings import GENDER_CHOICES, SPECIALIST_ROLE_CHOICES
 
 User = get_user_model()
 
