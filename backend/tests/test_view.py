@@ -6,14 +6,14 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 
 import json
 
-from api.serializers import (ClientAddSerializer, ClientListSerializer, Gender,
-                             Role,)
+from api.serializers import ClientAddSerializer, ClientListSerializer
 from api.views import ClientsViewSet, DietPlanViewSet, TrainingPlanViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 from users.models import SpecialistClient
 from workouts.models import TrainingPlan
 
 from diets.models import DietPlan
+from config.settings import GENDER_CHOICES, SPECIALIST_ROLE_CHOICES
 
 User = get_user_model()
 
@@ -34,8 +34,6 @@ class ClientsViewSetTests(TestCase):
         cls.specialist = User.objects.create_user(
             email="specialist@test.com",
             password="testpassword",
-            # role=1,
-            # gender=2,
             is_superuser=True,
             is_specialist=True,
             is_staff=True
@@ -75,7 +73,7 @@ class ClientsViewSetTests(TestCase):
                     "email": "user@exa.com",
                     "phone_number": ")74)51815(28+)+",
                     "dob": "2023-10-18",
-                    "gender": 0,
+                    "gender": "0",
                     "params": {
                         "weight": 0,
                         "height": 0,
