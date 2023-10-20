@@ -29,7 +29,16 @@ WEEKDAY_CHOICES = (
     ('6', 'Суббота'),
     ('7', 'Воскресенье'),
 )
-
+SPECIALIST_ROLE_CHOICES = (
+        ('0', 'Client'),
+        ('1', 'Trainer'),
+        ('2', 'Nutritionist'),
+    )
+GENDER_CHOICES = (
+        ('0', 'Absent'),
+        ('1', 'Female'),
+        ('2', 'Male'),
+    )
 
 load_dotenv(find_dotenv())
 

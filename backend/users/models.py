@@ -11,51 +11,7 @@ from django.db.models import (PROTECT, BooleanField, CharField, DateField,
 
 import uuid
 
-
-class Gender(Model):
-
-    GENDER_CHOICES = (
-        ('0', 'Absent'),
-        ('1', 'Female'),
-        ('2', 'Male'),
-    )
-    id = IntegerField(primary_key=True)
-    gender = CharField(
-        max_length=1,
-        choices=GENDER_CHOICES,
-        default='0',
-        verbose_name='Гендер пользователя',
-    )
-
-    class Meta:
-        verbose_name = 'Гендер'
-        verbose_name_plural = 'Гендеры'
-
-    def __str__(self):
-        return self.gender
-
-
-class Role(Model):
-
-    SPECIALIST_ROLE_CHOICES = (
-        ('0', 'Client'),
-        ('1', 'Trainer'),
-        ('2', 'Nutritionist'),
-    )
-
-    role = CharField(
-        max_length=2,
-        default='1',
-        choices=SPECIALIST_ROLE_CHOICES,
-        verbose_name='Роль пользователя',
-    )
-
-    class Meta:
-        verbose_name = 'Роль'
-        verbose_name_plural = 'Роли'
-
-    def __str__(self):
-        return self.role
+from config.settings import GENDER_CHOICES, SPECIALIST_ROLE_CHOICES
 
 
 class Education(Model):
@@ -206,12 +162,11 @@ class User(PermissionsMixin, AbstractBaseUser):
         blank=True,
         help_text='Введите пароль',
     )
-    role = ForeignKey(
-        Role,
-        on_delete=PROTECT,
-        related_name='user_role',
-        null=True,
-        blank=True,
+    role = CharField(
+        max_length=2,
+        default='1',
+        choices=SPECIALIST_ROLE_CHOICES,
+        verbose_name='Роль пользователя',
     )
     phone_number = CharField(
         max_length=settings.PHONE_MAX_LENGTH,
@@ -228,12 +183,11 @@ class User(PermissionsMixin, AbstractBaseUser):
         blank=True,
         verbose_name='Дата рождения',
     )
-    gender = ForeignKey(
-        Gender,
-        on_delete=PROTECT,
-        null=True,
-        blank=True,
-        related_name='user_gender',
+    gender = CharField(
+        max_length=1,
+        choices=GENDER_CHOICES,
+        default='0',
+        verbose_name='Гендер пользователя',
     )
     capture = ImageField(
         'Аватар',

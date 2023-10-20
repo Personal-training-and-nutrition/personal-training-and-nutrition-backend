@@ -2,7 +2,6 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
-from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework.serializers import (CharField, ChoiceField, DateField,
                                         DateTimeField, EmailField, FloatField,
@@ -12,11 +11,12 @@ from rest_framework.serializers import (CharField, ChoiceField, DateField,
 
 import datetime
 
+from config.settings import GENDER_CHOICES, SPECIALIST_ROLE_CHOICES
 from djoser.serializers import UserSerializer
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
-from users.models import (Education, Gender, Institution, Params, Role,
-                          SpecialistClient, Specialists, User,)
+from users.models import (Education, Institution, Params, SpecialistClient,
+                          Specialists, User,)
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
@@ -173,6 +173,7 @@ class ParamsSerializer(ModelSerializer):
     weight = FloatField(default=None)
     height = IntegerField(default=None)
     waist_size = IntegerField(default=None)
+    created_at = DateTimeField(read_only=True)
 
     class Meta:
         model = Params
@@ -181,6 +182,7 @@ class ParamsSerializer(ModelSerializer):
             'weight',
             'height',
             'waist_size',
+            'created_at',
         )
 
 
@@ -225,6 +227,7 @@ class SpecialistSerializer(ModelSerializer):
             'experience',
             'contacts',
             'about',
+            'created_at',
         )
 
 
@@ -258,25 +261,29 @@ class CustomUserSerializer(UserSerializer):
         required=False,
         default=None,
         read_only=True,
-        # partial=True
+        partial=True
     )
     gender = ChoiceField(
         required=False,
-        choices=Gender.GENDER_CHOICES,
+        choices=GENDER_CHOICES,
         default='0',
     )
     role = ChoiceField(
         required=False,
-        choices=Role.SPECIALIST_ROLE_CHOICES,
+        choices=SPECIALIST_ROLE_CHOICES,
         default='0',
     )
     email = EmailField()
     dob = DateField(required=False, default=None)
     specialist = SpecialistSerializer(
-        required=False,
         many=True,
-        read_only=True)
-    capture = Base64ImageField(required=False, default=None)
+        required=False,
+        default=None,
+        read_only=True,
+        partial=True
+    )
+    # when we are ready to work with pictures we'll return the field
+    # capture = Base64ImageField(required=False, default=None)
 
     class Meta:
         model = User
@@ -292,7 +299,6 @@ class CustomUserSerializer(UserSerializer):
             'dob',
             'gender',
             'params',
-            'capture',
             'is_specialist',
             'specialist',
         )
@@ -325,46 +331,25 @@ class CustomUserSerializer(UserSerializer):
         instance.save()
         return instance
 
-    @transaction.atomic
-    def update(self, instance, validated_data):
-        params_data = self.initial_data.get('params')
-        specialist_data = self.initial_data.get('specialist')
+    def update(self, instance, validated_data, partial=True):
+        params_data = self.initial_data.get('params')[0]
+        specialist_data = self.initial_data.get('specialist')[0]
         if params_data:
-            instance.params.clear()
-            for params in params_data:
-                params_id = params.get('id')
-                if params_id:
-                    params_obj = Params.objects.get(id=params_id)
-                    params_obj.weight = params.get("weight")
-                    params_obj.height = params.get("height")
-                    params_obj.waist_size = params.get("waist_size")
-                    params_obj.save()
-                    instance.params.add(params_obj)
-                else:
-                    Params.objects.create(
-                        weight=params['weight'],
-                        height=params['height'],
-                        waist_size=params['waist_size'],
-                        user_id=instance.id
-                    )
+            params_set = instance.params.all()
+            params_obj, created = params_set.get_or_create(
+                weight=params_data.get("weight"),
+                height=params_data.get("height"),
+                waist_size=params_data.get("waist_size"),
+                user=instance
+            )
         if specialist_data:
-            instance.specialist.clear()
-            for specialist in specialist_data:
-                specialist_id = specialist.get("id")
-                if specialist_id:
-                    specialist_obj = Specialists.objects.get(id=specialist_id)
-                    specialist_obj.experience = specialist.get("experience")
-                    specialist_obj.contacts = specialist.get("contacts")
-                    specialist_obj.about = specialist.get("about")
-                    specialist_obj.save()
-                    instance.specialist.add(specialist_obj)
-                else:
-                    Specialists.objects.create(
-                        experience=specialist['experience'],
-                        contacts=specialist['contacts'],
-                        about=specialist['about'],
-                        user_id=instance.id
-                    )
+            specialist_set = instance.specialist.all()
+            specialist_obj, created = specialist_set.get_or_create(
+                experience=specialist_data.get('experience'),
+                contacts=specialist_data.get('contacts'),
+                about=specialist_data.get('about'),
+                user=instance
+            )
         instance = super().update(instance, validated_data)
         instance.save()
         return instance
@@ -375,7 +360,7 @@ class ShowUserSerializer(ModelSerializer):
     params = ParamsSerializer(required=False, default=None)
     role = ChoiceField(
         required=False,
-        choices=Role.SPECIALIST_ROLE_CHOICES,
+        choices=SPECIALIST_ROLE_CHOICES,
         default='0',
     )
     capture = CharField(required=False, default=None)
@@ -455,7 +440,7 @@ class ClientAddSerializer(ModelSerializer):
         specialist = data.get('specialist')
         user_data = data.get('user')
         params = user_data.pop('params')
-        role = get_object_or_404(Role, role=user_data.pop('role'))
+        role = data.get('role')
         if params:
             user_params = Params.objects.create(**params)
         else:
@@ -463,7 +448,7 @@ class ClientAddSerializer(ModelSerializer):
         client, created = User.objects.get_or_create(
             **user_data,
             password=password,
-            role=role,
+            # role=role,
             is_specialist=False,
         )
         client.params.add(user_params)
