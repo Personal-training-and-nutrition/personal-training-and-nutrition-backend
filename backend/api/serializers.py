@@ -17,7 +17,9 @@ import datetime
 from djoser.serializers import UserSerializer
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
-from users.models import (Education, Gender, Institution, Params, Role,
+
+from config.settings import GENDER_CHOICES, SPECIALIST_ROLE_CHOICES
+from users.models import (Education, Institution, Params,
                           SpecialistClient, Specialists, User,)
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
@@ -172,7 +174,7 @@ class DietListSerializer(ModelSerializer):
 
 class ParamsSerializer(ModelSerializer):
     """Сериализатор параметров"""
-    id = UUIDField()
+    id = UUIDField(required=False)
     weight = FloatField(default=None)
     height = IntegerField(default=None)
     waist_size = IntegerField(default=None)
@@ -267,12 +269,12 @@ class CustomUserSerializer(UserSerializer):
     )
     gender = ChoiceField(
         required=False,
-        choices=Gender.GENDER_CHOICES,
+        choices=GENDER_CHOICES,
         default='0',
     )
     role = ChoiceField(
         required=False,
-        choices=Role.SPECIALIST_ROLE_CHOICES,
+        choices=SPECIALIST_ROLE_CHOICES,
         default='0',
     )
     email = EmailField()
@@ -335,34 +337,6 @@ class CustomUserSerializer(UserSerializer):
 
     def update(self, instance, validated_data, partial=True):
         params_data = self.initial_data.get('params')[0]
-        role = instance.role
-        gender = instance.gender
-        if "role" in validated_data:
-            if (
-                not Role.objects.filter(
-                    role=validated_data.get("role")).exists()
-            ):
-                raise ValidationError(
-                    ("Пожалуйста, удостоверьтесь, что база данных содержит "
-                     "объект Роль с указанным кодом"),
-                    code=status.HTTP_400_BAD_REQUEST
-                )
-            else:
-                role = Role.objects.get(role=validated_data.get("role"))
-        if "gender" in validated_data:
-            if (
-                not Gender.objects.filter(
-                    gender=validated_data.get("gender")).exists()
-            ):
-                raise ValidationError(
-                    ("Пожалуйста, удостоверьтесь, что база данных содержит "
-                     "объект Gender с указанным кодом"),
-                    code=status.HTTP_400_BAD_REQUEST
-                )
-            else:
-                gender = Gender.objects.get(
-                    gender=validated_data.get("gender")
-                )
         if params_data:
             params_set = instance.params.all()
             params_obj, created = params_set.get_or_create(
@@ -371,8 +345,6 @@ class CustomUserSerializer(UserSerializer):
                 waist_size=params_data.get("waist_size"),
                 user=instance
             )
-        validated_data["role"] = role
-        validated_data["gender"] = gender
         instance = super().update(instance, validated_data)
         instance.save()
         return instance
@@ -383,7 +355,7 @@ class ShowUserSerializer(ModelSerializer):
     params = ParamsSerializer(required=False, default=None)
     role = ChoiceField(
         required=False,
-        choices=Role.SPECIALIST_ROLE_CHOICES,
+        choices=SPECIALIST_ROLE_CHOICES,
         default='0',
     )
     capture = CharField(required=False, default=None)
@@ -463,7 +435,7 @@ class ClientAddSerializer(ModelSerializer):
         specialist = data.get('specialist')
         user_data = data.get('user')
         params = user_data.pop('params')
-        role = get_object_or_404(Role, role=user_data.pop('role'))
+        role = data.get('role')
         if params:
             user_params = Params.objects.create(**params)
         else:
@@ -471,7 +443,7 @@ class ClientAddSerializer(ModelSerializer):
         client, created = User.objects.get_or_create(
             **user_data,
             password=password,
-            role=role,
+            # role=role,
             is_specialist=False,
         )
         client.params.add(user_params)

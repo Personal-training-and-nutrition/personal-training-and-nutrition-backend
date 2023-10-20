@@ -6,8 +6,7 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 
 import json
 
-from api.serializers import (ClientAddSerializer, ClientListSerializer, Gender,
-                             Role,)
+from api.serializers import (ClientAddSerializer, ClientListSerializer)
 from api.views import ClientsViewSet, DietPlanViewSet, TrainingPlanViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 from users.models import SpecialistClient
@@ -31,11 +30,13 @@ class ClientsViewSetTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.gender = Gender.objects.create(id=0)
-        cls.role = Role.objects.create(role=0)
+        # cls.gender = Gender.objects.create(id=0)
+        # cls.role = Role.objects.create(role=0)
         cls.specialist = User.objects.create_user(
             email="specialist@test.com",
             password="testpassword",
+            # role=1,
+            # gender=2,
             is_superuser=True,
             is_specialist=True,
             is_staff=True
