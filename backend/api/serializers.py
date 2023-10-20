@@ -2,25 +2,21 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
-from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework import status
-from rest_framework.fields import UUIDField
 from rest_framework.serializers import (CharField, ChoiceField, DateField,
                                         DateTimeField, EmailField, FloatField,
                                         IntegerField, ModelSerializer,
                                         ReadOnlyField, Serializer,
-                                        SerializerMethodField, ValidationError)
+                                        SerializerMethodField,)
 
 import datetime
 
+from config.settings import GENDER_CHOICES, SPECIALIST_ROLE_CHOICES
 from djoser.serializers import UserSerializer
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
-
-from config.settings import GENDER_CHOICES, SPECIALIST_ROLE_CHOICES
-from users.models import (Education, Institution, Params,
-                          SpecialistClient, Specialists, User,)
+from users.models import (Education, Institution, Params, SpecialistClient,
+                          Specialists, User,)
 from workouts.models import Training, TrainingPlan, TrainingPlanTraining
 
 from diets.models import DietPlan, DietPlanDiet, Diets
@@ -174,7 +170,6 @@ class DietListSerializer(ModelSerializer):
 
 class ParamsSerializer(ModelSerializer):
     """Сериализатор параметров"""
-    id = UUIDField(required=False)
     weight = FloatField(default=None)
     height = IntegerField(default=None)
     waist_size = IntegerField(default=None)
@@ -232,6 +227,7 @@ class SpecialistSerializer(ModelSerializer):
             'experience',
             'contacts',
             'about',
+            'created_at',
         )
 
 
@@ -337,12 +333,21 @@ class CustomUserSerializer(UserSerializer):
 
     def update(self, instance, validated_data, partial=True):
         params_data = self.initial_data.get('params')[0]
+        specialist_data = self.initial_data.get('specialist')[0]
         if params_data:
             params_set = instance.params.all()
             params_obj, created = params_set.get_or_create(
                 weight=params_data.get("weight"),
                 height=params_data.get("height"),
                 waist_size=params_data.get("waist_size"),
+                user=instance
+            )
+        if specialist_data:
+            specialist_set = instance.specialist.all()
+            specialist_obj, created = specialist_set.get_or_create(
+                experience=specialist_data.get('experience'),
+                contacts=specialist_data.get('contacts'),
+                about=specialist_data.get('about'),
                 user=instance
             )
         instance = super().update(instance, validated_data)

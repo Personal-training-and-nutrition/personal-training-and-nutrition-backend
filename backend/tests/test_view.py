@@ -6,7 +6,7 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 
 import json
 
-from api.serializers import (ClientAddSerializer, ClientListSerializer)
+from api.serializers import ClientAddSerializer, ClientListSerializer
 from api.views import ClientsViewSet, DietPlanViewSet, TrainingPlanViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 from users.models import SpecialistClient

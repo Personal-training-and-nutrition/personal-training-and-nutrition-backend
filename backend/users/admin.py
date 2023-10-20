@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from .models import (Education, Institution, Params,
-                     SpecialistClient, Specialists, User,)
+from .models import (Education, Institution, Params, SpecialistClient,
+                     Specialists, User,)
 
 admin.site.register(Education)
 admin.site.register(Institution)
