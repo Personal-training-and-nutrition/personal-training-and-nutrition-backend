@@ -6,7 +6,8 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 
 import json
 
-from api.serializers import ClientAddSerializer, ClientListSerializer
+from api.serializers import (ClientAddSerializer, ClientListSerializer, Gender,
+                             Role,)
 from api.views import ClientsViewSet, DietPlanViewSet, TrainingPlanViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 from users.models import SpecialistClient
@@ -21,8 +22,8 @@ def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
 
     return {
-        'refresh': str(refresh),
-        'access': str(refresh.access_token),
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
     }
 
 
@@ -30,8 +31,6 @@ class ClientsViewSetTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        # cls.gender = Gender.objects.create(id=0)
-        # cls.role = Role.objects.create(role=0)
         cls.specialist = User.objects.create_user(
             email="specialist@test.com",
             password="testpassword",
@@ -45,6 +44,12 @@ class ClientsViewSetTests(TestCase):
             first_name="user_name",
             last_name="user_surname",
             email="client@test.com",
+            password="testpassword",
+        )
+        cls.another_user = User.objects.create_user(
+            first_name="another_user_name",
+            last_name="another_user_surname",
+            email="just_user@test.com",
             password="testpassword",
         )
         cls.client_obj = SpecialistClient.objects.create(
@@ -85,13 +90,37 @@ class ClientsViewSetTests(TestCase):
                 "notes": "string",
                 "food_preferences": "string"
             },
-            format='json'
+            format="json",
         )
         view = ClientsViewSet.as_view({"get": "detail", "post": "create"})
         force_authenticate(request, user=ClientsViewSetTests.specialist)
         response = view(request)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(SpecialistClient.objects.count(), 2)
+
+    def test_api_client_patch(self):
+        request = self.factory.patch(
+            "/api/clients/1/",
+            data={
+                "user": ClientsViewSetTests.another_user.id,
+                "specialist": ClientsViewSetTests.specialist.id,
+                "diseases": "still alive isn't it a condition in itself?",
+                "exp_diets": "yeah",
+                "exp_trainings": "nope",
+                "bad_habits": "God thank, no!",
+                "notes": "There are definetely going to be some!",
+                "food_preferences": "carnivorous"
+            },
+            format="json",
+        )
+        view = ClientsViewSet.as_view({"patch": "partial_update"})
+        force_authenticate(request, user=ClientsViewSetTests.specialist)
+        response = view(request, pk=1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(SpecialistClient.objects.count(), 1)
+        self.assertTrue(
+            SpecialistClient.objects.filter(exp_diets="yeah").exists()
+        )
 
     def test_api_diet_plans_create(self):
         request = self.factory.post(
@@ -111,9 +140,9 @@ class ClientsViewSetTests(TestCase):
                         "spec_comment": "string",
                         "user_comment": "string"
                     }
-                ]
+                ],
             },
-            format='json'
+            format="json",
         )
         view = DietPlanViewSet.as_view({"get": "detail", "post": "create"})
         force_authenticate(request, user=ClientsViewSetTests.specialist)
@@ -135,9 +164,9 @@ class ClientsViewSetTests(TestCase):
                         "spec_comment": "string",
                         "user_comment": "string"
                     }
-                ]
+                ],
             },
-            format='json'
+            format="json",
         )
         view = TrainingPlanViewSet.as_view({"get": "detail", "post": "create"})
         force_authenticate(request, user=ClientsViewSetTests.specialist)
@@ -151,8 +180,8 @@ class ClientsViewSetTests(TestCase):
             {
                 "password": "stringwithsomerandoMneSs",
                 "email": "user@ex.com",
-                "re_password": "stringwithsomerandoMneSs"
-            }
+                "re_password": "stringwithsomerandoMneSs",
+            },
         )
         self.assertEqual(response.status_code, 201)
 
