@@ -18,7 +18,7 @@ from .serializers import (ClientAddSerializer, ClientListSerializer,
                           ClientProfileSerializer, CustomUserSerializer,
                           DietListSerializer, DietPlanLinkSerializer,
                           DietPlanSerializer, TrainingPlanSerializer,
-                          WorkoutListSerializer,)
+                          UpdateClientSerializer, WorkoutListSerializer,)
 
 User = get_user_model()
 
@@ -139,6 +139,8 @@ class ClientsViewSet(viewsets.ModelViewSet):
         """Список клиентов специалиста и создание нового клиента"""
         if self.action == 'list':
             return ClientListSerializer
+        if self.action == 'partial_update':
+            return UpdateClientSerializer
         return ClientAddSerializer
 
     def retrieve(self, request, pk=None):

@@ -6,12 +6,8 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 
 import json
 
-from api.serializers import (
-    ClientAddSerializer,
-    ClientListSerializer,
-    Gender,
-    Role,
-)
+from api.serializers import (ClientAddSerializer, ClientListSerializer, Gender,
+                             Role,)
 from api.views import ClientsViewSet, DietPlanViewSet, TrainingPlanViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 from users.models import SpecialistClient
@@ -48,6 +44,12 @@ class ClientsViewSetTests(TestCase):
             first_name="user_name",
             last_name="user_surname",
             email="client@test.com",
+            password="testpassword",
+        )
+        cls.another_user = User.objects.create_user(
+            first_name="another_user_name",
+            last_name="another_user_surname",
+            email="just_user@test.com",
             password="testpassword",
         )
         cls.client_obj = SpecialistClient.objects.create(
@@ -93,40 +95,28 @@ class ClientsViewSetTests(TestCase):
         self.assertEqual(SpecialistClient.objects.count(), 2)
 
     def test_api_client_patch(self):
-        # for roles and genders we need some check to verify such an option
-        # alreade observed in db. If not - we need clear error message about
         request = self.factory.patch(
             "/api/clients/1/",
             data={
-                "user": {
-                    "first_name": "User_proper_name",
-                    "last_name": "User_proper_surname",
-                    "middle_name": "kakoytovich",
-                    "role": "0",
-                    "email": "my_proper_name@ex.com",
-                    "phone_number": "+74448231183",
-                    "dob": "1983-02-18",
-                    "gender": 0,
-                    "params": {"weight": 59, "height": 174, "waist_size": 64},
-                    "capture": "string",
-                },
-                "diseases": "some dire but not lethal condition",
-                "exp_diets": "any sorts already",
-                "exp_trainings": "light workouts",
-                "bad_habits": "drinking",
-                "notes": "First note goes here.",
-                "food_preferences": "spicy",
+                "user": ClientsViewSetTests.another_user.id,
+                "specialist": ClientsViewSetTests.specialist.id,
+                "diseases": "still alive isn't it a condition in itself?",
+                "exp_diets": "yeah",
+                "exp_trainings": "nope",
+                "bad_habits": "God thank, no!",
+                "notes": "There are definetely going to be some!",
+                "food_preferences": "carnivorous"
             },
             format="json",
         )
-        view = ClientsViewSet.as_view({"patch":"partial_update"})
+        view = ClientsViewSet.as_view({"patch": "partial_update"})
         force_authenticate(request, user=ClientsViewSetTests.specialist)
         response = view(request, pk=1)
-        print(response.data)
-        self.assertEqual(response.status_code, status.HTTP_205_RESET_CONTENT)
-        self.assertEqual(SpecialistClient.objects.count(), 2)
-        self.assertTrue(SpecialistClient.objects.filter(
-            user__first_name="User_proper_name").exists())
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(SpecialistClient.objects.count(), 1)
+        self.assertTrue(
+            SpecialistClient.objects.filter(exp_diets="yeah").exists()
+        )
 
     def test_api_diet_plans_create(self):
         request = self.factory.post(

@@ -2,13 +2,12 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
-from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework.serializers import (CharField, ChoiceField, DateField,
-                                        DateTimeField, EmailField, FloatField,
-                                        IntegerField, ModelSerializer,
-                                        ReadOnlyField, Serializer,
-                                        SerializerMethodField,)
+from rest_framework import status
+from rest_framework.serializers import (
+    CharField, ChoiceField, DateField, DateTimeField, EmailField, FloatField,
+    IntegerField, ModelSerializer, ReadOnlyField, Serializer,
+    SerializerMethodField, ValidationError,)
 
 import datetime
 
@@ -399,7 +398,7 @@ class ShowUserSerializer(ModelSerializer):
 
 class ClientListSerializer(ModelSerializer):
     """Сериализатор вывода списка клиентов специалиста"""
-    id = ReadOnlyField(source='user.id')
+    client_id = ReadOnlyField(source='user.id')
     first_name = ReadOnlyField(source='user.first_name')
     last_name = ReadOnlyField(source='user.last_name')
     age = SerializerMethodField(read_only=True)
@@ -408,6 +407,7 @@ class ClientListSerializer(ModelSerializer):
         model = SpecialistClient
         fields = (
             'id',
+            'client_id',
             'first_name',
             'last_name',
             'notes',
@@ -455,7 +455,32 @@ class ClientAddSerializer(ModelSerializer):
         specialist = data.get('specialist')
         user_data = data.get('user')
         params = user_data.pop('params')
-        role = get_object_or_404(Role, role=user_data.pop('role'))
+        role = None
+        gender = None
+        if "role" in user_data:
+            role_link = user_data.pop("role")
+            if (
+                not Role.objects.filter(
+                    role=role_link).exists()
+            ):
+                raise ValidationError(
+                    ("Пожалуйста, удостоверьтесь, что база данных содержит "
+                     "объект Роль с указанным кодом"),
+                    code=status.HTTP_400_BAD_REQUEST
+                )
+            role = Role.objects.get(role=role_link)
+        if "gender" in user_data:
+            gender_link = user_data.pop("gender")
+            if (
+                not Gender.objects.filter(
+                    gender=gender_link).exists()
+            ):
+                raise ValidationError(
+                    ("Пожалуйста, удостоверьтесь, что база данных содержит "
+                     "объект Роль с указанным кодом"),
+                    code=status.HTTP_400_BAD_REQUEST
+                )
+            gender = Gender.objects.get(gender=gender_link)
         if params:
             user_params = Params.objects.create(**params)
         else:
@@ -464,6 +489,7 @@ class ClientAddSerializer(ModelSerializer):
             **user_data,
             password=password,
             role=role,
+            gender=gender,
             is_specialist=False,
         )
         client.params.add(user_params)
@@ -484,26 +510,42 @@ class ClientAddSerializer(ModelSerializer):
             food_preferences=food_preferences,
         )
 
-    @transaction.atomic
-    def update(self, instance, validated_data):
-        instance.diseases = validated_data.get('diseases', instance.deseases)
-        instance.exp_diets = validated_data.get(
-            'exp_diets', instance.exp_diets
-        )
-        instance.notes = validated_data.get('notes', instance.notes)
-        instance.exp_trainings = validated_data.get(
-            'exp_trainings', instance.exp_trainings
-        )
-        instance.bad_habits = validated_data.get(
-            'bad_habits', instance.bad_habits
-        )
-        instance.food_preferences = validated_data.get(
-            'food_preferences', instance.food_preferences
-        )
 
-        if "user" in validated_data:
-            user_data = validated_data.pop("user")
-            
+class UpdateClientSerializer(ModelSerializer):
+    class Meta:
+        model = SpecialistClient
+        fields = [
+            'user',
+            'specialist',
+            'diseases',
+            'exp_diets',
+            'exp_trainings',
+            'bad_habits',
+            'notes',
+            'food_preferences'
+        ]
+
+    # @transaction.atomic
+    # def update(self, instance, validated_data):
+    #     instance.diseases = validated_data.get('diseases', instance.diseases)
+    #     instance.exp_diets = validated_data.get(
+    #         'exp_diets', instance.exp_diets
+    #     )
+    #     instance.notes = validated_data.get('notes', instance.notes)
+    #     instance.exp_trainings = validated_data.get(
+    #         'exp_trainings', instance.exp_trainings
+    #     )
+    #     instance.bad_habits = validated_data.get(
+    #         'bad_habits', instance.bad_habits
+    #     )
+    #     instance.food_preferences = validated_data.get(
+    #         'food_preferences', instance.food_preferences
+    #     )
+
+    #     if "user" in validated_data:
+    #         user_data = validated_data.pop("user")
+    #     instance.save()
+    #     return instance
 
 
 class ClientProfileSerializer(ModelSerializer):
