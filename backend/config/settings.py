@@ -14,7 +14,7 @@ PHONE_MIN_LENGTH = 9
 EMAIL_MAX_LENGTH = 50
 EMAIL_MIN_LENGTH = 5
 PASSWORD_MIN_LENGTH = 8
-PASSWORD_MAX_LENGTH = 25
+PASSWORD_MAX_LENGTH = 125
 KKAL_MAX_PER_DAY = 10000
 PROTEIN_MAX_PER_DAY = 500
 CARBO_MAX_PER_DAY = 1000
@@ -29,7 +29,16 @@ WEEKDAY_CHOICES = (
     ('6', 'Суббота'),
     ('7', 'Воскресенье'),
 )
-
+SPECIALIST_ROLE_CHOICES = (
+        ('0', 'Client'),
+        ('1', 'Trainer'),
+        ('2', 'Nutritionist'),
+    )
+GENDER_CHOICES = (
+        ('0', 'Absent'),
+        ('1', 'Female'),
+        ('2', 'Male'),
+    )
 
 load_dotenv(find_dotenv())
 

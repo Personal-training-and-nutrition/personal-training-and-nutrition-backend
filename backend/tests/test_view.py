@@ -31,14 +31,14 @@ class ClientsViewSetTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.gender = Gender.objects.create(id=0)
-        cls.role = Role.objects.create(role=0)
         cls.specialist = User.objects.create_user(
             email="specialist@test.com",
             password="testpassword",
+            # role=1,
+            # gender=2,
             is_superuser=True,
             is_specialist=True,
-            is_staff=True,
+            is_staff=True
         )
         cls.client_user = User.objects.create_user(
             first_name="user_name",
@@ -76,15 +76,19 @@ class ClientsViewSetTests(TestCase):
                     "phone_number": ")74)51815(28+)+",
                     "dob": "2023-10-18",
                     "gender": 0,
-                    "params": {"weight": 0, "height": 0, "waist_size": 0},
-                    "capture": "string",
+                    "params": {
+                        "weight": 0,
+                        "height": 0,
+                        "waist_size": 0
+                    },
+                    "capture": "string"
                 },
                 "diseases": "string",
                 "exp_diets": "string",
                 "exp_trainings": "string",
                 "bad_habits": "string",
                 "notes": "string",
-                "food_preferences": "string",
+                "food_preferences": "string"
             },
             format="json",
         )
