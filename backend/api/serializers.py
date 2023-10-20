@@ -4,12 +4,13 @@ from django.contrib.auth.hashers import make_password
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
+from rest_framework import status
 from rest_framework.fields import UUIDField
 from rest_framework.serializers import (CharField, ChoiceField, DateField,
                                         DateTimeField, EmailField, FloatField,
                                         IntegerField, ModelSerializer,
                                         ReadOnlyField, Serializer,
-                                        SerializerMethodField,)
+                                        SerializerMethodField, ValidationError)
 
 import datetime
 
@@ -175,6 +176,7 @@ class ParamsSerializer(ModelSerializer):
     weight = FloatField(default=None)
     height = IntegerField(default=None)
     waist_size = IntegerField(default=None)
+    created_at = DateTimeField(read_only=True)
 
     class Meta:
         model = Params
@@ -183,6 +185,7 @@ class ParamsSerializer(ModelSerializer):
             'weight',
             'height',
             'waist_size',
+            'created_at',
         )
 
 
@@ -281,7 +284,8 @@ class CustomUserSerializer(UserSerializer):
         read_only=True,
         partial=True
     )
-    capture = Base64ImageField(required=False, default=None)
+    # when we are ready to work with pictures we'll return the field
+    # capture = Base64ImageField(required=False, default=None)
 
     class Meta:
         model = User
@@ -297,7 +301,6 @@ class CustomUserSerializer(UserSerializer):
             'dob',
             'gender',
             'params',
-            'capture',
             'is_specialist',
             'specialist',
         )
@@ -331,49 +334,45 @@ class CustomUserSerializer(UserSerializer):
         return instance
 
     def update(self, instance, validated_data, partial=True):
-        params_data = self.initial_data.get('params')
-        specialist_data = self.initial_data.get('specialist')
+        params_data = self.initial_data.get('params')[0]
+        role = instance.role
+        gender = instance.gender
+        if "role" in validated_data:
+            if (
+                not Role.objects.filter(
+                    role=validated_data.get("role")).exists()
+            ):
+                raise ValidationError(
+                    ("Пожалуйста, удостоверьтесь, что база данных содержит "
+                     "объект Роль с указанным кодом"),
+                    code=status.HTTP_400_BAD_REQUEST
+                )
+            else:
+                role = Role.objects.get(role=validated_data.get("role"))
+        if "gender" in validated_data:
+            if (
+                not Gender.objects.filter(
+                    gender=validated_data.get("gender")).exists()
+            ):
+                raise ValidationError(
+                    ("Пожалуйста, удостоверьтесь, что база данных содержит "
+                     "объект Gender с указанным кодом"),
+                    code=status.HTTP_400_BAD_REQUEST
+                )
+            else:
+                gender = Gender.objects.get(
+                    gender=validated_data.get("gender")
+                )
         if params_data:
-            instance.params.clear()
-            for params in params_data:
-                params_id = params.get('id')
-                if params_id:
-                    params_obj = Params.objects.get(id=params_id)
-                    params_obj.weight = params.get("weight", params_obj.weight)
-                    params_obj.height = params.get("height", params_obj.height)
-                    params_obj.waist_size = params.get("waist_size",
-                                                       params_obj.waist_size)
-                    params_obj.save()
-                    instance.params.add(params_obj)
-                else:
-                    params_obj = Params.objects.create(user_id=instance.id)
-                    params_obj.weight = params.get("weight")
-                    params_obj.height = params.get("height")
-                    params_obj.waist_size = params.get("waist_size")
-                    params_obj.save()
-                    instance.params.add(params_obj)
-        if specialist_data:
-            instance.specialist.clear()
-            for specialist in specialist_data:
-                specialist_id = specialist.get("id")
-                if specialist_id:
-                    specialist_obj = Specialists.objects.get(id=specialist_id)
-                    specialist_obj.experience = specialist.get(
-                        "experience", specialist_obj.experience)
-                    specialist_obj.contacts = specialist.get(
-                        "contacts", specialist_obj.contacts)
-                    specialist_obj.about = specialist.get(
-                        "about", specialist_obj.about)
-                    specialist_obj.save()
-                    instance.specialist.add(specialist_obj)
-                else:
-                    specialist_obj = Specialists.objects.create(
-                        user_id=instance.id)
-                    specialist_obj.experience = specialist.get("experience")
-                    specialist_obj.contacts = specialist.get("contacts")
-                    specialist_obj.about = specialist.get("about")
-                    specialist_obj.save()
-                    instance.specialist.add(specialist_obj)
+            params_set = instance.params.all()
+            params_obj, created = params_set.get_or_create(
+                weight=params_data.get("weight"),
+                height=params_data.get("height"),
+                waist_size=params_data.get("waist_size"),
+                user=instance
+            )
+        validated_data["role"] = role
+        validated_data["gender"] = gender
         instance = super().update(instance, validated_data)
         instance.save()
         return instance
