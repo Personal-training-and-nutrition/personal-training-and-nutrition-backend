@@ -43,8 +43,13 @@ jobs:
         POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
         DB_HOST: ${{ secrets.DB_HOST }}
         DB_PORT: ${{ secrets.DB_PORT }}
+        SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+        DJANGO_SETTINGS_MODULE: config.settings
+        DEBUG: 1
+        ALLOWED_HOSTS: "*"
       run: |
         python -m flake8 backend/
+        python manage.py test
 
   build_backend_and_push_to_docker_hub:
     name: Push backend Docker image to DockerHub
