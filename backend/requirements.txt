@@ -35,4 +35,7 @@ django-rest-framework-social-oauth2==1.1.0
 django-oauth-toolkit==2.3.0
 djangorestframework>=3.10
 django-cors-headers==4.2.0
+psycopg2-binary==2.9.9
+gunicorn==20.1.0
 drf-extra-fields==3.7.0
+drf-standardized-errors==0.12.5

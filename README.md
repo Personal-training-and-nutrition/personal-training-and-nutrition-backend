@@ -66,6 +66,13 @@
    SECRET_KEY=любой_секретный_ключ_на_ваш_выбор
    DEBUG=''
    ALLOWED_HOSTS='*' (или,ваши,хосты,через,запятые,без,пробелов)
+   DEVELOPMENT=True (если хотите работать на sqlite, иначе - False)
+
+   POSTGRES_USER=
+   POSTGRES_PASSWORD=
+   POSTGRES_DB=
+   DB_HOST=
+   DB_PORT=
 
    SOCIAL_AUTH_MAILRU_KEY=
    SOCIAL_AUTH_MAILRU_SECRET=
@@ -73,6 +80,9 @@
    SOCIAL_AUTH_VK_OAUTH2_SECRET=
    SOCIAL_AUTH_YANDEX_KEY=
    SOCIAL_AUTH_YANDEX_SECRET=
+
+   EMAIL_HOST_USER=
+   EMAIL_HOST_PASSWORD=
    ```
 
 7. Выполнить миграции на уровне проекта из директории `/backend/`
