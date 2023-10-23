@@ -510,6 +510,12 @@ class ClientAddSerializer(ModelSerializer):
             food_preferences=food_preferences,
         )
 
+    def to_representation(self, obj):
+        params_data = obj.user.params.first()
+        ret = super().to_representation(obj)
+        ret["user"]["params"] = ParamsSerializer(params_data).data
+        return ret
+
 
 class UpdateClientSerializer(ModelSerializer):
     class Meta:
@@ -534,7 +540,7 @@ class ClientProfileSerializer(ModelSerializer):
     age = SerializerMethodField()
     phone_number = ReadOnlyField(source="user.phone_number")
     email = ReadOnlyField(source="user.email")
-    params = ParamsSerializer(source="user.params")
+    params = ParamsSerializer(source="user.params", many=True)
     trainings = SerializerMethodField(required=False)
     diets = SerializerMethodField(required=False)
 
