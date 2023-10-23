@@ -294,7 +294,6 @@ class CustomUserSerializer(UserSerializer):
             "first_name",
             "last_name",
             "middle_name",
-            "password",
             "role",
             "email",
             "phone_number",
@@ -341,24 +340,26 @@ class CustomUserSerializer(UserSerializer):
         return instance
 
     def update(self, instance, validated_data, partial=True):
-        params_data = self.initial_data.get("params")[0]
-        specialist_data = self.initial_data.get("specialist")[0]
-        if params_data:
-            params_set = instance.params.all()
-            params_obj, created = params_set.get_or_create(
-                weight=params_data.get("weight"),
-                height=params_data.get("height"),
-                waist_size=params_data.get("waist_size"),
-                user=instance,
-            )
-        if specialist_data:
-            specialist_set = instance.specialist.all()
-            specialist_obj, created = specialist_set.get_or_create(
-                experience=specialist_data.get("experience"),
-                contacts=specialist_data.get("contacts"),
-                about=specialist_data.get("about"),
-                user=instance,
-            )
+        if self.initial_data.get("params"):
+            params_data = self.initial_data.get("params")[0]
+            if params_data:
+                params_set = instance.params.all()
+                params_obj, created = params_set.get_or_create(
+                    weight=params_data.get("weight"),
+                    height=params_data.get("height"),
+                    waist_size=params_data.get("waist_size"),
+                    user=instance,
+                )
+        if self.initial_data.get("specialist"):
+            specialist_data = self.initial_data.get("specialist")[0]
+            if specialist_data:
+                specialist_set = instance.specialist.all()
+                specialist_obj, created = specialist_set.get_or_create(
+                    experience=specialist_data.get("experience"),
+                    contacts=specialist_data.get("contacts"),
+                    about=specialist_data.get("about"),
+                    user=instance,
+                )
         instance = super().update(instance, validated_data)
         instance.save()
         return instance
