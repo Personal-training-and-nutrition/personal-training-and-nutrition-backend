@@ -9,7 +9,7 @@ import json
 from api.serializers import ClientAddSerializer, ClientListSerializer
 from api.views import ClientsViewSet, DietPlanViewSet, TrainingPlanViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
-from users.models import SpecialistClient, Params
+from users.models import Params, SpecialistClient
 from workouts.models import TrainingPlan
 
 from diets.models import DietPlan
