@@ -258,10 +258,6 @@ class Params(Model):
         auto_now_add=True,
         verbose_name='Дата создания',
     )
-    updated_at = DateTimeField(
-        auto_now=True,
-        verbose_name='Дата обновления',
-    )
 
     class Meta:
         verbose_name = 'Параметр'
