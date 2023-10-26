@@ -576,7 +576,7 @@ class ClientProfileSerializer(ModelSerializer):
         return DietPlanSerializer(queryset, many=True).data
 
     def to_representation(self, obj):
-        params_data = obj.user.params.all()
+        params_data = obj.user.params.first()
         ret = super().to_representation(obj)
-        ret["user"]["params"] = ParamsSerializer(params_data, many=True).data
+        ret["user"]["params"] = ParamsSerializer(params_data).data
         return ret
