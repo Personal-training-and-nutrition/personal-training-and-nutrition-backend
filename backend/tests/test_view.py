@@ -9,7 +9,7 @@ import json
 from api.serializers import ClientAddSerializer, ClientListSerializer
 from api.views import ClientsViewSet, DietPlanViewSet, TrainingPlanViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
-from users.models import SpecialistClient
+from users.models import Params, SpecialistClient
 from workouts.models import TrainingPlan
 
 from diets.models import DietPlan
@@ -52,6 +52,12 @@ class ClientsViewSetTests(TestCase):
         cls.client_obj = SpecialistClient.objects.create(
             specialist=ClientsViewSetTests.specialist,
             user=ClientsViewSetTests.client_user,
+        )
+        cls.pars = Params.objects.create(
+            weight=105.3,
+            waist_size=94,
+            height=158,
+            user=ClientsViewSetTests.client_user
         )
 
     def setUp(self):
@@ -198,7 +204,7 @@ class ClientsViewSetTests(TestCase):
         self.assertEqual(serializer_class, ClientAddSerializer)
 
     def test_retrieve(self):
-        response = self.client.get(f"/api/clients/{self.client_user.id}/")
+        response = self.client.get(f"/api/clients/{self.client_obj.id}/")
         serialized_response = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -207,12 +213,22 @@ class ClientsViewSetTests(TestCase):
             "last_name": serialized_response.get("last_name"),
             "email": serialized_response.get("email"),
             "age": serialized_response.get("age"),
+            "params": {
+                "weight": serialized_response["params"][0]["weight"],
+                "waist_size": serialized_response["params"][0]["waist_size"],
+                "height": serialized_response["params"][0]["height"],
+            }
         }
         expected_data = {
             "first_name": self.client_user.first_name,
             "last_name": self.client_user.last_name,
             "email": self.client_user.email,
             "age": "Возраст не указан",
+            "params": {
+                "weight": 105.3,
+                "waist_size": 94,
+                "height": 158,
+            }
         }
         self.assertEqual(response_data, expected_data)
 

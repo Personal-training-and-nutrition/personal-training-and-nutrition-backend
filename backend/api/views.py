@@ -146,7 +146,7 @@ class ClientsViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, pk=None):
         """Получения карточки клиента"""
         user = get_object_or_404(SpecialistClient,
-                                 user=pk,
+                                 id=pk,
                                  specialist=request.user)
         serializer = ClientProfileSerializer(user)
         profile_data = serializer.data

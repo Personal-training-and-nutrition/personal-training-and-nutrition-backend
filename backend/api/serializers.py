@@ -510,14 +510,11 @@ class ClientAddSerializer(ModelSerializer):
             food_preferences=food_preferences,
         )
 
-    @transaction.atomic
-    def update(self, instance, validated_data):
-        instance.diseases = validated_data.get("diseases")
-        instance.exp_diets = validated_data.get("exp_diets")
-        instance.notes = validated_data.get("notes")
-        instance.exp_trainings = validated_data.get("exp_trainings")
-        instance.bad_habits = validated_data.get("bad_habits")
-        instance.food_preferences = validated_data.get("food_preferences")
+    def to_representation(self, obj):
+        params_data = obj.user.params.first()
+        ret = super().to_representation(obj)
+        ret["user"]["params"] = ParamsSerializer(params_data).data
+        return ret
 
 
 class UpdateClientSerializer(ModelSerializer):
@@ -543,7 +540,7 @@ class ClientProfileSerializer(ModelSerializer):
     age = SerializerMethodField()
     phone_number = ReadOnlyField(source="user.phone_number")
     email = ReadOnlyField(source="user.email")
-    params = ParamsSerializer(source="user.params")
+    params = ParamsSerializer(source="user.params", many=True)
     trainings = SerializerMethodField(required=False)
     diets = SerializerMethodField(required=False)
 
