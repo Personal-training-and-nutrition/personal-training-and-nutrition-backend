@@ -208,15 +208,16 @@ class ClientsViewSetTests(TestCase):
         serialized_response = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        params_data = serialized_response["user"]["params"]
         response_data = {
-            "first_name": serialized_response.get("first_name"),
-            "last_name": serialized_response.get("last_name"),
-            "email": serialized_response.get("email"),
+            "first_name": serialized_response["user"]["first_name"],
+            "last_name": serialized_response["user"]["last_name"],
+            "email": serialized_response["user"]["email"],
             "age": serialized_response.get("age"),
             "params": {
-                "weight": serialized_response["params"][0]["weight"],
-                "waist_size": serialized_response["params"][0]["waist_size"],
-                "height": serialized_response["params"][0]["height"],
+                "weight": params_data["weight"],
+                "waist_size": params_data["waist_size"],
+                "height": params_data["height"],
             }
         }
         expected_data = {

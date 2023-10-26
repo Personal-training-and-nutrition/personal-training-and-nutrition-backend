@@ -535,24 +535,16 @@ class UpdateClientSerializer(ModelSerializer):
 class ClientProfileSerializer(ModelSerializer):
     """Сериализатор для карточки клиента"""
 
-    first_name = ReadOnlyField(source="user.first_name")
-    last_name = ReadOnlyField(source="user.last_name")
     age = SerializerMethodField()
-    phone_number = ReadOnlyField(source="user.phone_number")
-    email = ReadOnlyField(source="user.email")
-    params = ParamsSerializer(source="user.params", many=True)
+    user = ShowUserSerializer()
     trainings = SerializerMethodField(required=False)
     diets = SerializerMethodField(required=False)
 
     class Meta:
         model = SpecialistClient
         fields = (
-            "first_name",
-            "last_name",
-            "phone_number",
-            "email",
             "age",
-            "params",
+            "user",
             "diseases",
             "exp_diets",
             "exp_trainings",
@@ -582,3 +574,9 @@ class ClientProfileSerializer(ModelSerializer):
     def get_diets(self, obj):
         queryset = obj.user.diet_plan_user.all()
         return DietPlanSerializer(queryset, many=True).data
+
+    def to_representation(self, obj):
+        params_data = obj.user.params.first()
+        ret = super().to_representation(obj)
+        ret["user"]["params"] = ParamsSerializer(params_data).data
+        return ret
