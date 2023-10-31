@@ -567,12 +567,14 @@ class ClientProfileSerializer(ModelSerializer):
             return today.year - dob.year - 1
         return today.year - dob.year
 
+    @extend_schema_field(field=TrainingPlanSerializer)
     def get_trainings(self, obj):
-        queryset = obj.user.user_training_plan.all()
+        queryset = obj.user.user_training_plan.filter(user=obj.user)
         return TrainingPlanSerializer(queryset, many=True).data
 
+    @extend_schema_field(field=DietPlanSerializer)
     def get_diets(self, obj):
-        queryset = obj.user.diet_plan_user.all()
+        queryset = obj.user.diet_plan_user.filter(user=obj.user)
         return DietPlanSerializer(queryset, many=True).data
 
     def to_representation(self, obj):
