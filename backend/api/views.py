@@ -20,6 +20,8 @@ from .serializers import (ClientAddSerializer, ClientListSerializer,
                           DietPlanSerializer, TrainingPlanSerializer,
                           UpdateClientSerializer, WorkoutListSerializer,)
 
+from drf_spectacular.utils import extend_schema
+
 User = get_user_model()
 
 
@@ -143,12 +145,18 @@ class ClientsViewSet(viewsets.ModelViewSet):
             return UpdateClientSerializer
         return ClientAddSerializer
 
+    @extend_schema(
+        responses={
+            200: ClientProfileSerializer,
+        },
+    )
     def retrieve(self, request, pk=None):
         """Получения карточки клиента"""
         user = get_object_or_404(SpecialistClient,
                                  id=pk,
                                  specialist=request.user)
-        serializer = ClientProfileSerializer(user)
+        serializer = ClientProfileSerializer(
+            user, context={'request': request})
         profile_data = serializer.data
         return Response(profile_data, status=status.HTTP_200_OK)
 

@@ -59,6 +59,16 @@ class ClientsViewSetTests(TestCase):
             height=158,
             user=ClientsViewSetTests.client_user
         )
+        cls.first_training_plan = TrainingPlan.objects.create(
+            specialist=ClientsViewSetTests.specialist,
+            user=ClientsViewSetTests.client_user,
+            name="first plan, obviously"
+        )
+        cls.second_training_plan = TrainingPlan.objects.create(
+            specialist=ClientsViewSetTests.specialist,
+            user=ClientsViewSetTests.another_user,
+            name="second plan"
+        )
 
     def setUp(self):
         self.client = Client()
@@ -174,7 +184,7 @@ class ClientsViewSetTests(TestCase):
         view = TrainingPlanViewSet.as_view({"get": "detail", "post": "create"})
         force_authenticate(request, user=ClientsViewSetTests.specialist)
         response = view(request)
-        self.assertEqual(TrainingPlan.objects.count(), 1)
+        self.assertEqual(TrainingPlan.objects.count(), 3)
         self.assertEqual(response.status_code, 201)
 
     def test_api_users_create(self):
@@ -218,7 +228,8 @@ class ClientsViewSetTests(TestCase):
                 "weight": params_data["weight"],
                 "waist_size": params_data["waist_size"],
                 "height": params_data["height"],
-            }
+            },
+            "training_name": serialized_response["trainings"][0]["name"],
         }
         expected_data = {
             "first_name": self.client_user.first_name,
@@ -229,7 +240,8 @@ class ClientsViewSetTests(TestCase):
                 "weight": 105.3,
                 "waist_size": 94,
                 "height": 158,
-            }
+            },
+            "training_name": ClientsViewSetTests.first_training_plan.name,
         }
         self.assertEqual(response_data, expected_data)
 
