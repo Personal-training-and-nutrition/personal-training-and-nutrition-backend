@@ -8,6 +8,7 @@ from rest_framework.response import Response
 
 from djoser.conf import settings
 from djoser.views import UserViewSet
+from drf_spectacular.utils import extend_schema
 from users.models import SpecialistClient
 from workouts.models import TrainingPlan
 
@@ -19,8 +20,6 @@ from .serializers import (ClientAddSerializer, ClientListSerializer,
                           DietListSerializer, DietPlanLinkSerializer,
                           DietPlanSerializer, TrainingPlanSerializer,
                           UpdateClientSerializer, WorkoutListSerializer,)
-
-from drf_spectacular.utils import extend_schema
 
 User = get_user_model()
 
