@@ -1,20 +1,23 @@
 from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from djoser.conf import settings
 from djoser.views import UserViewSet
 from drf_spectacular.utils import extend_schema
+from api.filters import DietPlanFilter, TrainingPlanFilter
 from users.models import SpecialistClient
 from workouts.models import TrainingPlan
 
 from diets.models import DietPlan
 
-from .permissions import ClientOrAdmin, SpecialistOrAdmin
+from .permissions import (
+    ClientOrAdmin, IsCurUserOrTheirSpecialistPermission, SpecialistOrAdmin)
 from .serializers import (ClientAddSerializer, ClientListSerializer,
                           ClientProfileSerializer, CustomUserSerializer,
                           DietListSerializer, DietPlanLinkSerializer,
@@ -28,7 +31,10 @@ class TrainingPlanViewSet(viewsets.ModelViewSet):
     """Функции для работы с планами тренировок"""
     serializer_class = TrainingPlanSerializer
     queryset = TrainingPlan.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = [
+        IsCurUserOrTheirSpecialistPermission]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TrainingPlanFilter
     http_method_names = ['get', 'post', 'put', 'delete']
 
 
@@ -36,7 +42,10 @@ class DietPlanViewSet(viewsets.ModelViewSet):
     """Функции для работы с планами питания"""
     serializer_class = DietPlanSerializer
     queryset = DietPlan.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = [
+        IsCurUserOrTheirSpecialistPermission]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = DietPlanFilter
     http_method_names = ['get', 'post', 'put', 'delete']
 
     @action(detail=True, methods=['post'])
