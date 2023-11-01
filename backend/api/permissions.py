@@ -7,6 +7,7 @@ User = get_user_model()
 
 class ClientOrAdmin(BasePermission):
     """Права доступа для клиентов или администраторов"""
+
     def is_safe_request(self, request):
         return request.method in SAFE_METHODS
 
@@ -14,13 +15,16 @@ class ClientOrAdmin(BasePermission):
         return not request.user.is_specialist and request.user == obj.user
 
     def has_object_permission(self, request, view, obj):
-        return (self.is_safe_request(request)
-                or self.is_client_owner(request, obj)
-                or request.user.is_superuser)
+        return (
+            self.is_safe_request(request)
+            or self.is_client_owner(request, obj)
+            or request.user.is_superuser
+        )
 
 
 class SpecialistOrAdmin(BasePermission):
     """Права доступа для специалиста или администраторов"""
+
     def is_safe_request(self, request):
         return request.method in SAFE_METHODS
 
@@ -28,9 +32,11 @@ class SpecialistOrAdmin(BasePermission):
         return request.user.is_specialist and request.user == obj.specialist
 
     def has_object_permission(self, request, view, obj):
-        return (self.is_safe_request(request)
-                or self.is_client_owner(request, obj)
-                or request.user.is_superuser)
+        return (
+            self.is_safe_request(request)
+            or self.is_client_owner(request, obj)
+            or request.user.is_superuser
+        )
 
 
 class IsCurUserOrTheirSpecialistPermission(BasePermission):
@@ -41,6 +47,7 @@ class IsCurUserOrTheirSpecialistPermission(BasePermission):
     запроса через модель SpecialistClient и выдаем разрешение на
     использование данного вьюсета, если находим.
     """
+
     def has_permission(self, request, view):
         if all(
             (
@@ -59,11 +66,10 @@ class IsCurUserOrTheirSpecialistPermission(BasePermission):
                     "object."
                 )
             )
-        if request.method == "GET":
-            return request.user.specialist_client_spec.filter(
-                user=request.query_params.get("user")
-            ).exists()
-        elif request.method == "POST":
+        if request.method == "POST":
             return request.user.specialist_client_spec.filter(
                 user=request.data["user"]
             ).exists()
+        return request.user.specialist_client_spec.filter(
+            user=request.query_params.get("user")
+        ).exists()
