@@ -50,7 +50,13 @@ class IsCurUserOrTheirSpecialistPermission(BasePermission):
         ):
             raise ValidationError(
                 (
-                    "Query parameter user обязателен."
+                    "Query parameter user is compulsory for any get request."
+                    "Your request should look as:"
+                    "GET http://127.0.0.1:8000/api/diet-plans/"
+                    "?user=9181b013-a5ee-4ff8-a855-c1decd01c322 to get a list "
+                    "or GET http://127.0.0.1:8000/api/diet-plans/7/?"
+                    "user=9181b013-a5ee-4ff8-a855-c1decd01c322 to get one "
+                    "object."
                 )
             )
         if request.method == "GET":

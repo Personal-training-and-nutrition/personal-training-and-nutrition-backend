@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.test import Client, TestCase
+from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIRequestFactory, force_authenticate
 
@@ -186,6 +187,29 @@ class ClientsViewSetTests(TestCase):
         response = view(request)
         self.assertEqual(TrainingPlan.objects.count(), 3)
         self.assertEqual(response.status_code, 201)
+
+    def test_api_training_plans_get_list(self):
+        request = self.factory.get(
+            f"/api/training-plans/?user={ClientsViewSetTests.client_user.id}"
+        )
+        view = TrainingPlanViewSet.as_view({'get': 'list'})
+        force_authenticate(request, user=ClientsViewSetTests.specialist)
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data[0]["name"], "first plan, obviously")
+
+    def test_api_training_plans_get_error_without_user_query(self):
+        request = self.factory.get(
+            "/api/training-plans/"
+        )
+        view = TrainingPlanViewSet.as_view({'get': 'list'})
+        force_authenticate(request, user=ClientsViewSetTests.specialist)
+        response = view(request)
+        self.assertEqual(response.status_code, 400)
+        self.assertTrue(
+            response.data.get("errors")[0]["detail"].startswith(
+                "Query parameter user is compulsory")
+        )
 
     def test_api_users_create(self):
         response = self.client.post(
