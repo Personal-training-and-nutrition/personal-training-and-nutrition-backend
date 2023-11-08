@@ -9,7 +9,7 @@ OTHER_MAX_LENGTH = 128
 TEXT_MAX_LENGTH = 300
 NAME_MAX_LENGTH = 50
 NAME_MIN_LENGTH = 2
-PHONE_MAX_LENGTH = 18
+PHONE_MAX_LENGTH = 15
 PHONE_MIN_LENGTH = 9
 EMAIL_MAX_LENGTH = 50
 EMAIL_MIN_LENGTH = 5
@@ -48,7 +48,10 @@ SECRET_KEY = os.environ['SECRET_KEY']
 
 DEBUG = os.environ['DEBUG']
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(' ')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(' ')
+
+DOMAIN = 'wellcoaching.ru'
+SITE_NAME = 'WellCoach Site'
 
 # base
 INSTALLED_APPS = [
@@ -150,6 +153,8 @@ USE_TZ = True
 #  DJANGO REST FRAMEWORK
 ###########################
 REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES':
+        ('rest_framework.permissions.IsAuthenticated',),
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.BasicAuthentication',
@@ -262,6 +267,7 @@ DJOSER = {
     # 'SEND_CONFIRMATION_EMAIL': True,
     'SET_PASSWORD_RETYPE': True,
     # 'ACTIVATION_URL': 'api/activate/{uid}/{token}',
+    'PASSWORD_RESET_CONFIRM_URL': 'reset_password?uid={uid}&token={token}',
     'SOCIAL_AUTH_TOKEN_STRATEGY': 'djoser.social.token.jwt.TokenStrategy',
     'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': [
         'https://connect.mail.ru',
