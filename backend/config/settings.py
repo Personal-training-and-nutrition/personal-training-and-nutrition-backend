@@ -264,6 +264,8 @@ DJOSER = {
     # 'SEND_CONFIRMATION_EMAIL': True,
     'SET_PASSWORD_RETYPE': True,
     # 'ACTIVATION_URL': 'api/activate/{uid}/{token}',
+    'PASSWORD_RESET_CONFIRM_URL': True,
+    'PASSWORD_RESET_CONFIRM_RETYPE': True,
     'SOCIAL_AUTH_TOKEN_STRATEGY': 'djoser.social.token.jwt.TokenStrategy',
     'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': [
         'https://connect.mail.ru',
