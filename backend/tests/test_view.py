@@ -9,7 +9,7 @@ import json
 from api.serializers import ClientAddSerializer, ClientListSerializer
 from api.views import ClientsViewSet, DietPlanViewSet, TrainingPlanViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
-from users.models import SpecialistClient
+from users.models import Params, SpecialistClient
 from workouts.models import TrainingPlan
 
 from diets.models import DietPlan
@@ -52,6 +52,22 @@ class ClientsViewSetTests(TestCase):
         cls.client_obj = SpecialistClient.objects.create(
             specialist=ClientsViewSetTests.specialist,
             user=ClientsViewSetTests.client_user,
+        )
+        cls.pars = Params.objects.create(
+            weight=105.3,
+            waist_size=94,
+            height=158,
+            user=ClientsViewSetTests.client_user
+        )
+        cls.first_training_plan = TrainingPlan.objects.create(
+            specialist=ClientsViewSetTests.specialist,
+            user=ClientsViewSetTests.client_user,
+            name="first plan, obviously"
+        )
+        cls.second_training_plan = TrainingPlan.objects.create(
+            specialist=ClientsViewSetTests.specialist,
+            user=ClientsViewSetTests.another_user,
+            name="second plan"
         )
 
     def setUp(self):
@@ -168,8 +184,31 @@ class ClientsViewSetTests(TestCase):
         view = TrainingPlanViewSet.as_view({"get": "detail", "post": "create"})
         force_authenticate(request, user=ClientsViewSetTests.specialist)
         response = view(request)
-        self.assertEqual(TrainingPlan.objects.count(), 1)
+        self.assertEqual(TrainingPlan.objects.count(), 3)
         self.assertEqual(response.status_code, 201)
+
+    def test_api_training_plans_get_list(self):
+        request = self.factory.get(
+            f"/api/training-plans/?user={ClientsViewSetTests.client_user.id}"
+        )
+        view = TrainingPlanViewSet.as_view({'get': 'list'})
+        force_authenticate(request, user=ClientsViewSetTests.specialist)
+        response = view(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data[0]["name"], "first plan, obviously")
+
+    def test_api_training_plans_get_error_without_user_query(self):
+        request = self.factory.get(
+            "/api/training-plans/"
+        )
+        view = TrainingPlanViewSet.as_view({'get': 'list'})
+        force_authenticate(request, user=ClientsViewSetTests.specialist)
+        response = view(request)
+        self.assertEqual(response.status_code, 400)
+        self.assertTrue(
+            response.data.get("errors")[0]["detail"].startswith(
+                "Query parameter user is compulsory")
+        )
 
     def test_api_users_create(self):
         response = self.client.post(
@@ -198,21 +237,34 @@ class ClientsViewSetTests(TestCase):
         self.assertEqual(serializer_class, ClientAddSerializer)
 
     def test_retrieve(self):
-        response = self.client.get(f"/api/clients/{self.client_user.id}/")
+        response = self.client.get(f"/api/clients/{self.client_obj.id}/")
         serialized_response = json.loads(response.content)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        params_data = serialized_response["user"]["params"]
         response_data = {
-            "first_name": serialized_response.get("first_name"),
-            "last_name": serialized_response.get("last_name"),
-            "email": serialized_response.get("email"),
+            "first_name": serialized_response["user"]["first_name"],
+            "last_name": serialized_response["user"]["last_name"],
+            "email": serialized_response["user"]["email"],
             "age": serialized_response.get("age"),
+            "params": {
+                "weight": params_data["weight"],
+                "waist_size": params_data["waist_size"],
+                "height": params_data["height"],
+            },
+            "training_name": serialized_response["trainings"][0]["name"],
         }
         expected_data = {
             "first_name": self.client_user.first_name,
             "last_name": self.client_user.last_name,
             "email": self.client_user.email,
             "age": "Возраст не указан",
+            "params": {
+                "weight": 105.3,
+                "waist_size": 94,
+                "height": 158,
+            },
+            "training_name": ClientsViewSetTests.first_training_plan.name,
         }
         self.assertEqual(response_data, expected_data)
 

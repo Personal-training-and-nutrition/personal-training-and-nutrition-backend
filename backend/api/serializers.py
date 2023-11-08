@@ -294,7 +294,6 @@ class CustomUserSerializer(UserSerializer):
             "first_name",
             "last_name",
             "middle_name",
-            "password",
             "role",
             "email",
             "phone_number",
@@ -341,24 +340,26 @@ class CustomUserSerializer(UserSerializer):
         return instance
 
     def update(self, instance, validated_data, partial=True):
-        params_data = self.initial_data.get("params")[0]
-        specialist_data = self.initial_data.get("specialist")[0]
-        if params_data:
-            params_set = instance.params.all()
-            params_obj, created = params_set.get_or_create(
-                weight=params_data.get("weight"),
-                height=params_data.get("height"),
-                waist_size=params_data.get("waist_size"),
-                user=instance,
-            )
-        if specialist_data:
-            specialist_set = instance.specialist.all()
-            specialist_obj, created = specialist_set.get_or_create(
-                experience=specialist_data.get("experience"),
-                contacts=specialist_data.get("contacts"),
-                about=specialist_data.get("about"),
-                user=instance,
-            )
+        if self.initial_data.get("params"):
+            params_data = self.initial_data.get("params")[0]
+            if params_data:
+                params_set = instance.params.all()
+                params_obj, created = params_set.get_or_create(
+                    weight=params_data.get("weight"),
+                    height=params_data.get("height"),
+                    waist_size=params_data.get("waist_size"),
+                    user=instance,
+                )
+        if self.initial_data.get("specialist"):
+            specialist_data = self.initial_data.get("specialist")[0]
+            if specialist_data:
+                specialist_set = instance.specialist.all()
+                specialist_obj, created = specialist_set.get_or_create(
+                    experience=specialist_data.get("experience"),
+                    contacts=specialist_data.get("contacts"),
+                    about=specialist_data.get("about"),
+                    user=instance,
+                )
         instance = super().update(instance, validated_data)
         instance.save()
         return instance
@@ -509,14 +510,11 @@ class ClientAddSerializer(ModelSerializer):
             food_preferences=food_preferences,
         )
 
-    @transaction.atomic
-    def update(self, instance, validated_data):
-        instance.diseases = validated_data.get("diseases")
-        instance.exp_diets = validated_data.get("exp_diets")
-        instance.notes = validated_data.get("notes")
-        instance.exp_trainings = validated_data.get("exp_trainings")
-        instance.bad_habits = validated_data.get("bad_habits")
-        instance.food_preferences = validated_data.get("food_preferences")
+    def to_representation(self, obj):
+        params_data = obj.user.params.first()
+        ret = super().to_representation(obj)
+        ret["user"]["params"] = ParamsSerializer(params_data).data
+        return ret
 
 
 class UpdateClientSerializer(ModelSerializer):
@@ -537,24 +535,16 @@ class UpdateClientSerializer(ModelSerializer):
 class ClientProfileSerializer(ModelSerializer):
     """Сериализатор для карточки клиента"""
 
-    first_name = ReadOnlyField(source="user.first_name")
-    last_name = ReadOnlyField(source="user.last_name")
     age = SerializerMethodField()
-    phone_number = ReadOnlyField(source="user.phone_number")
-    email = ReadOnlyField(source="user.email")
-    params = ParamsSerializer(source="user.params")
+    user = ShowUserSerializer()
     trainings = SerializerMethodField(required=False)
     diets = SerializerMethodField(required=False)
 
     class Meta:
         model = SpecialistClient
         fields = (
-            "first_name",
-            "last_name",
-            "phone_number",
-            "email",
             "age",
-            "params",
+            "user",
             "diseases",
             "exp_diets",
             "exp_trainings",
@@ -577,10 +567,18 @@ class ClientProfileSerializer(ModelSerializer):
             return today.year - dob.year - 1
         return today.year - dob.year
 
+    @extend_schema_field(field=TrainingPlanSerializer(many=True))
     def get_trainings(self, obj):
-        queryset = obj.user.user_training_plan.all()
+        queryset = obj.user.user_training_plan.filter(user=obj.user)
         return TrainingPlanSerializer(queryset, many=True).data
 
+    @extend_schema_field(field=DietPlanSerializer(many=True))
     def get_diets(self, obj):
-        queryset = obj.user.diet_plan_user.all()
+        queryset = obj.user.diet_plan_user.filter(user=obj.user)
         return DietPlanSerializer(queryset, many=True).data
+
+    def to_representation(self, obj):
+        params_data = obj.user.params.first()
+        ret = super().to_representation(obj)
+        ret["user"]["params"] = ParamsSerializer(params_data).data
+        return ret
