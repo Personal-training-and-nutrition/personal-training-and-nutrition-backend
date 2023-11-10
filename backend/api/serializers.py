@@ -70,11 +70,13 @@ class TrainingPlanSerializer(ModelSerializer):
         training_plan = TrainingPlan.objects.create(**validated_data)
         return self.add_trainings(trainings, training_plan)
 
-    # def update(self, instance, validated_data):
-    #     instance.training.clear()
-    #     trainings = validated_data.pop("training")
-    #     instance = super().update(instance, validated_data)
-    #     return self.add_trainings(trainings, instance)
+    def update(self, instance, validated_data):
+        if validated_data.get("training") is None:
+            return super().update(instance, validated_data)
+        instance.training.clear()
+        trainings = validated_data.pop("training")
+        instance = super().update(instance, validated_data)
+        return self.add_trainings(trainings, instance)
 
 
 class DietsSerializer(ModelSerializer):
@@ -125,11 +127,13 @@ class DietPlanSerializer(ModelSerializer):
         diet_plan = DietPlan.objects.create(**validated_data)
         return self.add_diets(diets, diet_plan)
 
-    # def update(self, instance, validated_data):
-    #     instance.diet.clear()
-    #     diets = validated_data.pop("diet")
-    #     instance = super().update(instance, validated_data)
-    #     return self.add_diets(diets, instance)
+    def update(self, instance, validated_data):
+        if validated_data.get("diet") is None:
+            return super().update(instance, validated_data)
+        instance.diet.clear()
+        diets = validated_data.pop("diet")
+        instance = super().update(instance, validated_data)
+        return self.add_diets(diets, instance)
 
 
 class DietPlanLinkSerializer(Serializer):
