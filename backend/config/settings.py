@@ -1,8 +1,10 @@
 import os
+import sentry_sdk
 
 from datetime import timedelta
 from dotenv import find_dotenv, load_dotenv
 from pathlib import Path
+from sentry_sdk.integrations.django import DjangoIntegration
 
 # Global constants
 OTHER_MAX_LENGTH = 128
@@ -38,6 +40,15 @@ GENDER_CHOICES = (
     ('0', 'Absent'),
     ('1', 'Female'),
     ('2', 'Male'),
+)
+
+sentry_sdk.init(
+    dsn="https://365fe15efd8b24ff51cb43c6ac73b994@o4506224578199552.ingest.sentry.io/4506224587702272",
+    integrations=[
+        DjangoIntegration(),
+    ],
+    traces_sample_rate=1.0,
+    send_default_pii=True
 )
 
 load_dotenv(find_dotenv())
