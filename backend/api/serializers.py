@@ -10,6 +10,7 @@ from rest_framework.serializers import (
     SerializerMethodField, ValidationError,)
 
 import datetime
+import re
 
 from config.settings import GENDER_CHOICES, SPECIALIST_ROLE_CHOICES
 from djoser.serializers import UserSerializer
@@ -367,6 +368,41 @@ class CustomUserSerializer(UserSerializer):
         instance = super().update(instance, validated_data)
         instance.save()
         return instance
+
+    def validate(self, attrs):
+        """Validate user's input."""
+        name = attrs.get("first_name")
+        surname = attrs.get("last_name")
+        mid_name = attrs.get("middle_name")
+        email = attrs.get("email")
+        dob = attrs.get("dob")
+        if any((
+            (name and not re.search(r"[а-яА-Я]", name)),
+            (surname and not re.search(r"[а-яА-Я]", surname)),
+            (mid_name and not re.search(r"[а-яА-Я]", mid_name))
+        )):
+            raise ValidationError(
+                (
+                    "Имя, фамилия и отчество должны включать в себя "
+                    "только буквы русского алфавита."
+                )
+            )
+        if email and not re.search(r"[0-9a-zA-Z.]+@[a-zA-Z]+\.[a-z]+", email):
+            raise ValidationError(
+                (
+                    "Почта должна включать в себя только латинские заглавные "
+                    "и строчные буквы, цифры и точку."
+                    " Иные знаки не допускаются"
+                )
+            )
+        if dob and dob.year < 1890:
+            raise ValidationError(
+                (
+                    "Люди пока не живут дольше 130 лет. Кого "
+                    "Вы пытаетесь зарегистрировать?"
+                )
+            )
+        return attrs
 
 
 class ShowUserSerializer(ModelSerializer):

@@ -188,6 +188,33 @@ class ClientsViewSetTests(TestCase):
         )
         self.assertEqual(response.status_code, 201)
 
+    def test_api_params_create(self):
+        response = self.client.post(
+            "/api/params/",
+            {
+                "weight": 15,
+                "height": 83,
+                "waist_size": 39,
+                "user": ClientsViewSetTests.client_user.id,
+            },
+        )
+        self.assertEqual(response.status_code, 201)
+
+    def test_api_fetch_last_returns_last(self):
+        _ = self.client.post(
+            "/api/params/",
+            {
+                "weight": 25,
+                "height": 93,
+                "waist_size": 43,
+                "user": ClientsViewSetTests.client_user.id,
+            },
+        )
+        response = self.client.get("/api/params/fetch_last/")
+        serialized_response = json.loads(response.content)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(serialized_response["weight"], 25)
+
     def test_get_serializer_class_list(self):
         view = ClientsViewSet()
         view.action = "list"
