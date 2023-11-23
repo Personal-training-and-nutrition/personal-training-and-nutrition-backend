@@ -24,6 +24,13 @@ from diets.models import DietPlan, DietPlanDiet, Diets
 User = get_user_model()
 
 
+class ParamsSerializer(ModelSerializer):
+    """Сериализатор для модели параметров."""
+    class Meta:
+        model = Params
+        exclude = ("created_at",)
+
+
 class TrainingSerializer(ModelSerializer):
     """Сериализатор тренировок"""
 

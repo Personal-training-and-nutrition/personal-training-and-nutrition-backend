@@ -8,7 +8,7 @@ from rest_framework.response import Response
 
 from djoser.conf import settings
 from djoser.views import UserViewSet
-from users.models import SpecialistClient
+from users.models import Params, SpecialistClient
 from workouts.models import TrainingPlan
 
 from diets.models import DietPlan
@@ -17,10 +17,28 @@ from .permissions import ClientOrAdmin, SpecialistOrAdmin
 from .serializers import (ClientAddSerializer, ClientListSerializer,
                           ClientProfileSerializer, CustomUserSerializer,
                           DietListSerializer, DietPlanLinkSerializer,
-                          DietPlanSerializer, TrainingPlanSerializer,
-                          UpdateClientSerializer, WorkoutListSerializer,)
+                          DietPlanSerializer, ParamsSerializer,
+                          TrainingPlanSerializer, UpdateClientSerializer,
+                          WorkoutListSerializer)
 
 User = get_user_model()
+
+
+class ParamsViewSet(viewsets.ModelViewSet):
+    """Функции для работы с объектами параметров."""
+    serializer_class = ParamsSerializer
+    queryset = Params.objects.all()
+    permission_classes = (IsAuthenticated,)
+    http_method_names = ['get', 'post', 'put', 'delete']
+
+    @action(detail=False)
+    def fetch_last(self, request, *args, **kwargs):
+        """Получить последнее значение параметров пользователя."""
+        # in order to work as expected we need to add ordering to
+        # params model's meta class
+        params = Params.objects.first()
+        serializer = ParamsSerializer(params)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
 class TrainingPlanViewSet(viewsets.ModelViewSet):
