@@ -19,7 +19,7 @@ from .serializers import (ClientAddSerializer, ClientListSerializer,
                           DietListSerializer, DietPlanLinkSerializer,
                           DietPlanSerializer, ParamsSerializer,
                           TrainingPlanSerializer, UpdateClientSerializer,
-                          WorkoutListSerializer)
+                          WorkoutListSerializer,)
 
 User = get_user_model()
 
@@ -34,8 +34,6 @@ class ParamsViewSet(viewsets.ModelViewSet):
     @action(detail=False)
     def fetch_last(self, request, *args, **kwargs):
         """Получить последнее значение параметров пользователя."""
-        # in order to work as expected we need to add ordering to
-        # params model's meta class
         params = Params.objects.first()
         serializer = ParamsSerializer(params)
         return Response(data=serializer.data, status=status.HTTP_200_OK)

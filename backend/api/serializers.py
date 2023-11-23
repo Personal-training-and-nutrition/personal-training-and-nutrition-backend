@@ -1,4 +1,3 @@
-import re
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
@@ -11,6 +10,7 @@ from rest_framework.serializers import (
     SerializerMethodField, ValidationError,)
 
 import datetime
+import re
 
 from config.settings import GENDER_CHOICES, SPECIALIST_ROLE_CHOICES
 from djoser.serializers import UserSerializer
