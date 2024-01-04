@@ -50,6 +50,8 @@ DEBUG = os.environ['DEBUG']
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(' ')
 
+MODE = os.environ['MODE']
+
 # base
 INSTALLED_APPS = [
     'django.contrib.admin',
