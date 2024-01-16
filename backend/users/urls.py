@@ -1,16 +1,11 @@
 from django.urls import include, path
 from rest_framework import routers
 
-from .views import (ActivateUser, ClientsViewSet, CustomUserViewSet,
-                    DietPlanViewSet, TrainingPlanViewSet,)
-
-app_name = 'api'
+from users.views import ActivateUser, ClientsViewSet, CustomUserViewSet
 
 router = routers.DefaultRouter()
 
-router.register(
-    r'training-plans', TrainingPlanViewSet, basename='training-plans')
-router.register(r'diet-plans', DietPlanViewSet, basename='diet-plans')
+
 router.register(r'users', CustomUserViewSet, basename='users')
 router.register(r'clients', ClientsViewSet, basename='clients')
 
