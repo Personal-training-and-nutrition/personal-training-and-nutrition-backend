@@ -150,3 +150,53 @@
    ```
 
 3. Заходишь по адресу http://127.0.0.1:8000/admin со своим почтой и паролем
+
+
+# Запуск docker-compose с Frontend'ом
+
+#### 1. Склонировать репозиторий:
+```bash
+git clone git@github.com:Personal-training-and-nutrition/personal-training-and-nutrition-backend.git
+```
+
+#### 2. Перейти в ветку `infra/docker_front_and_back`:
+```bash
+git checkout infra/docker_front_and_back
+git pull
+```
+#### 3. Разметить актульный .env-файл в корне приложения `personal-training-and-nutrition-backend/`
+#### 4. Собрать и запустить контейнеры приложения из корневого каталога приложения:
+```bash
+cd personal-training-and-nutrition-backend/
+docker-compose up --build
+```
+#### 5. Открыть второй терминал. В нем открыть терминал контейнера `backend`:
+```bash
+docker exec -it backend bash
+```
+В командной строке должно появиться что-то типа:
+```bash
+root@4506fce0b38e:/app#
+```
+
+#### 6. В терминале контейнера `backend`(важно) собрать статику, создать миграции, применить их, создать суперпользователя для админки:
+```bash
+# Собираем статику:
+python manage.py collectstatic
+
+# Создаем миграции. Так как в репе нет файлов миграции 
+# нужно создавать миграции для каждого отдельного приложения 
+# с флагом --no-input
+python manage.py makemigrations diets --no-input
+python manage.py makemigrations users --no-input
+python manage.py makemigrations workouts --no-input
+
+# Применяем миграции:
+python manage.py migrate
+
+# Создаем суперпользователя:
+python manage.py createsuperuser
+```
+#### 7. Закрыть терминал контейнера `backend`, нажав сочетание клавиш `Ctrl` + `D`
+
+## Проект запускается на 9000 порту `http://127.0.0.1:9000/`

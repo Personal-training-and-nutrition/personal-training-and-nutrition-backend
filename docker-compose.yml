@@ -3,7 +3,7 @@ version: '3.3'
 services:
   frontend_nutr:
     container_name: front_ptan_test
-    build: ./personal-training-and-nutrition-frontend
+    build: ./frontend
     volumes:
       - volumes_front:/app/dist/
   db:
