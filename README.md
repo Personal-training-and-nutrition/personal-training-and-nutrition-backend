@@ -186,13 +186,6 @@ root@4506fce0b38e:/app#
 # Собираем статику:
 python manage.py collectstatic
 
-# Создаем миграции. Так как в репе нет файлов миграции 
-# нужно создавать миграции для каждого отдельного приложения 
-# с флагом --no-input
-python manage.py makemigrations diets --no-input
-python manage.py makemigrations users --no-input
-python manage.py makemigrations workouts --no-input
-
 # Применяем миграции:
 python manage.py migrate
 
